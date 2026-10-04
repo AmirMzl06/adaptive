@@ -1,6 +1,4 @@
-I have no name!@mm8-speech-0-0:~/sam/result/Aggregate$ python robust_eval.py \
-  /home/mirzaei/sam/result/Aggregate/ACORN_NOISE_EPS_CC012/C-CO12_20261003_165748_357235 \
-  /home/mirzaei/sam/result/Aggregate/ACORN_STRUCTURED_ATTACK_CC012/C-CO12_20261003_165906_998988
+I have no name!@mm8-speech-0-0:~/sam/result/Aggregate$ python robust_eval.py 
 usage: robust_eval.py [-h] [--cebra-dir CEBRA_DIR] [--data-dir DATA_DIR] [--session SESSION] [--out-root OUT_ROOT]
                       [--attacks {clean,constant,noise,gain,baseline,gain_baseline} [{clean,constant,noise,gain,baseline,gain_baseline} ...]] [--objective {decoder_mse,embedding}]
                       [--epsilon EPSILON [EPSILON ...]] [--noise-coef NOISE_COEF [NOISE_COEF ...]] [--noise-model {poisson_gaussian,poisson,gaussian}] [--noise-smoothing NOISE_SMOOTHING]
@@ -8,4 +6,5 @@ usage: robust_eval.py [-h] [--cebra-dir CEBRA_DIR] [--data-dir DATA_DIR] [--sess
                       [--baseline-floor BASELINE_FLOOR] [--steps STEPS] [--alpha-ratio ALPHA_RATIO] [--restarts RESTARTS] [--batch-size BATCH_SIZE] [--attack-seed ATTACK_SEED]
                       [--device DEVICE]
                       run_dirs [run_dirs ...]
-robust_eval.py: error: Not a directory: /home/mirzaei/sam/result/Aggregate/ACORN_NOISE_EPS_CC012/C-CO12_20261003_165748_357235
+robust_eval.py: error: the following arguments are required: run_dirs
+I have no name!@mm8-speech-0-0:~/sam/result/Aggregate$ 
