@@ -1,1 +1,5 @@
 start_trainer.py --datasetPath /data/hossein/mm_project/CORP_data_release --offset 4 --out_dir nlp21-l208-rdpns0-offset10ro --gru --gauss_in  --bidir --batchSize 16   --whiteNoiseSD 0.8 --constantOffsetSD 0.2 --adv --adv_eps 0.8 --adv_norm l2 --no_noise   --random_offset --hidden 1024 --dropout 0.4 --layers 5 --nBatch 20000 --kernel 32 --stride 4 --seed 0 
+
+
+for eval and cer :
+eval_single_model.py --datasetPath /data/hossein/mm_project/CORP_data_release --out_dir nlp21-l208-rdpns0-offset10ro 
