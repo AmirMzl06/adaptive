@@ -1,1 +1,69 @@
-bbin kolan pgd va cebra ro faramosh kon man oonaro ghablan roye in dataset gereftam va nemikham onaro dobare begiram, khob to alan kamel data loader ha va nahveye train end to end va ctc loss ro didi, hala mikham baram in code haro bzni, aval yek file code baraye architecture hai ke tooye zahnat hast ke mitone bahal bashe va reshte kone "runer" mesle strat_trainer.py .. code bazi have lazeme ro bezan va aslan be code haye alan proje dast nazan va faghat code jadid bede ke man beram run konam va result haii ke barat moheme ro ham befrestam, nahveye arzeshyabi ham mesle eval single.py bashe va akhare run codi ke midi cer print kone ( ham seen ham mesle proje (eval single)). mikhaym tooye runer in halat haro bezari , halate ke roy neuron ha noise gaussi ba std sefareshi dashte bashim, halati ke roy neuron ha noise gaussi ba std sefareshi dashte bashim, noise roye bedding (baraye ctc) va kolan bedon noise 
+ACORN calibrated experiment | C-CO12 | data /data/hossein/mm_project/perich_data_valid_final_raw/C-CO12.npz
+oracle=random tau=0.05 | reference ridge held-out R2=0.8055 | seeds=[42, 43, 44] | max_iter=3000 | eval on VALID: PGD 50 steps x 2 restarts; scales=[0.25, 0.5, 1.0]; random=True
+
+CALIBRATED BUDGETS (1.0 x; used for training AND evaluation)
+  constant       0.6905               [ok]
+  noise          1.205                [ok]
+  gain           0.4994               [ok]
+  baseline       0.6537               [ok]
+  gain_baseline  0.3541/0.4635        [ok]
+
+PGD (worst case) at 1 x calibrated budget: VALID mean R2 (mean +- std over seeds)
+  mean |delta| / neuron std: constant=0.695, noise=0.554, gain=0.293, baseline=0.526, gain_baseline=0.464
+arm                          clean          constant             noise              gain          baseline     gain_baseline
+clean               0.6852 +-0.012   -3.6189 +-0.402   -3.5622 +-0.382   -0.8986 +-0.098   -1.6177 +-0.121   -2.3316 +-0.180
+constant            0.6804 +-0.009   -1.7893 +-1.162   -2.5653 +-0.908   -0.8444 +-0.282   -0.7427 +-0.807   -1.5431 +-0.653
+noise               0.6996 +-0.009   -1.7914 +-0.739   -2.0942 +-0.592   -0.7638 +-0.148   -0.9161 +-0.218   -1.3288 +-0.243
+gain                0.6820 +-0.002   -2.6800 +-0.093   -2.6083 +-0.081    0.5712 +-0.009   -0.7546 +-0.125   -0.7240 +-0.118
+baseline            0.6719 +-0.010   -3.9336 +-0.076   -3.8521 +-0.089   -0.1870 +-0.057    0.6465 +-0.010    0.1746 +-0.024
+gain_baseline       0.6896 +-0.014   -2.8908 +-0.317   -2.9336 +-0.320    0.4792 +-0.006    0.6410 +-0.014    0.5035 +-0.008
+
+PGD (worst case) at 0.5 x calibrated budget: VALID mean R2 (mean +- std over seeds)
+  mean |delta| / neuron std: constant=0.388, noise=0.314, gain=0.162, baseline=0.288, gain_baseline=0.264
+arm                          clean          constant             noise              gain          baseline     gain_baseline
+clean               0.6852 +-0.012   -2.3547 +-0.232   -2.2341 +-0.181    0.2857 +-0.046   -0.0560 +-0.070   -0.3548 +-0.090
+constant            0.6804 +-0.009   -0.9258 +-1.130   -1.2941 +-1.170    0.3262 +-0.068    0.0541 +-0.419   -0.1902 +-0.434
+noise               0.6996 +-0.009   -1.5367 +-0.280   -1.5855 +-0.227    0.1719 +-0.021   -0.2361 +-0.073   -0.4569 +-0.131
+gain                0.6820 +-0.002   -1.4167 +-0.062   -1.1370 +-0.063    0.6398 +-0.004    0.2112 +-0.045    0.3376 +-0.031
+baseline            0.6719 +-0.010   -3.0949 +-0.091   -2.9857 +-0.106    0.4315 +-0.007    0.6601 +-0.010    0.5114 +-0.003
+gain_baseline       0.6896 +-0.014   -1.4129 +-0.056   -1.5116 +-0.046    0.6197 +-0.011    0.6681 +-0.014    0.6234 +-0.012
+
+PGD (worst case) at 0.25 x calibrated budget: VALID mean R2 (mean +- std over seeds)
+  mean |delta| / neuron std: constant=0.229, noise=0.189, gain=0.085, baseline=0.154, gain_baseline=0.142
+arm                          clean          constant             noise              gain          baseline     gain_baseline
+clean               0.6852 +-0.012   -0.6287 +-0.035   -0.4675 +-0.036    0.5548 +-0.023    0.4667 +-0.027    0.3901 +-0.036
+constant            0.6804 +-0.009   -0.2234 +-0.682   -0.2412 +-0.637    0.5671 +-0.021    0.4586 +-0.140    0.4168 +-0.129
+noise               0.6996 +-0.009   -0.6979 +-0.141   -0.5994 +-0.116    0.5314 +-0.023    0.3529 +-0.052    0.2835 +-0.035
+gain                0.6820 +-0.002   -0.0612 +-0.044    0.1348 +-0.041    0.6626 +-0.003    0.5574 +-0.014    0.5843 +-0.011
+baseline            0.6719 +-0.010   -1.4687 +-0.132   -1.2881 +-0.119    0.5810 +-0.006    0.6662 +-0.010    0.6067 +-0.007
+gain_baseline       0.6896 +-0.014    0.0565 +-0.027    0.0372 +-0.023    0.6595 +-0.013    0.6793 +-0.014    0.6606 +-0.014
+
+RANDOM (one uniform draw, no optimisation) at 1 x calibrated budget: VALID mean R2 (mean +- std over seeds)
+  mean |delta| / neuron std: constant=0.600, noise=0.480, gain=0.176, baseline=0.327, gain_baseline=0.293
+arm                          clean          constant             noise              gain          baseline     gain_baseline
+clean               0.6852 +-0.012    0.6693 +-0.012    0.6693 +-0.012    0.6728 +-0.012    0.6701 +-0.011    0.6708 +-0.012
+constant            0.6804 +-0.009    0.2690 +-0.352    0.5836 +-0.071    0.6554 +-0.022    0.6030 +-0.052    0.6271 +-0.018
+noise               0.6996 +-0.009    0.3642 +-0.132    0.5183 +-0.067    0.6387 +-0.031    0.5869 +-0.055    0.6187 +-0.041
+gain                0.6820 +-0.002    0.6482 +-0.010    0.6600 +-0.008    0.6822 +-0.002    0.6240 +-0.015    0.6576 +-0.007
+baseline            0.6719 +-0.010    0.6506 +-0.011    0.6509 +-0.011    0.6664 +-0.010    0.6719 +-0.010    0.6693 +-0.010
+gain_baseline       0.6896 +-0.014    0.6801 +-0.013    0.6782 +-0.012    0.6881 +-0.014    0.6895 +-0.014    0.6887 +-0.014
+
+RANDOM (one uniform draw, no optimisation) at 0.5 x calibrated budget: VALID mean R2 (mean +- std over seeds)
+  mean |delta| / neuron std: constant=0.300, noise=0.240, gain=0.088, baseline=0.163, gain_baseline=0.146
+arm                          clean          constant             noise              gain          baseline     gain_baseline
+clean               0.6852 +-0.012    0.6814 +-0.012    0.6814 +-0.012    0.6825 +-0.012    0.6820 +-0.011    0.6821 +-0.012
+constant            0.6804 +-0.009    0.5655 +-0.120    0.6729 +-0.008    0.6760 +-0.011    0.6675 +-0.011    0.6715 +-0.010
+noise               0.6996 +-0.009    0.6759 +-0.028    0.6855 +-0.018    0.6916 +-0.012    0.6840 +-0.018    0.6883 +-0.014
+gain                0.6820 +-0.002    0.6745 +-0.005    0.6777 +-0.004    0.6822 +-0.002    0.6721 +-0.005    0.6773 +-0.003
+baseline            0.6719 +-0.010    0.6677 +-0.010    0.6676 +-0.011    0.6706 +-0.010    0.6719 +-0.010    0.6713 +-0.010
+gain_baseline       0.6896 +-0.014    0.6870 +-0.014    0.6868 +-0.014    0.6894 +-0.014    0.6896 +-0.014    0.6894 +-0.014
+
+RANDOM (one uniform draw, no optimisation) at 0.25 x calibrated budget: VALID mean R2 (mean +- std over seeds)
+  mean |delta| / neuron std: constant=0.150, noise=0.120, gain=0.044, baseline=0.082, gain_baseline=0.073
+arm                          clean          constant             noise              gain          baseline     gain_baseline
+clean               0.6852 +-0.012    0.6842 +-0.012    0.6842 +-0.012    0.6846 +-0.012    0.6845 +-0.012    0.6844 +-0.012
+constant            0.6804 +-0.009    0.6693 +-0.004    0.6787 +-0.009    0.6797 +-0.010    0.6790 +-0.010    0.6788 +-0.009
+noise               0.6996 +-0.009    0.6970 +-0.011    0.6973 +-0.010    0.6985 +-0.009    0.6976 +-0.010    0.6979 +-0.010
+gain                0.6820 +-0.002    0.6801 +-0.003    0.6810 +-0.003    0.6821 +-0.002    0.6806 +-0.003    0.6808 +-0.002
+baseline            0.6719 +-0.010    0.6709 +-0.010    0.6709 +-0.010    0.6716 +-0.010    0.6719 +-0.010    0.6718 +-0.010
+gain_baseline       0.6896 +-0.014    0.6888 +-0.014    0.6888 +-0.014   
