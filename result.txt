@@ -1,44 +1,16 @@
-CER (greedy CTC, no LM) -- lower is better
-run                        seen unseen_norecal   unseen_recal     unseen_all    eval_single         T_gain        emb_std  description
-none                     0.1256         0.4642         0.4872         0.4794         0.4280            nan            nan  baseline: one encoder, CTC only
-none_in08                0.0352         0.2420         0.2771         0.2652         0.2318            nan            nan  baseline + input noise (standard augmentation)
-split_noaux              0.1176         0.4695         0.4934         0.4853         0.4319            nan            nan  split encoders, CTC only (architecture effect)
-T                        0.1167         0.4679         0.4818         0.4771         0.4247         0.0876         0.9655  split-brain: predict other array's activity
-L                        0.0781         0.4139         0.4393         0.4307         0.3795            nan         0.9737  split-brain: predict other array's latent
-M                        0.0805         0.4172         0.4334         0.4279         0.3775         0.1794         0.8974  split-brain: activity + latent
-M_freeze                 0.0853         0.3973         0.4177         0.4108         0.3635         0.0129         0.8203  split-brain pretrain -> frozen encoders -> CTC
-M_in08                   0.0347         0.2407         0.2705         0.2604         0.2276         0.1415         0.9276  M + input noise
-M_emb05                  0.0603         0.3716         0.3966         0.3881         0.3405         0.2381         0.9176  M + embedding noise (CTC path)
-M_random                 0.0868         0.4006         0.4231         0.4154         0.3677         0.1795         0.8955  random channel split instead of arrays
-M_freeze_linear          0.9161         0.9328         0.9281         0.9297         0.9277         0.0129         0.8448  linear CTC probe on frozen features
-M_finetune               0.1193         0.4795         0.5056         0.4967         0.4419         0.0129         0.8203  split-brain pretrain -> full fine-tune
-gru_none                 0.1063         0.4514         0.4715         0.4647         0.4126            nan            nan  GRU encoder baseline
-gru_M                    0.1027         0.5144         0.5363         0.5288         0.4669         0.6273         0.8997  GRU encoder + split-brain
-conformer_none           0.0533         0.3109         0.3367         0.3279         0.2880            nan            nan  Conformer encoder baseline
-conformer_M              0.0345         0.2769         0.3094         0.2984         0.2601         1.2040         0.9251  Conformer encoder + split-brain
-
-[split check] mean |corr| within A: 0.0194 | within B: 0.0197 | between A-B: 0.0161
-saved sb_runs/summary.csv
-mirzaei@haas034:~$ runai delete job mm8-nlp21 -p upmwmathis-mirzaei
-Job mm8-nlp21 deleted successfully.
-mirzaei@haas034:~$ cd sam/result/nlpich
-mirzaei@haas034:~/sam/result/nlpich$ cd sb_runs/
-mirzaei@haas034:~/sam/result/nlpich/sb_runs$ cat summary.csv 
-run,seen,unseen_norecal,unseen_recal,unseen_all,eval_single,T_gain,emb_std,description
-none,0.125603,0.464165,0.487192,0.479374,0.427991,nan,nan,"baseline: one encoder, CTC only"
-none_in08,0.035198,0.242037,0.277058,0.265167,0.231766,nan,nan,"baseline + input noise (standard augmentation)"
-split_noaux,0.117647,0.469474,0.493395,0.485273,0.431878,nan,nan,"split encoders, CTC only (architecture effect)"
-T,0.116683,0.467905,0.481796,0.477080,0.424735,0.087600,0.965500,"split-brain: predict other array's activity"
-L,0.078110,0.413851,0.439310,0.430667,0.379460,nan,0.973700,"split-brain: predict other array's latent"
-M,0.080521,0.417230,0.433418,0.427922,0.377464,0.179400,0.897400,"split-brain: activity + latent"
-M_freeze,0.085342,0.397321,0.417726,0.410798,0.363528,0.012900,0.820300,"split-brain pretrain -> frozen encoders -> CTC"
-M_in08,0.034716,0.240709,0.270483,0.260374,0.227599,0.141500,0.927600,"M + input noise"
-M_emb05,0.060270,0.371622,0.396638,0.388145,0.340523,0.238100,0.917600,"M + embedding noise (CTC path)"
-M_random,0.086789,0.400579,0.423060,0.415427,0.367695,0.179500,0.895500,"random channel split instead of arrays"
-M_freeze_linear,0.916104,0.932794,0.928053,0.929663,0.927694,0.012900,0.844800,"linear CTC probe on frozen features"
-M_finetune,0.119335,0.479488,0.505551,0.496702,0.441892,0.012900,0.820300,"split-brain pretrain -> full fine-tune"
-gru_none,0.106316,0.451375,0.471500,0.464668,0.412619,nan,nan,"GRU encoder baseline"
-gru_M,0.102700,0.514358,0.536253,0.528819,0.466928,0.627300,0.899700,"GRU encoder + split-brain"
-conformer_none,0.053279,0.310931,0.336662,0.327926,0.288035,nan,nan,"Conformer encoder baseline"
-conformer_M,0.034474,0.276906,0.309434,0.298390,0.260058,1.204000,0.925100,"Conformer encoder + split-brain"
-mirzaei@haas034:~/sam/result/nlpich/sb_runs$ 
+runai submit --name mm8-sb-adamw \
+  --image registry.rcp.epfl.ch/upmwmathis-mirzaei/robust-cebra:v0.4 \
+  --gpu 1 \
+  --cpu 64 \
+  --memory 256Gi \
+  --node-pools h200 \
+  --large-shm \
+  --pvc home:/home/mirzaei \
+  --pvc upmwmathis-scratch:/data \
+  -e HOME=/home/mirzaei \
+  -e USER=mirzaei \
+  -e LOGNAME=mirzaei \
+  -e LD_LIBRARY_PATH=/home/mirzaei/lm-cebra/.venv/lib/python3.10/site-packages/nvidia/cu13/lib:/usr/local/nvidia/lib:/usr/local/nvidia/lib64 \
+  -p upmwmathis-mirzaei \
+  --run-as-user \
+  --command -- bash -lc 'set -e; source /home/mirzaei/lm-cebra/.venv/bin/activate; cd /home/mirzaei/sam/result/Aggregate; python -u run_split_brain_suite.py --datasetPath /data/hossein/mm_project/CORP_data_release --root /home/mirzaei/sam/result/Aggregate/sb_adamw_selected_s0 --gpus 0 --only M_in08,M_emb05,M_freeze --extra="--optim=adamw --adamw_lr=0.001 --seed=0"; python -u run_split_brain_suite.py --datasetPath /data/hossein/mm_project/CORP_data_release --root /home/mirzaei/sam/result/Aggregate/sb_conformer_in08_s0 --gpus 0 --only conformer_none,conformer_M --extra="--optim=adamw --adamw_lr=0.001 --input_noise_sd=0.8 --seed=0"'
