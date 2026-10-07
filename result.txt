@@ -1,16 +1,31 @@
-runai submit --name mm8-sb-adamw \
-  --image registry.rcp.epfl.ch/upmwmathis-mirzaei/robust-cebra:v0.4 \
-  --gpu 1 \
-  --cpu 64 \
-  --memory 256Gi \
-  --node-pools h200 \
-  --large-shm \
-  --pvc home:/home/mirzaei \
-  --pvc upmwmathis-scratch:/data \
-  -e HOME=/home/mirzaei \
-  -e USER=mirzaei \
-  -e LOGNAME=mirzaei \
-  -e LD_LIBRARY_PATH=/home/mirzaei/lm-cebra/.venv/lib/python3.10/site-packages/nvidia/cu13/lib:/usr/local/nvidia/lib:/usr/local/nvidia/lib64 \
-  -p upmwmathis-mirzaei \
-  --run-as-user \
-  --command -- bash -lc 'set -e; source /home/mirzaei/lm-cebra/.venv/bin/activate; cd /home/mirzaei/sam/result/Aggregate; python -u run_split_brain_suite.py --datasetPath /data/hossein/mm_project/CORP_data_release --root /home/mirzaei/sam/result/Aggregate/sb_adamw_selected_s0 --gpus 0 --only M_in08,M_emb05,M_freeze --extra="--optim=adamw --adamw_lr=0.001 --seed=0"; python -u run_split_brain_suite.py --datasetPath /data/hossein/mm_project/CORP_data_release --root /home/mirzaei/sam/result/Aggregate/sb_conformer_in08_s0 --gpus 0 --only conformer_none,conformer_M --extra="--optim=adamw --adamw_lr=0.001 --input_noise_sd=0.8 --seed=0"'
+[m1rzaei@haas034 ~/sam/result/Aggregate/ACORN_MARGIN_CAP_SWEEP/caps4_6_seed42]$ cat summary.txt
+MARGIN_CAP SWEEP | 10 sessions | seeds=[42] | iterations=3000 | clean-input VALID R2 (all label columns)
+previous results (fixed eps_3, margin_std2): /home/mirzaei/sam/result/Aggregate/ACORN_MARGIN_VS_FIXED_RANDOM10/selection_seed_42_n10/summary.csv
+
+Per session: VALID R2 [margin arms: mean per-sample epsilon of the last batch in x median neuron std, % of samples at the cap]
+session         fixed eps_3             margin std2             margin std4             margin std6
+C-C011          0.805                   0.763 [1.53x, 58%]      0.794 [2.54x, 50%]      0.797 [3.72x, 56%]
+C-C021          0.800                   0.775 [1.39x, 51%]      0.813 [2.35x, 51%]      0.796 [3.45x, 55%]
+C-C022          0.804                   0.763 [1.37x, 47%]      0.800 [2.49x, 53%]      0.798 [3.45x, 52%]
+C-C025          0.809                   0.759 [1.36x, 48%]      0.799 [2.41x, 50%]      0.798 [3.38x, 52%]
+C-C035          0.789                   0.758 [1.38x, 50%]      0.792 [2.36x, 51%]      0.772 [3.52x, 53%]
+C-C038          0.782                   0.732 [1.48x, 59%]      0.795 [2.36x, 49%]      0.793 [3.44x, 51%]
+C-C041          0.730                   0.679 [1.46x, 60%]      0.739 [2.39x, 50%]      0.732 [3.56x, 50%]
+M-C019          0.787                   0.694 [1.65x, 72%]      0.789 [2.60x, 48%]      0.785 [3.52x, 51%]
+M-C04           0.745                   0.643 [1.73x, 79%]      0.742 [3.14x, 67%]      0.741 [4.01x, 57%]
+M-RT2           0.624                   0.519 [1.66x, 58%]      0.534 [2.22x, 13%]      0.644 [3.28x, 40%]
+MEAN            0.7675                  0.7084 [1.50x]          0.7597 [2.49x]          0.7653 [3.53x]
+
+PAIRED DIFFERENCES in VALID R2 (same session and seed)
+  margin_std2 - fixed eps_3 : -0.0591 mean, -0.0498 median, better in 0/10, Wilcoxon p=0.00195
+  margin_std4 - fixed eps_3 : -0.0078 mean, -0.0008 median, better in 5/10, Wilcoxon p=0.846
+  margin_std4 - margin_std2 : +0.0512 mean, +0.0388 median, better in 10/10, Wilcoxon p=0.00195
+  margin_std6 - fixed eps_3 : -0.0022 mean, -0.0043 median, better in 3/10, Wilcoxon p=0.375
+  margin_std6 - margin_std2 : +0.0569 mean, +0.0454 median, better in 10/10, Wilcoxon p=0.00195
+
+TREND over the cap (margin std2 < margin std4 < margin std6), 10 complete sessions:
+  mean VALID R2: margin std2=0.7084, margin std4=0.7597, margin std6=0.7653
+  R2 increases at every larger cap in 2/10 sessions
+  best cap per session: margin std2: 0, margin std4: 8, margin std6: 2
+  within-session correlation (mean epsilon x std vs R2): mean r = +0.780 over 10 sessions
+[m1rzaei@haas034 ~/sam/result/Aggregate/ACORN_MARGIN_CAP_SWEEP/caps4_6_seed42]$
