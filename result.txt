@@ -1,36 +1,72 @@
-============================================================
-1) ADAMW CONTROLLED EXPERIMENTS
-============================================================
-run        seen      unseen_norecal  unseen_recal  unseen_all  eval_single  T_gain    emb_std   description                                       
-none       0.047252  0.282457        0.315698      0.304412    0.267061     nan       nan       "baseline: one encoder                             CTC only"
-none_in08  0.024349  0.180743        0.202754      0.195281    0.170454     nan       nan       "baseline + input noise (standard augmentation)"  
-M_in08     0.026037  0.241313        0.267692      0.258736    0.224938     0.776200  0.942900  "M + input noise"                                 
-M_emb05    0.031099  0.312500        0.346089      0.334685    0.290591     1.109700  0.932700  "M + embedding noise (CTC path)"                  
+                                                                                                                                
+mirzaei@haas034:~$ runai logs mm8-sb-all -p upmwmathis-mirzaei -f
+already finished, skipping: none, none_in08, split_noaux, T, L, M, M_freeze, M_in08, M_emb05, M_random, M_freeze_linear, M_finetune, gru_none, gru_M, conformer_none, conformer_M, M_freeze_rand, M_freeze_lam10, M_lam10
+[18:03:26] start M_swap           on GPU 0  (M + decoder sometimes gets cross-predicted views)
+[18:03:26] start M_shared         on GPU 1  (M with a trunk shared by the views)
+[18:03:26] start M_views4         on GPU 2  (M with 4 channel groups of 48)
+[18:03:26] start tcn_none         on GPU 3  (dilated conv (TCN) encoder baseline)
+[18:24:17] done M_swap (see /home/mirzaei/sam/result/nlpich/sb_runs/M_swap.log)
+[18:24:27] start tcn_M            on GPU 0  (TCN encoder + split-brain)
+[18:57:59] done M_shared (see /home/mirzaei/sam/result/nlpich/sb_runs/M_shared.log)
+[19:17:30] done tcn_none (see /home/mirzaei/sam/result/nlpich/sb_runs/tcn_none.log)
+[19:24:30] done M_views4 (see /home/mirzaei/sam/result/nlpich/sb_runs/M_views4.log)
+[19:45:21] done tcn_M (see /home/mirzaei/sam/result/nlpich/sb_runs/tcn_M.log)
 
-============================================================
-2) RANDOM FROZEN ENCODER CONTROL
-============================================================
-FAILED: no final result was produced
-[ctc_frozen] non-finite loss at step 3380, update skipped (4 in a row)
-[ctc_frozen] non-finite loss at step 3381, update skipped (5 in a row)
-[ctc_frozen] non-finite loss at step 3382, update skipped (6 in a row)
-[ctc_frozen] non-finite loss at step 3383, update skipped (7 in a row)
-[ctc_frozen] non-finite loss at step 3384, update skipped (8 in a row)
-[ctc_frozen] non-finite loss at step 3385, update skipped (9 in a row)
-[ctc_frozen] non-finite loss at step 3386, update skipped (10 in a row)
-Traceback (most recent call last):
-  File "/home/mirzaei/sam/result/nlpich/start_split_brain.py", line 529, in <module>
-    main()
-  File "/home/mirzaei/sam/result/nlpich/start_split_brain.py", line 524, in main
-    train(args, model, device, train_items, eval_items, eval_tags)
-  File "/home/mirzaei/sam/result/nlpich/start_split_brain.py", line 453, in train
-    raise RuntimeError("10 non-finite losses in a row, stopping")
-RuntimeError: 10 non-finite losses in a row, stopping
+CER (greedy CTC, no LM) -- lower is better
+run                        seen unseen_norecal   unseen_recal     unseen_all    eval_single         T_gain        emb_std  description
+none                     0.1227         0.4580         0.4836         0.4749         0.4238            nan            nan  baseline: one encoder, CTC only
+none_in08                0.0333         0.2373         0.2766         0.2633         0.2299            nan            nan  baseline + input noise (standard augmentation)
+split_noaux              0.1203         0.4710         0.4918         0.4848         0.4318            nan            nan  split encoders, CTC only (architecture effect)
+T                        0.1222         0.4716         0.4817         0.4783         0.4266         0.0858         0.9656  split-brain: predict other array's activity
+L                        0.0774         0.4165         0.4425         0.4337         0.3819            nan         0.9728  split-brain: predict other array's latent
+M                        0.0853         0.4204         0.4330         0.4287         0.3789         0.1798         0.8951  split-brain: activity + latent
+M_freeze                 0.0892         0.3961         0.4159         0.4092         0.3627         0.0129         0.8203  split-brain pretrain -> frozen encoders -> CTC
+M_in08                   0.0338         0.2410         0.2724         0.2617         0.2286         0.1423         0.9261  M + input noise
+M_emb05                  0.0629         0.3725         0.3978         0.3892         0.3418         0.2383         0.9175  M + embedding noise (CTC path)
+M_random                 0.0897         0.4094         0.4250         0.4197         0.3718         0.1795         0.8956  random channel split instead of arrays
+M_freeze_linear          0.9163         0.9329         0.9287         0.9301         0.9281         0.0129         0.8448  linear CTC probe on frozen features
+M_finetune               0.1186         0.4744         0.5072         0.4961         0.4413         0.0129         0.8203  split-brain pretrain -> full fine-tune
+gru_none                 0.1085         0.4517         0.4752         0.4672         0.4151            nan            nan  GRU encoder baseline
+gru_M                    0.1097         0.5002         0.5285         0.5189         0.4595         0.6264         0.9001  GRU encoder + split-brain
+conformer_none           0.1230         0.4528         0.4761         0.4682         0.4180            nan            nan  Conformer encoder baseline
+conformer_M              0.1275         0.4998         0.5285         0.5187         0.4619         0.6693         0.8896  Conformer encoder + split-brain
+M_freeze_rand            0.2189         0.5860         0.6060         0.5992         0.5440            nan            nan  control: random frozen encoder + CTC
+M_freeze_lam10           0.1254         0.5826         0.6131         0.6028         0.5334         0.8170         0.9289  frozen encoder after a stronger pretraining
+M_lam10                  0.0827         0.4938         0.5257         0.5149         0.4521         1.0632         0.9347  M with 10x split-brain weight
+M_swap                   0.0499         0.3174         0.3453         0.3359         0.2943         0.1630         0.8470  M + decoder sometimes gets cross-predicted views
+M_shared                 0.0943         0.4557         0.4843         0.4746         0.4194         0.3282         0.9201  M with a trunk shared by the views
+M_views4                 0.0863         0.4287         0.4525         0.4444         0.3924         0.0043         0.9376  M with 4 channel groups of 48
+tcn_none                 0.1550         0.5086         0.5188         0.5153         0.4630            nan            nan  dilated conv (TCN) encoder baseline
+tcn_M                    0.1000         0.4475         0.4642         0.4585         0.4065         0.1767         0.8642  TCN encoder + split-brain
 
-============================================================
-3) CONFORMER + INPUT NOISE SD=0.8
-============================================================
-run             seen      unseen_norecal  unseen_recal  unseen_all  eval_single  T_gain    emb_std   description
-conformer_none  0.030858  0.197635        0.221919      0.213674    0.187121     nan       nan       "Conformer encoder baseline"
-conformer_M     0.028930  0.215372        0.239410      0.231248    0.201863     1.194200  0.919700  "Conformer encoder + split-brain"
-mirzaei@haas034:~/sam/result/Aggregate$ 
+[split check] mean |corr| within views: 0.0194 | 0.0197 | between views: 0.0161
+saved /home/mirzaei/sam/result/nlpich/sb_runs/summary.csv
+mirzaei@haas034:~$ runai delete job mm8-sb-all -p upmwmathis-mirzaei
+Job mm8-sb-all deleted successfully.
+mirzaei@haas034:~$ cat sam/result/nlpich/sb_runs/summary.csv 
+run,seen,unseen_norecal,unseen_recal,unseen_all,eval_single,T_gain,emb_std,description
+none,0.122710,0.458012,0.483595,0.474909,0.423754,nan,nan,"baseline: one encoder, CTC only"
+none_in08,0.033269,0.237331,0.276623,0.263283,0.229875,nan,nan,"baseline + input noise (standard augmentation)"
+split_noaux,0.120299,0.471042,0.491844,0.484781,0.431843,nan,nan,"split encoders, CTC only (architecture effect)"
+T,0.122228,0.471646,0.481672,0.478268,0.426556,0.085800,0.965600,"split-brain: predict other array's activity"
+L,0.077387,0.416506,0.442536,0.433698,0.381946,nan,0.972800,"split-brain: predict other array's latent"
+M,0.085342,0.420367,0.433046,0.428741,0.378865,0.179800,0.895100,"split-brain: activity + latent"
+M_freeze,0.089200,0.396115,0.415928,0.409201,0.362723,0.012900,0.820300,"split-brain pretrain -> frozen encoders -> CTC"
+M_in08,0.033751,0.240951,0.272406,0.261726,0.228614,0.142300,0.926100,"M + input noise"
+M_emb05,0.062922,0.372466,0.397817,0.389210,0.341819,0.238300,0.917500,"M + embedding noise (CTC path)"
+M_random,0.089682,0.409387,0.424983,0.419688,0.371757,0.179500,0.895600,"random channel split instead of arrays"
+M_freeze_linear,0.916345,0.932915,0.928673,0.930113,0.928114,0.012900,0.844800,"linear CTC probe on frozen features"
+M_finetune,0.118611,0.474421,0.507226,0.496088,0.441262,0.012900,0.820300,"split-brain pretrain -> full fine-tune"
+gru_none,0.108486,0.451737,0.475222,0.467248,0.415141,nan,nan,"GRU encoder baseline"
+gru_M,0.109691,0.500241,0.528500,0.518905,0.459470,0.626400,0.900100,"GRU encoder + split-brain"
+conformer_none,0.122951,0.452823,0.476090,0.468191,0.418047,nan,nan,"Conformer encoder baseline"
+conformer_M,0.127531,0.499759,0.528500,0.518742,0.461921,0.669300,0.889600,"Conformer encoder + split-brain"
+M_freeze_rand,0.218901,0.586028,0.606029,0.599238,0.543997,nan,nan,"control: random frozen encoder + CTC"
+M_freeze_lam10,0.125362,0.582650,0.613099,0.602761,0.533422,0.817000,0.928900,"frozen encoder after a stronger pretraining"
+M_lam10,0.082690,0.493847,0.525709,0.514891,0.452117,1.063200,0.934700,"M with 10x split-brain weight"
+M_swap,0.049904,0.317447,0.345345,0.335873,0.294338,0.163000,0.847000,"M + decoder sometimes gets cross-predicted views"
+M_shared,0.094262,0.455719,0.484339,0.474622,0.419377,0.328200,0.920100,"M with a trunk shared by the views"
+M_views4,0.086307,0.428692,0.452521,0.444431,0.392416,0.004300,0.937600,"M with 4 channel groups of 48"
+tcn_none,0.155014,0.508567,0.518824,0.515341,0.463006,nan,nan,"dilated conv (TCN) encoder baseline"
+tcn_M,0.100048,0.447514,0.464182,0.458523,0.406457,0.176700,0.864200,"TCN encoder + split-brain"
+mirzaei@haas034:~$ 
