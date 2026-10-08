@@ -1,7 +1,136 @@
-CER (greedy CTC, no LM) -- lower is better
-run                        seen unseen_norecal   unseen_recal     unseen_all    eval_single         T_gain        emb_std  description
-none                     0.0446         0.2856         0.3227         0.3101         0.2715            nan            nan  baseline: one encoder, CTC only
-none_in08                0.0227         0.1645         0.1946         0.1843         0.1609            nan            nan  baseline + input noise (standard augmentation)
-split_noaux              0.0460         0.2942         0.3246         0.3143         0.2753            nan            nan  split encoders, CTC only (architecture effect)
-M_in08                   0.0241         0.2364         0.2661         0.2560         0.2223         0.7800         0.9433  M + input noise
-M_emb05                  0.0297         0.3004         0.3348         0.3231         0.2805         1.0947         0.9333  M + embedding noise (CTC path)
+PART 1: data-derived epsilon (TRAIN split only, no tuning)
+  k = sqrt(N_active / d) in units of the median neuron std; epsilon = k x median std.
+  auto_pr: d = participation ratio of the covariance; auto_dlabel: d = number of label columns.
+  (PR of the correlation matrix is listed for reference only.)
+session      N  N_act  med_std  PR_cov  PR_corr labels   k_pr  eps_pr  k_dlab eps_dlab  k(eps=3)
+C-CO11      91     91    0.675   40.18    60.41      6   1.50   1.015    3.89    2.628      4.45
+C-CO21      61     61    0.662   35.86    50.19      6   1.30   0.863    3.19    2.110      4.53
+C-CO22      55     55    0.656   32.20    44.00      6   1.31   0.857    3.03    1.985      4.58
+C-CO25      60     60    0.686   29.66    44.85      6   1.42   0.976    3.16    2.169      4.37
+C-CO35      58     58    0.706   27.63    39.42      6   1.45   1.023    3.11    2.196      4.25
+C-CO38      53     53    0.624   16.89    35.69      6   1.77   1.106    2.97    1.855      4.81
+C-CO41     353    352    0.549   73.56   168.53      6   2.19   1.201    7.66    4.206      5.46
+M-CO19      52     52    0.502   17.54    42.66      6   1.72   0.864    2.94    1.478      5.98
+M-CO4      115    115    0.424   26.24    90.47      6   2.09   0.888    4.38    1.857      7.07
+M-RT2      161    160    0.435   27.79   115.74      6   2.40   1.045    5.16    2.248      6.89
+  auto_pr      k range 1.30-2.40 (median 1.61); epsilon range 0.857-1.201
+  auto_dlabel  k range 2.94-7.66 (median 3.18); epsilon range 1.478-4.206
+  fixed_eps_3  k range 4.25-7.07 (median 4.69)
+
+PART 2: training runs (original PGD, alpha = epsilon / 5, same settings as fixed_eps_3)
+session  arm           seed  epsilon     k  R2 train  R2 valid    min
+C-CO11   auto_pr         42    1.015  1.50    0.8341    0.7974    9.1
+C-CO11   auto_dlabel     42    2.628  3.89    0.8185    0.7830    8.9
+C-CO21   auto_pr         42    0.863  1.30    0.8451    0.7778    6.0
+C-CO21   auto_dlabel     42    2.110  3.19    0.8475    0.7877    6.0
+C-CO22   auto_pr         42    0.857  1.31    0.8455    0.7955    6.1
+C-CO22   auto_dlabel     42    1.985  3.03    0.8688    0.8119    6.0
+C-CO25   auto_pr         42    0.976  1.42    0.8580    0.8061    6.0
+C-CO25   auto_dlabel     42    2.169  3.16    0.8645    0.8098    6.0
+C-CO35   auto_pr         42    1.023  1.45    0.8400    0.7716    6.1
+C-CO35   auto_dlabel     42    2.196  3.11    0.8629    0.7980    6.0
+C-CO38   auto_pr         42    1.106  1.77    0.8376    0.7789    6.0
+C-CO38   auto_dlabel     42    1.855  2.97    0.8444    0.7748    6.0
+C-CO41   auto_pr         42    1.201  2.19    0.8557    0.7215   14.9
+C-CO41   auto_dlabel     42    4.206  7.66    0.8615    0.7258   15.0
+M-CO19   auto_pr         42    0.864  1.72    0.8636    0.7698    6.1
+M-CO19   auto_dlabel     42    1.478  2.94    0.8683    0.7785    6.1
+M-CO4    auto_pr         42    0.888  2.09    0.8487    0.7284    9.5
+M-CO4    auto_dlabel     42    1.857  4.38    0.8594    0.7481    9.5
+M-RT2    auto_pr         42    1.045  2.40    0.5279    0.6199   10.9
+M-RT2    auto_dlabel     42    2.248  5.16    0.5338    0.6303   10.9
+
+PART 3: clean-input VALID R2 (all label columns), compared with the hand-set fixed_eps_3
+  previous fixed_eps_3 / margin_std2: /home/mirzaei/sam/result/Aggregate/ACORN_MARGIN_VS_FIXED_RANDOM10/selection_seed_42_n10/summary.csv
+  margin_std4 / margin_std6 sweep:     /home/mirzaei/sam/result/Aggregate/ACORN_MARGIN_CAP_SWEEP/caps4_6_seed42/summary.csv
+session     fixed_eps_3       auto_pr   auto_dlabel   margin_std2   margin_std4   margin_std6
+C-CO11           0.8049        0.7974        0.7830        0.7629        0.7941        0.7971
+C-CO21           0.7998        0.7778        0.7877        0.7753        0.8127        0.7958
+C-CO22           0.8043        0.7955        0.8119        0.7631        0.7996        0.7975
+C-CO25           0.8089        0.8061        0.8098        0.7592        0.7994        0.7976
+C-CO35           0.7894        0.7716        0.7980        0.7579        0.7917        0.7717
+C-CO38           0.7816        0.7789        0.7748        0.7317        0.7955        0.7926
+C-CO41           0.7298        0.7215        0.7258        0.6791        0.7389        0.7316
+M-CO19           0.7871        0.7698        0.7785        0.6937        0.7890        0.7845
+M-CO4            0.7453        0.7284        0.7481        0.6426        0.7418        0.7407
+M-RT2            0.6238        0.6199        0.6303        0.5189        0.5340        0.6440
+MEAN             0.7675        0.7567        0.7648        0.7084        0.7597        0.7653
+
+  Paired difference vs fixed_eps_3 (same session and seed): mean [95% CI], median, better in, Wilcoxon p
+  auto_pr       -0.0108 [-0.0159, -0.0058], median -0.0086, better in 0/10, p=0.00195
+  auto_dlabel   -0.0027 [-0.0098, +0.0043], median -0.0016, better in 5/10, p=0.557
+  margin_std2   -0.0591 [-0.0804, -0.0378], median -0.0498, better in 0/10, p=0.00195
+  margin_std4   -0.0078 [-0.0294, +0.0137], median -0.0008, better in 5/10, p=0.846
+  margin_std6   -0.0022 [-0.0100, +0.0056], median -0.0043, better in 3/10, p=0.375
+  Reading: if the 95% CI of an automatic arm contains 0 and is narrow, its R2 matches the hand-set
+  epsilon without tuning; a CI entirely above 0 means it is better, entirely below 0 worse.
+
+ACORN automatic epsilon | 10 sessions | seeds=[42] | iterations=3000 | arms=['auto_pr', 'auto_dlabel']
+
+PART 1: data-derived epsilon (TRAIN split only, no tuning)
+  k = sqrt(N_active / d) in units of the median neuron std; epsilon = k x median std.
+  auto_pr: d = participation ratio of the covariance; auto_dlabel: d = number of label columns.
+  (PR of the correlation matrix is listed for reference only.)
+session      N  N_act  med_std  PR_cov  PR_corr labels   k_pr  eps_pr  k_dlab eps_dlab  k(eps=3)
+C-CO11      91     91    0.675   40.18    60.41      6   1.50   1.015    3.89    2.628      4.45
+C-CO21      61     61    0.662   35.86    50.19      6   1.30   0.863    3.19    2.110      4.53
+C-CO22      55     55    0.656   32.20    44.00      6   1.31   0.857    3.03    1.985      4.58
+C-CO25      60     60    0.686   29.66    44.85      6   1.42   0.976    3.16    2.169      4.37
+C-CO35      58     58    0.706   27.63    39.42      6   1.45   1.023    3.11    2.196      4.25
+C-CO38      53     53    0.624   16.89    35.69      6   1.77   1.106    2.97    1.855      4.81
+C-CO41     353    352    0.549   73.56   168.53      6   2.19   1.201    7.66    4.206      5.46
+M-CO19      52     52    0.502   17.54    42.66      6   1.72   0.864    2.94    1.478      5.98
+M-CO4      115    115    0.424   26.24    90.47      6   2.09   0.888    4.38    1.857      7.07
+M-RT2      161    160    0.435   27.79   115.74      6   2.40   1.045    5.16    2.248      6.89
+  auto_pr      k range 1.30-2.40 (median 1.61); epsilon range 0.857-1.201
+  auto_dlabel  k range 2.94-7.66 (median 3.18); epsilon range 1.478-4.206
+  fixed_eps_3  k range 4.25-7.07 (median 4.69)
+
+PART 2: training runs (original PGD, alpha = epsilon / 5, same settings as fixed_eps_3)
+session  arm           seed  epsilon     k  R2 train  R2 valid    min
+C-CO11   auto_pr         42    1.015  1.50    0.8341    0.7974    9.1
+C-CO11   auto_dlabel     42    2.628  3.89    0.8185    0.7830    8.9
+C-CO21   auto_pr         42    0.863  1.30    0.8451    0.7778    6.0
+C-CO21   auto_dlabel     42    2.110  3.19    0.8475    0.7877    6.0
+C-CO22   auto_pr         42    0.857  1.31    0.8455    0.7955    6.1
+C-CO22   auto_dlabel     42    1.985  3.03    0.8688    0.8119    6.0
+C-CO25   auto_pr         42    0.976  1.42    0.8580    0.8061    6.0
+C-CO25   auto_dlabel     42    2.169  3.16    0.8645    0.8098    6.0
+C-CO35   auto_pr         42    1.023  1.45    0.8400    0.7716    6.1
+C-CO35   auto_dlabel     42    2.196  3.11    0.8629    0.7980    6.0
+C-CO38   auto_pr         42    1.106  1.77    0.8376    0.7789    6.0
+C-CO38   auto_dlabel     42    1.855  2.97    0.8444    0.7748    6.0
+C-CO41   auto_pr         42    1.201  2.19    0.8557    0.7215   14.9
+C-CO41   auto_dlabel     42    4.206  7.66    0.8615    0.7258   15.0
+M-CO19   auto_pr         42    0.864  1.72    0.8636    0.7698    6.1
+M-CO19   auto_dlabel     42    1.478  2.94    0.8683    0.7785    6.1
+M-CO4    auto_pr         42    0.888  2.09    0.8487    0.7284    9.5
+M-CO4    auto_dlabel     42    1.857  4.38    0.8594    0.7481    9.5
+M-RT2    auto_pr         42    1.045  2.40    0.5279    0.6199   10.9
+M-RT2    auto_dlabel     42    2.248  5.16    0.5338    0.6303   10.9
+
+PART 3: clean-input VALID R2 (all label columns), compared with the hand-set fixed_eps_3
+  previous fixed_eps_3 / margin_std2: /home/mirzaei/sam/result/Aggregate/ACORN_MARGIN_VS_FIXED_RANDOM10/selection_seed_42_n10/summary.csv
+  margin_std4 / margin_std6 sweep:     /home/mirzaei/sam/result/Aggregate/ACORN_MARGIN_CAP_SWEEP/caps4_6_seed42/summary.csv
+session     fixed_eps_3       auto_pr   auto_dlabel   margin_std2   margin_std4   margin_std6
+C-CO11           0.8049        0.7974        0.7830        0.7629        0.7941        0.7971
+C-CO21           0.7998        0.7778        0.7877        0.7753        0.8127        0.7958
+C-CO22           0.8043        0.7955        0.8119        0.7631        0.7996        0.7975
+C-CO25           0.8089        0.8061        0.8098        0.7592        0.7994        0.7976
+C-CO35           0.7894        0.7716        0.7980        0.7579        0.7917        0.7717
+C-CO38           0.7816        0.7789        0.7748        0.7317        0.7955        0.7926
+C-CO41           0.7298        0.7215        0.7258        0.6791        0.7389        0.7316
+M-CO19           0.7871        0.7698        0.7785        0.6937        0.7890        0.7845
+M-CO4            0.7453        0.7284        0.7481        0.6426        0.7418        0.7407
+M-RT2            0.6238        0.6199        0.6303        0.5189        0.5340        0.6440
+MEAN             0.7675        0.7567        0.7648        0.7084        0.7597        0.7653
+
+  Paired difference vs fixed_eps_3 (same session and seed): mean [95% CI], median, better in, Wilcoxon p
+  auto_pr       -0.0108 [-0.0159, -0.0058], median -0.0086, better in 0/10, p=0.00195
+  auto_dlabel   -0.0027 [-0.0098, +0.0043], median -0.0016, better in 5/10, p=0.557
+  margin_std2   -0.0591 [-0.0804, -0.0378], median -0.0498, better in 0/10, p=0.00195
+  margin_std4   -0.0078 [-0.0294, +0.0137], median -0.0008, better in 5/10, p=0.846
+  margin_std6   -0.0022 [-0.0100, +0.0056], median -0.0043, better in 3/10, p=0.375
+  Reading: if the 95% CI of an automatic arm contains 0 and is narrow, its R2 matches the hand-set
+  epsilon without tuning; a CI entirely above 0 means it is better, entirely below 0 worse.
+
