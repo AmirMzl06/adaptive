@@ -1,17 +1,5 @@
-
-mirzaei@haas034:~$ runai logs mm8-mswap-in08 -p upmwmathis-mirzaei -f
-[20:16:23] start M_swap           on GPU 0  (M + decoder sometimes gets cross-predicted views)
-[21:44:39] done M_swap (see /home/mirzaei/sam/result/nlpich/sb_mswap_in08_s0/M_swap.log)
-
-CER (greedy CTC, no LM) -- lower is better
-run                        seen unseen_norecal   unseen_recal     unseen_all    eval_single         T_gain        emb_std  description
-M_swap                   0.0280         0.1818         0.2028         0.1957         0.1713         0.1298         0.8780  M + decoder sometimes gets cross-predicted views
-
-[split check] mean |corr| within views: 0.0194 | 0.0197 | between views: 0.0161
-saved /home/mirzaei/sam/result/nlpich/sb_mswap_in08_s0/summary.csv
-mirzaei@haas034:~$ runai delete job mm8-mswap-in08 -p upmwmathis-mirzaei
-Job mm8-mswap-in08 deleted successfully.
-mirzaei@haas034:~$ cat sam/result/nlpich/sb_mswap_in08_s0/summary.csv 
-run,seen,unseen_norecal,unseen_recal,unseen_all,eval_single,T_gain,emb_std,description
-M_swap,0.027965,0.181829,0.202816,0.195690,0.171330,0.129800,0.878000,"M + decoder sometimes gets cross-predicted views"
+mirzaei@haas034:~$ grep -m1 "model:" /home/mirzaei/sam/result/nlpich/sb_mswap_in08_s0/M_swap.log
+grep -m3 '"optim"\|"input noise sd"\|"swap prob"' /home/mirzaei/sam/result/nlpich/sb_mswap_in08_s0/M_swap.log
+model: split=array views=2 arch=conv share_trunk=False aux=M swap=0.3 mode=e2e optim=project | encoders 3.71M, decoder 82.31M params
+ "optim": "project",
 mirzaei@haas034:~$ 
