@@ -1,430 +1,47 @@
-paper name :
-Exploiting Unlabeled Data in CNNs by
-Self-supervised Learning to Rank
-Xialei Liu, Joost van de Weijer, and Andrew D. Bagdanov
+for loading data and make dataloader :
+
+PERICH_DATA_DIR = Path("/data/hossein/mm_project/perich_data_valid_final_raw/")
+SESSION = "C-CO12"
+NPZ_PATH = PERICH_DATA_DIR / f"{SESSION}.npz"
+
+
+
+
+def load_data():
+    if not NPZ_PATH.is_file():
+        raise FileNotFoundError(f"Dataset not found: {NPZ_PATH}")
+    with np.load(NPZ_PATH, allow_pickle=False) as data:
+        arrays = [
+            np.asarray(data[key], dtype=np.float32)
+            for key in ("train_data", "valid_data", "train_label", "valid_label")
+        ]
+    x_train, x_valid, y_train, y_valid = arrays
+    if y_train.ndim == 1:
+        y_train = y_train[:, None]
+    if y_valid.ndim == 1:
+        y_valid = y_valid[:, None]
+    for name, values in zip(
+        ("X_train", "X_valid", "Y_train", "Y_valid"),
+        (x_train, x_valid, y_train, y_valid),
+    ):
+        if values.ndim != 2 or min(values.shape) == 0:
+            raise ValueError(f"{name} must be a nonempty 2D array; got {values.shape}.")
+        if not np.isfinite(values).all():
+            raise ValueError(f"{name} contains NaN or infinite values.")
+    if len(x_train) != len(y_train):
+        raise ValueError(
+            f"Training feature/label lengths differ: {len(x_train)} vs {len(y_train)}."
+        )
+    if len(x_valid) != len(y_valid):
+        raise ValueError(
+            f"Validation feature/label lengths differ: {len(x_valid)} vs {len(y_valid)}."
+        )
+    if x_train.shape[1] != x_valid.shape[1]:
+        raise ValueError("Training and validation neuron counts do not match.")
+    if y_train.shape[1] != y_valid.shape[1]:
+        raise ValueError("Training and validation label dimensions do not match.")
+    if len(x_train) < 36 or len(x_valid) < 36:
+        raise ValueError("The offset36 encoder requires at least 36 timepoints per split.")
+    return tuple(np.ascontiguousarray(a) for a in (x_train, x_valid, y_train, y_valid))
 
-our architecture (my idea):
-# Research Proposal: Self-Supervised Neural Subpopulation Information Ranking
-
-## 1. Research Motivation
-
-The goal is to learn meaningful latent representations of neural population activity **without behavioral labels during pretraining, spike reconstruction, or neural activity forecasting**.
-
-Our central hypothesis is that imposing an information-based ordering across nested neural subpopulations can encourage an encoder to capture meaningful inter-neuronal dependencies and population dynamics.
-
-Consider a neural recording containing **96 simultaneously recorded neurons**, represented as:
-
-\[
-X \in \mathbb{R}^{96 \times T}
-\]
-
-where \(T\) denotes the temporal window length.
-
-During self-supervised pretraining, we divide the recorded neurons into two non-overlapping populations:
-
-- **Population A:** 80 neurons used to construct input representations.
-- **Population B:** 16 neurons serving as an independent reference population.
-
-From Population A, we construct five nested subsets:
-
-\[
-A_{10} \subset A_{50} \subset A_{60} \subset A_{70} \subset A_{80}
-\]
-
-Since each larger population contains all neurons from the smaller population, the following information-theoretic inequality holds for the raw neural variables:
-
-\[
-I(X_{A_{10}};X_B)
-\leq I(X_{A_{50}};X_B)
-\leq I(X_{A_{60}};X_B)
-\leq I(X_{A_{70}};X_B)
-\leq I(X_{A_{80}};X_B)
-\]
-
-This follows from the chain rule of mutual information and the non-negativity of conditional mutual information.
-
-However, this ordering is **not automatically guaranteed for learned embeddings or finite-sample estimates of mutual information**.
-
-We therefore propose investigating whether incorporating an analogous ordinal constraint into representation learning improves the quality of neural latent spaces.
-
----
-
-## 2. Proposed Encoder Architecture
-
-A key architectural challenge is handling neural subsets containing different numbers of neurons without zero-padding missing channels.
-
-We propose a shared encoder capable of accepting variable-sized neural populations while producing fixed-dimensional representations.
-
-### Architecture
-
-**Input**
-
-\[
-X_{A_k} \in \mathbb{R}^{k \times T}
-\]
-
-where \(k \in \{10,50,60,70,80\}\).
-
-↓
-
-**Shared Temporal Convolutional Network**
-
-- Applies the same temporal convolutional filters to each neuron.
-- Extracts temporal features from individual neuronal activity.
-- Supports variable numbers of neurons.
-- Incorporates learnable neuron identity embeddings to preserve neuronal identity within a recording session.
-
-↓
-
-**Neuron-Level Self-Attention**
-
-- Models interactions and dependencies among recorded neurons.
-- Allows the network to capture information beyond individual firing patterns.
-- Avoids imposing an artificial spatial neighborhood on the ordering of neuronal channels.
-
-↓
-
-**Attention Pooling**
-
-- Aggregates variable numbers of neuronal tokens into a fixed-dimensional population representation.
-
-↓
-
-**Projection Head**
-
-\[
-z_k = f_{\theta}(X_{A_k}) \in \mathbb{R}^{64}
-\]
-
-Thus:
-
-\[
-A_{10} \rightarrow z_{10}, \quad
-A_{50} \rightarrow z_{50}, \quad
-A_{60} \rightarrow z_{60}
-\]
-
-\[
-A_{70} \rightarrow z_{70}, \quad
-A_{80} \rightarrow z_{80}
-\]
-
-All subsets are processed using **the same encoder parameters**.
-
-A separate reference encoder, \(g_\phi\), maps Population B into the same embedding space.
-
-Importantly, the architecture contains **no reconstruction decoder**.
-
----
-
-## 3. Self-Supervised Learning Objective
-
-We use a contrastive matching objective to encourage embeddings derived from Population A to retain information shared with Population B.
-
-For each neural population size \(k\), we compute:
-
-\[
-z_k=f_\theta(X_{A_k})
-\]
-
-\[
-u=g_\phi(X_B)
-\]
-
-Positive pairs correspond to the same temporal window, while negative pairs correspond to appropriately separated temporal windows.
-
-The contrastive objective for each population size is:
-
-\[
-\mathcal{L}_k^{\mathrm{NCE}}
-=
--\log
-\frac{\exp(\operatorname{sim}(z_k,u^+)/\tau)}
-{\sum_j \exp(\operatorname{sim}(z_k,u_j)/\tau)}
-\]
-
-The baseline self-supervised objective is:
-
-\[
-\mathcal{L}_{\mathrm{SSL}}
-=
-\frac{1}{5}
-\sum_{k \in \{10,50,60,70,80\}}
-\mathcal{L}_k^{\mathrm{NCE}}
-\]
-
-### Information-Based Ranking Constraint
-
-Our hypothesis is that, as additional neurons become available, the representation should become more informative about the independent reference population.
-
-We therefore encourage the following ordering of expected contrastive losses:
-
-\[
-\mathbb{E}[\mathcal{L}_{80}]
-\leq
-\mathbb{E}[\mathcal{L}_{70}]
-\leq
-\mathbb{E}[\mathcal{L}_{60}]
-\leq
-\mathbb{E}[\mathcal{L}_{50}]
-\leq
-\mathbb{E}[\mathcal{L}_{10}]
-\]
-
-An ordinal regularizer can be defined as:
-
-\[
-\mathcal{L}_{\mathrm{rank}}
-=
-\sum_{i=1}^{4}
-\max\left(0,\overline{\mathcal{L}}_{k_{i+1}}-
-\overline{\mathcal{L}}_{k_i}\right)
-\]
-
-where:
-
-\[
-(k_1,k_2,k_3,k_4,k_5)=(10,50,60,70,80)
-\]
-
-and the bars denote losses averaged over a batch or a more stable collection of samples.
-
-The complete objective becomes:
-
-\[
-\boxed{
-\mathcal{L}_{\mathrm{total}}
-=
-\mathcal{L}_{\mathrm{SSL}}
-+
-\lambda \mathcal{L}_{\mathrm{rank}}
-}
-\]
-
-We do not explicitly estimate high-dimensional mutual information. Instead, InfoNCE provides a practical contrastive surrogate.
-
-An important limitation is that the ranking constraint could also be satisfied by degrading representations from smaller subsets. This makes comparison against standard contrastive learning essential.
-
----
-
-## 4. Proposed Experimental Configurations
-
-We propose five experimental conditions using the same underlying encoder architecture.
-
-### Experiment 1: Fixed Target Population With Ranking
-
-**Configuration**
-
-- A fixed set of 80 neurons forms Population A.
-- A fixed set of 16 neurons forms Population B.
-- Five nested subsets are sampled from Population A.
-- Shared Temporal CNN, Neuron Self-Attention, and Attention Pooling.
-- Objective: InfoNCE + Ordinal Ranking.
-
-**Research question**
-
-Can the network learn meaningful information ordering when the reference population remains fixed throughout training?
-
-**Potential limitation**
-
-The selected target neurons may contain limited information about the remaining population, resulting in a weak contrastive learning signal.
-
-### Experiment 2: Dynamic Target Population With Ranking
-
-**Configuration**
-
-- At every training batch, randomly select 16 neurons to form Population B.
-- The remaining 80 neurons form Population A.
-- Construct five nested subsets containing 10, 50, 60, 70, and 80 neurons.
-- Use the same shared encoder architecture.
-- Objective: InfoNCE + Ordinal Ranking.
-
-**Research question**
-
-Does dynamically changing the reference population encourage the model to learn broader inter-neuronal relationships rather than dependencies involving a particular fixed subset?
-
-**Hypothesis**
-
-Random population partitioning may reduce sensitivity to the quality of any individual reference population and expose the encoder to a wider range of population interactions.
-
-This is our primary proposed configuration.
-
-### Experiment 3: Dynamic Target Population Without Ranking
-
-**Configuration**
-
-Identical to Experiment 2, except the ordinal ranking loss is removed.
-
-**Objective**
-
-\[
-\mathcal{L}=\mathcal{L}_{\mathrm{SSL}}
-\]
-
-**Research question**
-
-Does the information-ordering constraint provide a measurable benefit beyond standard cross-population contrastive representation learning?
-
-**Importance**
-
-This is the most important ablation for isolating the contribution of the proposed ranking objective.
-
-Any observed improvement in Experiment 2 must be evaluated against this baseline under matched training conditions.
-
-### Experiment 4: Dynamic Target Population With Disrupted Neural Coordination
-
-**Configuration**
-
-Use the architecture and objective from Experiment 2, but introduce controlled perturbations that disrupt inter-neuronal coordination during pretraining.
-
-For example, constrained spike-raster swaps can preserve:
-
-- The total spike count of each neuron.
-- The total population spike count at each time bin.
-
-while modifying certain temporal relationships between neuronal channels.
-
-**Objective**
-
-\[
-\mathcal{L}
-=
-\mathcal{L}_{\mathrm{SSL}}
-+
-\lambda\mathcal{L}_{\mathrm{rank}}
-\]
-
-**Research question**
-
-Does the learned representation depend on meaningful neural population coordination, or can the objective be satisfied using simple statistical properties such as firing rates?
-
-**Expected interpretation**
-
-If controlled disruption of population coordination reduces downstream decoding performance, this would support the hypothesis that inter-neuronal dependencies contribute to representation quality.
-
-However, the perturbation may also affect other temporal statistics, which must be monitored.
-
-### Experiment 5: Dynamic Target Population With Shuffled Ranking
-
-**Configuration**
-
-Identical to Experiment 2, except that the ordinal targets associated with population sizes are randomly permuted.
-
-The underlying contrastive task, input subsets, encoder architecture, and training budget remain unchanged.
-
-**Objective**
-
-\[
-\mathcal{L}
-=
-\mathcal{L}_{\mathrm{SSL}}
-+
-\lambda\mathcal{L}_{\mathrm{shuffled\ rank}}
-\]
-
-**Research question**
-
-Is the correct information ordering important, or are any observed improvements primarily due to the addition of an auxiliary regularization term?
-
-**Importance**
-
-This experiment serves as a negative control for the ranking mechanism.
-
----
-
-## 5. Experimental Comparison
-
-| Experiment | Target Population B | Ranking Objective | Purpose |
-|---|---|---|---|
-| 1. Fixed B + Ranking | Fixed | Correct ordering | Fixed-target baseline |
-| 2. Dynamic B + Ranking | Randomized per batch | Correct ordering | Main proposed method |
-| 3. Dynamic B, No Ranking | Randomized per batch | None | Isolate the benefit of ranking |
-| 4. Dynamic B + Coordination Disruption | Randomized per batch | Correct ordering | Test sensitivity to neural coordination |
-| 5. Dynamic B + Shuffled Ranking | Randomized per batch | Randomized ordering | Negative control for ordinal supervision |
-
-All experimental conditions should use matched encoder capacity, initialization protocols, training iterations, data splits, and downstream evaluation procedures.
-
----
-
-## 6. Downstream Evaluation
-
-The method will be evaluated on neural population recordings, such as motor-cortex datasets from Perich et al.
-
-### Self-Supervised Pretraining
-
-Only neural activity is used.
-
-- No behavioral labels.
-- No spike reconstruction.
-- No forecasting of neural activity.
-- No supervised behavioral decoding objective.
-
-### Representation Extraction
-
-After pretraining, the encoder is used to extract latent representations of neural activity.
-
-Since the proposed architecture supports variable numbers of neurons, we can investigate using all 96 available neurons at inference.
-
-However, the model is trained primarily with subsets of at most 80 input neurons. Therefore, generalization to 96 neurons must be explicitly evaluated rather than assumed.
-
-### Behavioral Decoding
-
-A fixed downstream decoder is trained using the frozen neural representations and behavioral labels.
-
-We propose:
-
-- Linear or Ridge Regression Probe.
-- A fixed two-layer MLP Decoder.
-
-### Evaluation Metrics
-
-- Behavioral decoding \(R^2\).
-- Mean Squared Error.
-- Pearson Correlation.
-- Effective Rank and covariance structure of learned representations.
-- Held-out ordinal ranking accuracy.
-- Sensitivity to neural coordination disruption.
-- Performance across multiple random seeds.
-
-### Baselines
-
-The proposed method should be compared with:
-
-- Randomly initialized encoders.
-- Standard cross-population InfoNCE.
-- CEBRA-Time.
-- The proposed method without ranking.
-- The proposed method with shuffled ranking targets.
-
-Ideally, comparisons should also control for encoder architecture and training budget.
-
----
-
-## 7. Main Scientific Hypothesis
-
-**Can ordinal information constraints across nested neural subpopulations improve self-supervised representation learning beyond standard contrastive objectives, and does any resulting improvement depend on genuine inter-neuronal coordination?**
-
-The proposed approach is motivated by the information-theoretic observation that adding observed neural variables cannot decrease the mutual information available about a separate reference population.
-
-However, this theoretical property does not guarantee that an encoder trained with an ordinal loss will learn better representations.
-
-The central contribution to investigate is therefore not simply the use of mutual information or variable-sized neuronal subsets, but whether an explicit information-ordering constraint helps preserve population-level structure that standard contrastive learning fails to capture.
-
-## 8. Expected Contribution and Limitations
-
-If successful, the method could provide a discriminative, reconstruction-free approach to learning neural population representations that emphasizes information shared across different neuronal subsets.
-
-The most critical comparisons are:
-
-**Experiment 2 vs. Experiment 3:** Does ranking improve representations beyond contrastive learning alone?
-
-**Experiment 2 vs. Experiment 5:** Does the correct ordering matter?
-
-**Experiment 2 vs. Experiment 4:** Are the learned representations sensitive to meaningful population coordination?
-
-Potential confounds include simple firing-rate statistics, temporal autocorrelation, population-size cues, and changes in the difficulty of contrastive matching across subset sizes.
-
-These factors must be controlled before attributing improvements specifically to inter-neuronal interactions.
-
-**The proposal remains a research hypothesis. Its empirical effectiveness and novelty relative to existing neural representation learning methods require further validation.**
 
