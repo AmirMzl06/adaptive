@@ -1,602 +1,201 @@
-# Self-Supervised Neural Population Representation Learning
-## Experimental Report: Cross-Population Gaussian Mutual Information and Nested Subpopulation Ranking
+# Adversarial Attacks and Learnable Augmentation for Neural Data — Research Notes
 
-**Dataset:** Perich monkey motor-cortex recordings  
-**Evaluation:** Frozen neural embeddings followed by supervised Ridge regression for behavioral decoding  
-**Experiments:** 17 completed training runs across two configurations  
-**Hardware:** One NVIDIA H200 GPU per job  
-**Random seed:** 0
+*Conversation transcript, 3 October 2026*
 
 ---
 
-## 1. Research Objective
+## Part 1 — Adaptive, dataset-specific ε and PGD for neural time series
 
-The goal is to learn representations of neural population activity without using behavioral labels during pretraining, without reconstructing spike activity, and without predicting future spikes.
+### Question
 
-The central hypothesis is that a useful neural representation should preserve information shared between different neuronal subpopulations.
+Adversarial training in the image domain has been extensively investigated. For example, following the introduction of Projected Gradient Descent (PGD), several stronger and adaptive attack strategies have been proposed to evaluate and improve model robustness.
 
-For each training batch, the neural population is divided into two disjoint groups:
+I would like to investigate a novel adversarial attack mechanism specifically for neural data. This domain presents several open research questions and opportunities. One important challenge is how to define an appropriate perturbation budget, (\epsilon). Unlike in the image domain, where perturbation magnitudes can often be defined in relatively standardized ways, neural datasets typically consist of multivariate time-series signals with dataset-specific statistical, temporal, and physiological characteristics. Therefore, choosing a fixed (\epsilon) across datasets may not be meaningful.
 
-- **A:** Input neuronal population.
-- **B:** Reference neuronal population used to define the self-supervised objective.
+A promising direction would be to develop an adaptive, dataset-specific method for determining (\epsilon) and modifying PGD according to the characteristics of the neural signals. The perturbations should remain sufficiently small to preserve meaningful temporal, spectral, and physiological features of the original data, while still being strong enough to generate effective adversarial examples. Such adversarial examples could then be incorporated into adversarial training to improve the robustness of neural-data models.
 
-An encoder receives spike-count windows from a subset of A and produces a low-dimensional representation.
+I would therefore like to explore principled approaches for selecting (\epsilon) and adapting PGD to neural time-series data based on dataset characteristics, while ensuring that the resulting perturbations do not destroy semantically or physiologically meaningful information. Give me a novel approach.
 
-We maximize a Gaussian mutual-information estimate between that representation and the simultaneously recorded activity of B.
+### Response
 
-We also investigated an auxiliary ranking constraint based on the expected increase in information when more neurons from A are included.
+Here's a framework I'd propose, followed by how it sits against what's already published. The short version: stop measuring ε in microvolts and measure it in units the dataset itself defines — how detectable the perturbation is against that dataset's own noise.
 
-Behavioral labels are used only to train and evaluate downstream probes; they are not used to update the encoder during self-supervised pretraining.
+#### The core idea: ε as a detectability index (d′)
 
-## 2. Shared Neural Encoder Architecture
+Replace the L∞/L2 ball with a ball in the metric induced by the dataset's estimated noise covariance Σ:
 
-All self-supervised conditions use the same neural network. The ablations modify the input construction and/or training objective, not the encoder architecture.
+```
+δᵀ Σ⁻¹ δ ≤ ε²
+```
 
-**Input**
+For Gaussian noise, √(δᵀΣ⁻¹δ) is exactly the ideal-observer (matched-filter) detectability d′ of a known perturbation δ. So ε becomes dimensionless and invariant to units, referencing, montage, sampling rate and subject — ε = 1 means the same thing on a motor-imagery dataset, a P300 dataset, MEG, or LFP: an unbiased ideal observer who knows the perturbation exactly would still only reach about 69% correct in a yes/no detection task. That gives you a defensible universal default (one just-noticeable difference) and a common axis on which attack-success curves from different datasets can finally be overlaid.
 
-- Spike-count windows spanning 36 time bins.
-- A variable number of input neurons.
-- Separate learned identity embeddings for each neuron.
+The metric also fixes PGD's direction, not just its budget. Steepest ascent under this norm is δ ∝ Σ ∇ₓL — the gradient *colored* by the noise covariance. The attack is pushed to put energy where the data already has it (low frequencies under the 1/f spectrum, dominant spatial modes under volume conduction) and is charged heavily for high-frequency or spatially implausible patterns. A flat µV budget does the opposite: a perturbation that's small relative to delta amplitude is huge relative to gamma amplitude, which matters because a recent spectral study on CHB-MIT found the 0–5 Hz range to be the dominant axis of adversarial vulnerability, with EEG models staying sensitive to delta-band perturbations even under strict spectral constraints.
 
-**Architecture**
+#### Three layers, each handling a different kind of structure
 
-1. A shared per-neuron temporal CNN with three Conv1D layers, GELU activations, and a linear projection.
-2. A learned neuron-ID embedding added to each temporal token.
-3. Two Transformer encoder layers with four attention heads per layer, operating across neuronal tokens.
-4. Attention pooling using four learned query vectors.
-5. A final linear projection producing a **32-dimensional representation**.
+**Layer 1 — dataset-level stationary metric.** Model Σ as Kronecker-structured, Σ = Σ_spatial ⊗ Σ_temporal. Σ_spatial is the C×C channel covariance with shrinkage (Ledoit–Wolf/OAS), estimated per subject or session on residuals (trial minus class mean for ERP data; whole trials for oscillatory tasks where background dominates). Σ_temporal is represented by a PSD from Welch or an AR(p) fit, so temporal whitening is just a prewhitening filter 1/√S(f). Whitening a trial costs O(C²T + CT log T), so you run ordinary PGD (with APGD-style step adaptation and restarts) on the whitened coordinates under an L2 ball of radius ε, and map back. Per-subject Σ means ε is automatically in subject-specific units, which absorbs inter-subject amplitude heterogeneity for free.
 
-**Architectural hyperparameters**
+**Layer 2 — trial-level nonstationary masking.** A stationary Σ_temporal is wrong for bursty signals (seizures, sleep, ERD/ERS). Replace it per trial with a local time–frequency gain: compute the trial's multitaper spectrogram P_c(t,f), parametrize δ = ISTFT(m ⊙ z) with m_c(t,f) = √P_c(t,f), and run PGD on z with ‖z‖₂ ≤ ε. This is the neural analogue of psychoacoustic masking in audio attacks: local power masks local perturbation. Consequences: the attack cannot inject an alpha burst into a desynchronized epoch, cannot fill quiet periods, and the budget tracks nonstationarity. Conceptually this is still Layer 1 — it's d′ against a time-varying noise model equal to the trial's own local power — so the ε scale stays comparable.
 
-| Parameter | Value |
-|---|---|
-| Temporal window | 36 bins |
-| Token dimension | 64 |
-| Transformer layers | 2 |
-| Attention heads | 4 |
-| Learned pooling queries | 4 |
-| Output embedding dimension | 32 |
-| Dropout | 0 |
-| Input spike smoothing | 0 |
-| Reference population smoothing | Gaussian sigma = 2 bins |
+**Layer 3 — physiological invariants that a quadratic form can't express.** Define a small set of guards whose tolerances come from *natural within-class, within-subject variability* rather than hand-picked thresholds:
 
-The model can process variable-sized neuronal sets because the Transformer and learned-query pooling are applied across the available neuron tokens.
+- log band power per channel (change ≤ τ × within-class SD);
+- aperiodic exponent and offset from specparam/FOOOF;
+- the trial covariance on the SPD manifold: affine-invariant Riemannian distance d_R(C_x, C_{x+δ}) ≤ median same-class nearest-neighbour d_R. This one matters because Riemannian/CSP pipelines are the strongest classical BCI decoders, and a perturbation that moves the covariance less than a natural repeat can't be flagged by them;
+- ERP peak latency/amplitude in the component window, for ERP tasks;
+- an artifact-rejection pass (Autoreject thresholds, ICLabel) at the same rate as clean trials.
 
-## 3. Self-Supervised Training Objective
+Enforce them with a backtracking rule inside PGD (if a guard is violated after a step, halve the step and retry) plus a final accept/reject; d_R is differentiable, so it can also be a soft penalty.
 
-For nested subpopulations:
+#### Choosing ε per dataset: a calibration protocol, not a number
 
-`A_k1 ⊂ A_k2 ⊂ A_k3 ⊂ A_k4`
+Compute three independent criteria from clean data, all in d′ units:
 
-the encoder produces:
+1. **ε_JND = 1**, the ideal-observer threshold (sweep 0.5–3 for curves).
+2. **ε_NN**: for each clean trial, the whitened distance to its nearest same-class, same-subject neighbour; take a low quantile (e.g., the 10th). The adversarial example is then closer to its original than the original is to a natural repeat — trial-to-trial variability made precise.
+3. **ε_det**: the largest ε at which a detector trained to separate clean from adversarial trials (plus a clean-only anomaly detector such as an autoencoder) stays ≤ 0.55 AUC on held-out subjects. This is the adaptive-adversary criterion, and it stops "imperceptible" from meaning merely "invisible by eye".
 
-`z_k = f_theta(X_Ak)`
+Take ε* = min of the three. Then run a minimum-norm attack (FMN/DDN in the whitened metric) to measure each trial's distance to the decision boundary in d′. The ratio median(d′_boundary)/ε* is a dataset-intrinsic **robustness margin**: below 1 the decoder can be flipped within a physiologically indistinguishable budget; above 1, larger attacks aren't meaningful for that dataset. Reporting this margin across datasets and models is arguably the headline result — it's a quantity nobody currently has a principled way to compute.
 
-For each representation, a Gaussian mutual-information proxy is computed with the activity of reference population B:
+#### Adversarial training
 
-`M_k = I_G(z_k ; X_B)`
+Drop d′-PGD into Madry-style AT or TRADES with a per-trial budget ε_i = min(ε*, ε_NN,i), i.e., instance-adaptive AT in the spirit of IAAT/MMA, with a curriculum from 0.25 up to ε*. Two things worth testing that fall out naturally:
 
-The estimate is based on regularized covariance matrices and Gaussian log-determinants:
+- Because the threat model is "perturbations shaped like the dataset's own noise and nonstationarity", whitened AT should improve cross-session and cross-subject generalization more than L∞ AT does — session-to-session shift in EEG is largely a covariance shift. Train on session 1 of BCI-IV 2a, test on session 2; leave-one-subject-out.
+- Sample Σ from the pool of per-subject covariances during training so robustness isn't tied to one subject's noise structure.
 
-`I_G(z; B) = 0.5 [logdet(C_z) + logdet(C_B) - logdet(C_joint)]`
+#### Sketch
 
-The covariance regularization parameter is `mi_eps = 0.01`.
+```
+Calibrate(dataset):
+  Σ_s, S(f)  ← shrinkage channel cov, Welch PSD   (per subject/session)
+  ε_NN       ← quantile_10( whitened NN distance, same class/subject )
+  ε_det      ← max ε with detector AUC ≤ 0.55 (held-out subjects)
+  ε*         ← min(1, ε_NN, ε_det)
 
-**Main information objective**
+dprimePGD(x, y, ε*):
+  z ← 0
+  for k in 1..K:
+     δ   = Color(z)               # Σ_s^{1/2}, ×√S(f) or trial mask m
+     g_z = ∇_z L(f(x+δ), y)       # autograd through Color
+     z   = Proj_{‖z‖₂≤ε*}(z + α_k · g_z/‖g_z‖)
+     if any Layer-3 guard violated: α_k ← α_k/2, retry (≤ K_bt)
+  return x + Color(z) if all guards pass else reject
+```
 
-`L_MI = -(M_k1 + M_k2 + M_k3 + M_k4) / 4`
+#### Validation plan
 
-**Auxiliary ranking objective**
+Datasets spanning regimes: BCI-IV 2a (oscillatory MI), BNCI P300 (ERP), SEED (long, emotion), CHB-MIT (nonstationary seizure), plus one MEG and one invasive set (ECoG/LFP) for the cross-modality claim. Models: EEGNet, ShallowConvNet, EEG-Conformer, a Riemannian MDM/tangent-space baseline, and a pretrained EEG foundation model. Baselines: L∞ PGD, low-pass/smooth PGD, wavelet TFAttack, Meng et al.'s physically constrained attack, TSA-STAT. Key figures: ASR vs ε(d′) overlaid across datasets on one axis; detectability AUC vs ε; the fidelity suite; transfer; the robustness-margin table; and cross-session AT gains.
 
-`L_rank = mean_{i<j} max(0, M_kj - M_ki + margin)`
+#### Extensions and risks
 
-where the levels are ordered from the largest to the smallest neuronal subset.
+For EEG/MEG with a leadfield L you can go further: δ = L·s + n (source-space perturbation plus sensor noise) with the budget in source space — physically realizable, not just plausible. For spike trains the same logic applies with a different metric: perturbations are jitter/insertion/deletion, budgeted by van Rossum distance with τ fitted to the dataset's inter-trial variability, calibrated the same three-way way.
 
-The intended ordering is:
+Risks to address up front: EEG is heavy-tailed, so use robust covariance (Tyler's estimator) or Student-t whitening and treat the d′ reading as approximate; few-trial datasets need shrinkage and the Kronecker assumption should be checked against a full covariance on a small C·T slice; detectors overfit to one attack, so train them across attacks and report on held-out subjects; and evaluate with the min-norm attack alongside PGD to rule out gradient masking.
 
-`M_large > M_medium > M_small > M_smallest`
+#### Where this sits relative to prior work
 
-with `margin = 0.05`.
+The pieces that exist: Meng et al. (NeurIPS 2022) were the first to model attacks on EEGNet under physical constraints, producing smooth, imperceptible perturbations and modelling propagation across the scalp; Yi et al. attack jointly in the time and wavelet domains to trade attack strength against imperceptibility; MS-UAP smooths universal perturbations by convolution to avoid physiologically implausible square-wave distortions; and for generic time series, TSA-STAT constrains statistical features of the series and gives certified bounds on them, while Pialla et al. showed standard attacks on time series produce visible sawtooth and spike artifacts and proposed smoother perturbations. All of these pick a budget in signal units or impose fixed smoothness. What I haven't found anywhere is (a) a budget expressed as a noise-calibrated detectability index that makes ε comparable across datasets, (b) a data-driven calibration of ε from natural trial-to-trial variability and detector AUC, (c) a Riemannian covariance guard, or (d) the resulting "robustness margin" as a dataset-level quantity. Those four are where the novelty is.
 
-**Total loss**
+**Sources**
 
-`L_total = L_MI + lambda_rank * L_rank`
-
-The default ranking weight is `lambda_rank = 1.0`.
-
-The Gaussian MI values are batch-based statistical estimates rather than ground-truth mutual information. Their absolute magnitudes should not be directly compared across different batch sizes.
-
-## 4. Experimental Conditions
-
-| Condition | Input construction | Training objective |
-|---|---|---|
-| **Main** | Time-decoy replacement | MI over all levels + correct ranking |
-| **No Rank** | Time-decoy replacement | MI over all levels; ranking weight = 0 |
-| **Shuffled Rank** | Time-decoy replacement | MI over all levels + randomly permuted ranking order |
-| **MI Full** | Time-decoy replacement | MI only at the largest level + correct ranking |
-| **Decoy Zero** | Missing-neuron activity replaced with zero | MI over all levels + correct ranking |
-| **Decoy Drop** | Missing neurons completely removed | MI over all levels + correct ranking |
-| **Fixed B** | Time-decoy replacement with one fixed reference population | MI over all levels + correct ranking |
-| **Raw Ridge** | Smoothed neural activity directly supplied to Ridge regression | Fully supervised linear baseline; no encoder pretraining |
-
-### What is a time decoy?
-
-In the Main condition, the number of input neuron tokens stays constant. When only some neurons are designated as the genuine subset, the remaining neurons are represented by their activity at other, temporally distant time points.
-
-The minimum decoy offset is 360 bins.
-
-### What is Decoy Drop?
-
-In Decoy Drop, unselected neurons are removed completely rather than replaced. Therefore, the encoder receives actual subsets of different sizes.
-
-For example, with 57 candidate input neurons, the four views contain 57, 28, 14, and 7 real neurons.
-
-The same neural encoder processes all four views.
-
-### Important implementation detail
-
-In the current implementation, the neuronal subset can differ across individual time samples within a batch. Thus, the nested-subpopulation training protocol is not identical to a statistical analysis based on fixed neuronal subsets observed across all time points.
-
-### Raw Ridge baseline
-
-The Raw Ridge baseline uses Gaussian-smoothed neural activity at each time point and directly predicts six behavioral dimensions.
-
-Unlike the self-supervised encoder, the current Raw Ridge baseline does not receive an explicit 36-bin feature window. Consequently, a Ridge baseline with the same temporal context remains necessary for a fully matched comparison.
+- [Physically-Constrained Adversarial Attacks on Brain-Machine Interfaces (NeurIPS 2022)](https://neurips.cc/virtual/2022/61568)
+- [Time-Frequency Jointed Imperceptible Adversarial Attack to Brainprint Recognition (arXiv 2403.10021)](https://arxiv.org/abs/2403.10021v3)
+- [Multi-Target Smooth Universal Adversarial Perturbations for CNNs in EEG-based BCIs](https://worldscientific.com/keyword/MS-UAP)
+- [Adversarial Framework with Certified Robustness for Time-Series Domain via Statistical Features (JAIR)](https://jair.org/index.php/jair/article/view/13543)
+- [Smooth perturbations for time series adversarial attacks](https://research.monash.edu/en/publications/smooth-perturbations-for-time-series-adversarial-attacks/)
+- [Spectral adversarial vulnerabilities in ECG/EEG models (UTA thesis)](https://mavmatrix.uta.edu/bioengineering_theses2/1)
+- [Universal Adversarial Perturbations for CNN Classifiers in EEG-Based BCIs](https://arxiv.org/pdf/1912.01171)
 
 ---
 
-# 5. Experiment A: Original Long Run
+## Part 2 — Learnable, data-adaptive augmentation as an architectural component
 
-**Output directory:** `rank_runs/`  
-**RunAI job:** `mm8-ssl`  
-**Training steps:** 5,000  
-**Batch size:** 1,024  
-**Evaluation frequency:** Every 1,000 steps  
-**Logging frequency:** Every 100 steps  
-**Seed:** 0
+### Question
 
-This experiment ultimately used the suite's default configuration.
+Data augmentation is particularly useful in the neural-data domain because neural recordings are inherently noisy and often limited in size. Appropriate augmentation strategies can reduce overfitting and improve the generalization and robustness of neural decoding models. Existing approaches commonly use relatively simple transformations, such as additive Gaussian noise, temporal masking, channel dropout, or signal perturbations.
 
-Although an initial RunAI submission was intended to launch a smaller pilot, process inspection showed that the Python process actually ran as:
+I would like to explore whether a more principled and learnable augmentation mechanism can be introduced as a novel architectural component. For example, instead of applying a predefined augmentation such as Gaussian noise, we could design a neural module—potentially based on Neural ODEs, stochastic differential equations (SDEs), diffusion processes, or learnable dynamical systems—that acts as either a denoiser, an augmentor, or both.
 
-`python -u run_rank_ssl_suite.py`
+One possible direction is to develop a learnable ODE-based augmentation layer that models the evolution of neural signals along a continuous latent trajectory. During training, the model could generate controlled variations of the original neural representation by perturbing the initial state, the latent dynamics, or the integration trajectory. The augmentation strength could be conditioned on properties of the input signal, such as its variance, spectral content, signal-to-noise ratio, or recording session. This would allow the model to generate realistic and sample-specific perturbations rather than applying the same noise distribution to every example.
 
-without the intended command-line arguments.
+Another direction would be to design a denoising–augmentation dual module. The module could learn to separate task-relevant neural structure from nuisance variability. One branch would reconstruct a cleaner representation, while another would generate plausible variations within the learned nuisance subspace. The augmented samples could then be used during training to encourage the downstream decoder to remain invariant to session-specific noise and other irrelevant variations while preserving information relevant to the decoding task.
 
-Therefore, the actual run used the suite's defaults: 5,000 steps, batch size 1,024, and output directory `rank_runs/`.
+The key research question would therefore be whether augmentation can be moved from a manually designed preprocessing operation to a learnable, data-adaptive component of the neural decoding architecture. A particularly interesting contribution would be to constrain the learned transformations so that they preserve meaningful temporal, spectral, and neural features while generating sufficiently diverse samples to improve model generalization across trials, sessions, and subjects.
 
-**Nine completed models were verified:** seven conditions for C-CO12 and two conditions for C-CO41. Other default jobs were configured by the suite, but no additional completed results were present in the reviewed outputs.
+### Response
 
-## 5.1 Behavioral Decoding Results
+Here's a framework I'd propose. The one-line version: stop treating augmentation as a transformation applied *to* the data, and define it as **sampling from the posterior over nuisance variability in a learned latent dynamical model of the dataset**. Denoising is then the posterior mean, augmentation is a posterior sample, and the augmentation strength is sample-specific by construction rather than by design.
 
-The metric is mean validation R² over six behavioral dimensions, using a frozen encoder and a trained Ridge probe.
+#### 1. The core principle: augmentation = nuisance posterior sampling
 
-| Condition | C-CO12 | C-CO41 |
-|---|---:|---:|
-| Raw Ridge | 0.5164 | 0.5965 |
-| Randomly initialized encoder | 0.0997 | 0.0825 |
-| Main | 0.6975 | 0.6728 |
-| No Rank | 0.6915 | 0.6689 |
-| Shuffled Rank | **0.7085** | Not completed |
-| MI Full | 0.6463 | Not completed |
-| Decoy Zero | 0.6915 | Not completed |
-| Decoy Drop | 0.7040 | Not completed |
-| Fixed B | 0.5665 | Not completed |
+Fit a latent dynamical model whose latent state is factorized into a **content** path c(t), which must carry the decoding target, and a **nuisance** path n(t), which must carry everything else (session, subject, electrode drift, background oscillations, measurement noise). Given a trial x, the model defines a posterior over both. An augmentation of x is a new trial decoded from the *same* content path and a *resampled* nuisance path:
 
-On C-CO12, all seven trained self-supervised models outperformed the randomly initialized encoder.
+```
+x̃ = Dec( c(t) | x ,  ñ(t) ),   ñ ~ p_τ( n | x, s′ )
+```
 
-The largest final R² was obtained by Shuffled Rank (0.7085), closely followed by Decoy Drop (0.7040).
+Three things fall out of this definition that hand-designed augmentations can't give you:
 
-On C-CO41, Main and No Rank performed similarly, with final R² values of 0.6728 and 0.6689, respectively.
+- **Strength is trial-conditioned for free.** The posterior over n is wide for low-SNR trials and tight for clean ones, so with a single global temperature τ the realized perturbation scales with each trial's own uncertainty. You get "noise proportional to SNR" without ever specifying it.
+- **Content is preserved structurally, not by hoping.** c(t) is held fixed, so task-relevant temporal structure (ERP timing, ERD/ERS evolution, reach dynamics) is untouched. Preservation is a property of the operator, not a loss term you tune.
+- **The same module is a denoiser.** τ = 0 (posterior-mean nuisance) returns a cleaned trial; τ = 1 returns a natural sibling of the trial; τ > 1 or sampling from the prior returns wider variations; and swapping the session code s → s′ transplants the trial into another session's nuisance statistics, which is cross-session style transfer inside the model.
 
-The Fixed B condition is not directly comparable with the other full-population evaluations because its evaluation input excludes the fixed reference population B.
+#### 2. Architecture: a content–nuisance latent SDE
 
-## 5.2 Detailed Final Diagnostics
+A concrete instantiation along the ODE/SDE lines you're interested in:
 
-The MI values and loss values below are averages over the final 200 training steps.
+- **Content (deterministic ODE):** dc = f_θ(c) dt, with c(0) ~ q(c₀ | x). Deterministic so that any stochasticity in the output is attributable to nuisance.
+- **Nuisance (session-conditioned SDE):** dn = −A_s n dt + G_s(n, φ(x)) dW_t. An Ornstein–Uhlenbeck-like process whose drift A_s and diffusion G_s are session/subject-conditioned, and whose diffusion is additionally conditioned on trial descriptors φ(x) (variance, spectral slope, estimated noise floor). This is where "augmentation strength conditioned on signal properties" lives, and it is learned.
+- **Observation:** x_t = W_s · h(c_t, n_t) + e_t. A session-specific mixing matrix W_s (parameterized as W(I + E_s) with small E_s) captures electrode placement and referencing differences, which are the dominant cross-session nuisance in EEG and are pure channel mixing, not additive noise. For spikes, replace with a Poisson observation on exp(h(·)) and add a per-unit slow gain-drift process and unit dropout to the nuisance block, which is what day-to-day instability actually looks like.
+- **Inference:** an encoder gives q(c₀ | x) and a posterior drift for the nuisance SDE; the KL between posterior and prior path measures is the standard Girsanov term from latent-SDE training, so the whole thing trains as an ELBO.
 
-The effective rank is taken from the final logged step.
+Augmentation operator, with its three knobs: (i) temperature τ on the nuisance diffusion; (ii) session swap s → s′; (iii) partial observation — mask a random fraction of channels or time before encoding, so the posterior widens where the model has to impute. Backprop goes through the reparameterized Brownian increments, so the layer is differentiable like dropout.
 
-| Session / Condition | Final R² | Subset R² | Mean total loss | Mean rank loss | Effective rank |
-|---|---:|---:|---:|---:|---:|
-| C-CO12 / Main | 0.6975 | 0.6952 | -3.3785 | 0.0000 | 20.35 |
-| C-CO12 / No Rank | 0.6915 | 0.6913 | -3.3871 | 0.0000 | 20.40 |
-| C-CO12 / Shuffled Rank | 0.7085 | 0.7058 | -1.8440 | 1.2554 | 17.74 |
-| C-CO12 / MI Full | 0.6463 | 0.6401 | -6.8546 | 0.0000 | 21.83 |
-| C-CO12 / Decoy Zero | 0.6915 | 0.6889 | -4.8768 | 0.0000 | 21.69 |
-| C-CO12 / Decoy Drop | 0.7040 | 0.7022 | -4.8615 | 0.0000 | 21.12 |
-| C-CO12 / Fixed B | 0.5665 | N/A | -4.6356 | 0.0000 | 22.19 |
-| C-CO41 / Main | 0.6728 | 0.6715 | -5.1743 | 0.0000 | 24.62 |
-| C-CO41 / No Rank | 0.6689 | 0.6678 | -5.1877 | 0.0000 | 24.81 |
+#### 3. The objective, and why it won't collapse to identity
 
-For No Rank, the reported ranking loss is a diagnostic quantity, not part of the optimized loss.
+This is the part where most "learnable augmentation" ideas die: if the augmentor is trained to minimize the decoder's loss, it learns to do nothing. Train the three parts on different objectives:
 
-## 5.3 Gaussian MI Diagnostics — Final 200 Steps
+- The **generative model** on the ELBO across *all* sessions and subjects, labels optional, so the large unlabeled pool is used.
+- The **decoder** on the task loss over augmented samples.
+- The **augmentation knobs** (τ, the nuisance diffusion scale, swap probability) on a *maximum-invariance* objective: make the nuisance distribution as wide as possible subject to the decoder's loss on augmented samples not exceeding its clean loss by more than a margin, with the width entering as an entropy bonus. This is the Augerino principle, but applied to a learned nuisance manifold instead of a hand-chosen transformation family. Tune the margin by bilevel optimization on a held-out *session*, not held-out trials, since the generalization target is sessions.
 
-For C-CO12, the four nested subset sizes were `[57, 28, 14, 7]`.
+Two kinds of constraint keep the learned variations physiological:
 
-| Condition | M57 | M28 | M14 | M7 |
-|---|---:|---:|---:|---:|
-| Main | 6.236 | 4.342 | 2.082 | 0.855 |
-| No Rank | 6.248 | 4.351 | 2.090 | 0.859 |
-| Shuffled Rank | 5.231 | 4.130 | 2.142 | 0.895 |
-| MI Full | 6.855 | 2.940 | 1.200 | 0.631 |
-| Decoy Zero | 6.294 | 5.432 | 4.482 | 3.300 |
-| Decoy Drop | 6.265 | 5.479 | 4.498 | 3.203 |
-| Fixed B | 11.313 | 4.473 | 1.928 | 0.828 |
+- **Leakage audits as training signals.** A probe predicting y from n must sit at chance (gradient-reversal head or an MI penalty), and a probe predicting session s from c must sit at chance. Without the first, the model hides content in the nuisance block and "augmentation" changes labels; without the second, content carries session identity and the invariance goal is defeated. Report both probes in the paper as diagnostics, since they're the actual evidence the factorization worked.
+- **A physiological trust region.** Bound the augmented trial to the whitened, noise-covariance ball from the attack framework (d′ ≤ ε_NN, the natural same-class nearest-neighbour distance), and keep the same feature guards (log band powers, aperiodic exponent, Riemannian covariance distance, ERP latency) within the within-class spread. Sharing the budget definition between the attack and the augmentation is also a nice unifying story: both are "perturbations indistinguishable from natural variability", one adversarial, one sampled.
 
-For C-CO41, the larger population generated subset sizes `[319, 160, 80, 40]`, with 32 neurons in B.
+And an optional hardening step that connects directly to the adversarial-training thread: run the d′-PGD attack *restricted to the nuisance latent* for the hardest trials. That is adversarial training where the adversary can only move along directions the model has learned are nuisance, which is both more realistic and less likely to generate label-flipping perturbations than raw-signal adversarial training.
 
-| Condition | M319 | M160 | M80 | M40 |
-|---|---:|---:|---:|---:|
-| Main | 7.834 | 6.561 | 4.306 | 1.996 |
-| No Rank | 7.852 | 6.568 | 4.319 | 2.012 |
+#### 4. Three instantiations, in increasing order of commitment
 
-**Observation:** The correct-ranking loss was already zero at the first recorded 100-step interval in every completed condition from this experiment, except Shuffled Rank.
+**Lite (build first): noise-floor SDEdit.** Train a session-conditioned score model on whitened trials. Augment by adding Gaussian noise up to a level matched to the trial's own estimated noise floor (σ² = κ·σ̂²_noise(x)), then run the reverse diffusion back to t = 0; conditioning the reverse process on s′ gives the session swap. Learn κ by the bilevel criterion. No explicit factorization, but you get sample-conditioned strength and a denoiser (full reverse from small t) from one network, and it's a few hundred lines on top of any diffusion codebase.
 
-The Shuffled Rank objective remained strongly active, with a final-200-step mean ranking loss of approximately 1.255.
+**Middle: Kalman-sampler augmentation.** Make the nuisance block linear-Gaussian with a nonlinear decoder. The posterior is then exact (Kalman smoother → denoised mean; forward-filter–backward-sample → augmentation), there is no SDE solver or adjoint, and the content block can be a simple RNN or ODE. Cheap enough to run inside every training step.
 
-This suggests that the original ranking constraint was largely redundant under this configuration.
+**Full: the content–nuisance latent SDE** of Section 2, when you want the explicit factorization, session-conditioned diffusion, and the leakage audits as first-class objects.
 
-## 5.4 Learning Curves — Experiment A
+A bonus at test time: run the layer deterministically for denoising, or Monte-Carlo it for free test-time augmentation and a calibrated uncertainty estimate. For BCI, "how uncertain is this trial" is nearly as valuable as the label.
 
-Validation R² at successive checkpoints:
+#### 5. How I'd evaluate it
 
-| C-CO12 condition | Step 1,000 | Step 2,000 | Step 3,000 | Step 4,000 | Step 5,000 |
-|---|---:|---:|---:|---:|---:|
-| Main | 0.6875 | 0.6904 | 0.6946 | 0.6923 | 0.6975 |
-| No Rank | 0.6774 | 0.6893 | 0.6917 | 0.6876 | 0.6915 |
-| Shuffled Rank | 0.6443 | 0.6770 | 0.6942 | 0.7065 | 0.7085 |
-| MI Full | 0.6599 | 0.6622 | 0.6517 | 0.6445 | 0.6463 |
-| Decoy Zero | 0.6729 | 0.6869 | 0.6918 | 0.6902 | 0.6915 |
-| Decoy Drop | 0.6982 | 0.7042 | **0.7100** | 0.7073 | 0.7040 |
-| Fixed B | 0.6106 | 0.5833 | 0.5781 | 0.5749 | 0.5665 |
+Settings that isolate the claim: cross-session (BCI-IV 2a session 1 → 2), cross-subject (MASS or Sleep-EDF sleep staging, which gives a direct comparison to the differentiable-augmentation literature; SEED), low-data learning curves, and for spikes a multi-day motor dataset for cross-day decoding plus NLB benchmarks. Baselines: the standard fixed-augmentation suite (noise, time/frequency shift, channel dropout, masking, FT-surrogate, mixup), CADDA and AugNet as learned-policy baselines, DiffEEG-style unconditional generation, Euclidean/Riemannian alignment, LFADS/NDT pretraining for spikes. Metrics beyond accuracy: the two leakage probes, a representation-invariance score under nuisance resampling, calibration with MC augmentation, and the fidelity suite on the augmented samples. Ablations that carry the argument: resample nuisance only vs. all latents; posterior vs. prior sampling; session swap on/off; trust region on/off; trial-conditioned vs. global diffusion scale.
 
-| C-CO41 condition | Step 1,000 | Step 2,000 | Step 3,000 | Step 4,000 | Step 5,000 |
-|---|---:|---:|---:|---:|---:|
-| Main | 0.6617 | **0.6817** | 0.6740 | 0.6705 | 0.6728 |
-| No Rank | 0.6644 | **0.6787** | 0.6747 | 0.6674 | 0.6689 |
+#### 6. Risks
 
-Several models showed a decrease in behavioral R² despite continued optimization of the self-supervised objective.
+Posterior collapse of the nuisance block (use free bits or KL annealing); content hidden in nuisance (the probes catch it, but only if you run them on held-out sessions); the generative model overfitting training sessions (hold out sessions in stage 1 too); latent-SDE adjoints being slow (that's why the middle instantiation exists); and the perennial one, evaluation leakage across sessions, which makes every cross-session result look better than it is.
 
----
+#### 7. Where this sits relative to prior work
 
-# 6. Experiment B: Short Pilot
+The two closest lines each cover half. On the augmentation side, Rommel et al. learned differentiable, class-wise augmentation policies for EEG where good policies are largely unknown, and then built AugNet, an end-to-end differentiable augmentation layer evaluated on cross-subject sleep staging; diffusion-based work like DiffEEG generates diverse synthetic EEG to supplement classifiers. All of these either search over hand-designed transformation families or generate unconditionally. On the dynamics side, LFADS infers single-trial latent dynamics from spikes with a sequential VAE and stitches across sessions spanning months, TNDM decomposes neural dynamics into behaviourally relevant and irrelevant components, SNP-GPFA separates signal and noise latent structure, and Jude et al. perturb spike data in ways mirroring session-to-session variability to compensate for it. None of these use the factorized model *as the augmentation operator*, condition the nuisance diffusion on the trial, train the augmentation width on a maximum-invariance objective, or audit content/nuisance leakage as part of the method. That combination is the contribution.
 
-**Output directory:** `rank_pilot_2500/`  
-**RunAI job:** `mm8-ssl-pilot`  
-**Sessions:** C-CO12 and C-RT2  
-**Conditions:** Main, No Rank, Shuffled Rank, Decoy Drop  
-**Training steps:** 2,500  
-**Batch size:** 256  
-**Evaluation frequency:** Every 500 steps  
-**Logging frequency:** Every 100 steps  
-**Seed:** 0
+**Sources**
 
-The actual Python command for this experiment was:
-
-`python -u run_rank_ssl_suite.py --sessions C-CO12,C-RT2 --conditions main,no_rank,shuffled_rank,decoy_drop --gpus 0 --root rank_pilot_2500 --extra "--steps 2500 --batch 256 --eval_every 500 --log_every 100"`
-
-Eight models were trained sequentially on one H200 GPU.
-
-The job logs show that all eight conditions completed between 20:11:56 and 20:23:42, approximately 12 minutes in total.
-
-## 6.1 Behavioral Decoding Results
-
-| Condition | C-CO12 | C-RT2 | Mean |
-|---|---:|---:|---:|
-| Raw Ridge | 0.5164 | 0.3893 | 0.4528 |
-| Randomly initialized encoder | 0.0997 | 0.0265 | 0.0631 |
-| Main | 0.6667 | 0.2616 | 0.4641 |
-| No Rank | 0.6750 | 0.2614 | 0.4682 |
-| Shuffled Rank | 0.6078 | 0.0226 | 0.3152 |
-| Decoy Drop | **0.6895** | **0.3208** | **0.5052** |
-
-Decoy Drop achieved the highest frozen-embedding decoding R² among the four trained SSL conditions on both sessions.
-
-However, on C-RT2, even the best SSL condition (0.3208) underperformed the Raw Ridge baseline (0.3893).
-
-This session dependence is scientifically important and requires further investigation.
-
-## 6.2 Detailed Final Diagnostics
-
-| Session / Condition | Final R² | Subset R² | Mean total loss | Mean rank loss | Effective rank |
-|---|---:|---:|---:|---:|---:|
-| C-CO12 / Main | 0.6667 | 0.6693 | -4.4969 | 0.0000 | 20.67 |
-| C-CO12 / No Rank | 0.6750 | 0.6760 | -4.4933 | 0.0000 | 19.73 |
-| C-CO12 / Shuffled Rank | 0.6078 | 0.6029 | -3.1486 | 1.0303 | 16.45 |
-| C-CO12 / Decoy Drop | 0.6895 | 0.6858 | -5.9109 | 0.0000 | 21.16 |
-| C-RT2 / Main | 0.2616 | 0.2553 | -8.7458 | 0.00017 | 13.84 |
-| C-RT2 / No Rank | 0.2614 | 0.2584 | -8.7679 | 0.00034 | 13.64 |
-| C-RT2 / Shuffled Rank | 0.0226 | 0.0222 | -7.5115 | 0.55648 | 9.76 |
-| C-RT2 / Decoy Drop | 0.3208 | 0.3134 | -9.6818 | 0.00057 | 14.97 |
-
-Again, the ranking loss reported under No Rank was monitored but had zero weight in the total objective.
-
-## 6.3 Gaussian MI Diagnostics — Final 200 Steps
-
-Both sessions used the same nested subset sizes `[57, 28, 14, 7]`.
-
-C-CO12 used 85 neurons in total, partitioned into 57 input candidates and 28 reference neurons.
-
-C-RT2 used 86 neurons in total, partitioned into 57 input candidates and 29 reference neurons.
-
-| Session / Condition | M57 | M28 | M14 | M7 |
-|---|---:|---:|---:|---:|
-| C-CO12 / Main | 6.994 | 5.241 | 3.363 | 2.390 |
-| C-CO12 / No Rank | 7.011 | 5.229 | 3.353 | 2.381 |
-| C-CO12 / Shuffled Rank | 6.159 | 4.879 | 3.289 | 2.389 |
-| C-CO12 / Decoy Drop | 7.130 | 6.475 | 5.596 | 4.442 |
-| C-RT2 / Main | 10.599 | 9.196 | 8.416 | 6.772 |
-| C-RT2 / No Rank | 10.623 | 9.200 | 8.423 | 6.825 |
-| C-RT2 / Shuffled Rank | 8.928 | 8.445 | 8.077 | 6.822 |
-| C-RT2 / Decoy Drop | 10.857 | 9.955 | 9.276 | 8.642 |
-
-The larger Gaussian MI values on C-RT2 did not translate into better behavioral decoding.
-
-Therefore, maximizing the estimated shared information between neuronal groups does not necessarily maximize information relevant to the measured behavior.
-
-## 6.4 Learning Curves — Experiment B
-
-| Session / Condition | Step 500 | Step 1,000 | Step 1,500 | Step 2,000 | Step 2,500 |
-|---|---:|---:|---:|---:|---:|
-| C-CO12 / Main | 0.6207 | 0.6458 | 0.6624 | 0.6657 | 0.6667 |
-| C-CO12 / No Rank | 0.6116 | 0.6437 | 0.6686 | 0.6710 | 0.6750 |
-| C-CO12 / Shuffled Rank | 0.4780 | 0.5597 | 0.5863 | 0.6025 | 0.6078 |
-| C-CO12 / Decoy Drop | 0.6367 | 0.6488 | 0.6759 | 0.6837 | 0.6895 |
-| C-RT2 / Main | 0.1263 | 0.2028 | 0.2387 | 0.2587 | 0.2616 |
-| C-RT2 / No Rank | 0.1322 | 0.2136 | 0.2254 | 0.2472 | 0.2614 |
-| C-RT2 / Shuffled Rank | -0.0106 | -0.0077 | 0.0138 | 0.0156 | 0.0226 |
-| C-RT2 / Decoy Drop | 0.1869 | 0.2727 | 0.2952 | **0.3333** | 0.3208 |
-
-On C-RT2, Decoy Drop reached its highest reported validation R² at Step 2,000, followed by a slight decline.
-
----
-
-# 7. Per-Behavior-Dimension Results — Short Pilot
-
-There are six behavioral output dimensions. The following values are validation R² for each dimension.
-
-## C-CO12
-
-| Condition | Dim 1 | Dim 2 | Dim 3 | Dim 4 | Dim 5 | Dim 6 |
-|---|---:|---:|---:|---:|---:|---:|
-| Raw Ridge | 0.7204 | 0.7644 | 0.6940 | 0.5568 | 0.2566 | 0.1061 |
-| Main | 0.8772 | 0.8701 | 0.8374 | 0.7572 | 0.4007 | 0.2575 |
-| No Rank | 0.8821 | 0.8741 | 0.8521 | 0.7858 | 0.4046 | 0.2512 |
-| Shuffled Rank | 0.7404 | 0.7729 | 0.8101 | 0.7456 | 0.3565 | 0.2212 |
-| Decoy Drop | **0.8939** | **0.8897** | **0.8592** | **0.7976** | **0.4273** | **0.2691** |
-
-Decoy Drop improved all six behavioral dimensions relative to Raw Ridge on this session.
-
-## C-RT2
-
-| Condition | Dim 1 | Dim 2 | Dim 3 | Dim 4 | Dim 5 | Dim 6 |
-|---|---:|---:|---:|---:|---:|---:|
-| Raw Ridge | **0.5661** | **0.5011** | **0.5524** | **0.4599** | **0.2110** | **0.0453** |
-| Main | 0.3573 | 0.4070 | 0.4563 | 0.2827 | 0.0819 | -0.0157 |
-| No Rank | 0.2941 | 0.3950 | 0.4737 | 0.3024 | 0.0913 | 0.0120 |
-| Shuffled Rank | -0.0043 | -0.0125 | 0.1056 | 0.0474 | 0.0131 | -0.0137 |
-| Decoy Drop | 0.4032 | 0.4598 | 0.4634 | 0.3973 | 0.1667 | 0.0347 |
-
-On C-RT2, Raw Ridge remained better than all tested SSL encoders for every behavioral dimension.
-
----
-
-# 8. Detailed Observations About the Ranking Objective
-
-The most consistent finding is that the correct nested-subpopulation ordering emerges almost automatically.
-
-In the 5,000-step experiment, Main, No Rank, and Decoy Drop showed zero ranking loss from the first recorded logging interval.
-
-In the 2,500-step pilot:
-
-- C-CO12 / Main: mean ranking loss approximately 0.00094 over the first 100 steps, approximately 0.00006 over the next 100 steps, and zero from around Step 300 onward.
-- C-CO12 / No Rank: the same ordering emerged without any ranking optimization.
-- C-CO12 / Decoy Drop: ranking loss had already become zero by Step 200.
-- C-RT2: small ranking violations occasionally remained, but their contribution was substantially smaller than the information objective.
-
-This indicates that ranking subpopulations by their size is a relatively easy task and may contribute little additional learning signal.
-
-Shuffled Rank behaved differently. Its ranking loss remained active because the imposed ordering conflicted with the natural information ordering.
-
-Interestingly, it underperformed badly in the short pilot but achieved the highest final R² on C-CO12 in the long run.
-
-Because the two runs differed in both batch size and training length, this cannot yet be interpreted as evidence that shuffled ranking is beneficial regularization.
-
-There is also a random-number-generation confound in the current shuffled-ranking implementation: drawing the random ranking order can alter the subsequent sampling sequence. Therefore, matched random streams are needed for a rigorous causal comparison.
-
-# 9. Comparison Between the Two Training Configurations
-
-For C-CO12:
-
-| Condition | 2,500 steps / Batch 256 | 5,000 steps / Batch 1,024 |
-|---|---:|---:|
-| Main | 0.6667 | 0.6975 |
-| No Rank | 0.6750 | 0.6915 |
-| Shuffled Rank | 0.6078 | 0.7085 |
-| Decoy Drop | 0.6895 | 0.7040 |
-
-All four methods had higher final R² in the longer, larger-batch run.
-
-However, the effect was particularly pronounced for Shuffled Rank.
-
-The batch-size change also affects the finite-sample covariance estimate underlying Gaussian MI. Consequently, the MI values obtained with batches of 256 and 1,024 cannot be interpreted as directly comparable measurements of population information.
-
-A controlled batch-size ablation is necessary to separate the effects of batch size, training length, and ranking.
-
----
-
-# 10. Training Hyperparameters and Reproducibility
-
-The following settings were verified from the saved argument dictionaries.
-
-| Setting | Value |
-|---|---|
-| Learning rate | 0.0003 |
-| Weight decay | 0.0001 |
-| Warmup steps | 250 |
-| Gradient clipping | 1.0 |
-| Random seed | 0 |
-| Temporal input window | 36 |
-| Input smoothing sigma | 0 |
-| Reference smoothing sigma | 2 |
-| Minimum validation neuron standard deviation | 0.2 |
-| Maximum reference population size | 32 |
-| Reference population fraction | Approximately one-third |
-| Nested fractions | 1, 0.5, 0.25, 0.125 |
-| Minimum subset size | 4 |
-| Decoy temporal gap | 360 |
-| Gaussian MI regularization | 0.01 |
-| Ranking margin | 0.05 |
-| Default ranking weight | 1.0 |
-| Encoder output dimension | 32 |
-| Mixed precision | Enabled |
-| MLP probe | Disabled |
-| Evaluation subset averages | 4 random subsets |
-
-**Data location**
-
-`/data/hossein/mm_project/perich_data_valid_final_raw/`
-
-**Working directory**
-
-`~/sam/result/Aggregate/`
-
-**Training scripts**
-
-- `run_rank_ssl_suite.py`
-- `train_rank_ssl.py`
-- `rank_ssl_model.py`
-
-## 10.1 Original Long-Run Command
-
-The actual Python child process used the default suite settings:
-
-`python -u run_rank_ssl_suite.py`
-
-The original RunAI job name was `mm8-ssl`, and its verified output directory was `rank_runs/`.
-
-The intended restricted pilot arguments were not passed to that Python child process. This distinction matters for reproducibility.
-
-## 10.2 Successful Pilot Command
-
-The successful restricted pilot executed:
-
-`python -u run_rank_ssl_suite.py --sessions C-CO12,C-RT2 --conditions main,no_rank,shuffled_rank,decoy_drop --gpus 0 --root rank_pilot_2500 --extra "--steps 2500 --batch 256 --eval_every 500 --log_every 100"`
-
-It ran inside a RunAI H200 container under job name `mm8-ssl-pilot`.
-
-## 10.3 Commands Used to Summarize Results
-
-**Original run**
-
-`python run_rank_ssl_suite.py --sessions C-CO12,C-CO41 --root rank_runs --summary`
-
-**Short pilot**
-
-`python run_rank_ssl_suite.py --sessions C-CO12,C-RT2 --conditions main,no_rank,shuffled_rank,decoy_drop --root rank_pilot_2500 --summary`
-
-The summaries were also saved as:
-
-- `rank_runs/summary.csv`
-- `rank_pilot_2500/summary.csv`
-
-## 10.4 How Training Losses and MI Values Were Retrieved
-
-For each completed experiment, the following files were inspected:
-
-- `final.json` for final R², last-200-step mean losses, Gaussian MI levels, and run configuration.
-- `history.json` for training-step loss, ranking loss, ranking-order violations, effective rank, and Ridge evaluation trajectories.
-
-Relevant JSON fields:
-
-`final["train_last200"]["loss"]`
-
-`final["train_last200"]["loss_rank"]`
-
-`final["train_last200"]["viol"]`
-
-`final["train_last200"]["M57"]`
-
-`history["log"]`
-
-`history["eval"]`
-
-For C-CO41, the MI keys are `M319`, `M160`, `M80`, and `M40` instead of the corresponding smaller-session keys.
-
-The original inspection commands iterated through the run directories and printed these fields for each experimental condition.
-
----
-
-# 11. Interpretation and Limitations
-
-### 11.1 Positive results
-
-The cross-population Gaussian MI objective learned representations that substantially outperformed random initialization on most tested sessions.
-
-On C-CO12, trained representations also outperformed the current single-time-point Raw Ridge baseline.
-
-Decoy Drop was consistently competitive and achieved the highest R² among the four conditions in the short pilot.
-
-The improvement with Decoy Drop suggests that providing genuine neuronal subsets rather than temporally mismatched replacement activity may be a better training strategy.
-
-### 11.2 The current ranking objective does not show a consistent benefit
-
-The correct-ranking loss was typically zero or extremely small early in training, even in the absence of ranking optimization.
-
-Main and No Rank also produced very similar behavioral decoding results.
-
-Therefore, these experiments do not establish an independent benefit from ranking neuronal subsets by size.
-
-### 11.3 Cross-population information is not always behaviorally relevant
-
-C-RT2 is an important negative result.
-
-Although the representations learned substantial statistical dependence with the reference neuronal population, behavioral decoding remained inferior to Raw Ridge.
-
-This suggests that the shared information captured between neuronal subpopulations may contain behavior-irrelevant structure.
-
-### 11.4 Current limitations
-
-1. Only one random seed has been tested in the reported runs.
-2. The 2,500-step and 5,000-step experiments differ in both batch size and training duration.
-3. The self-supervised encoder uses a 36-bin temporal window, while the Raw Ridge baseline does not explicitly use an equivalent window.
-4. The batch-based Gaussian MI estimator may exhibit finite-sample bias, especially with high-dimensional representations and small batches.
-5. A shuffled-reference or temporally permuted reference-population MI null control has not yet been evaluated.
-6. The Fixed B ablation has a different evaluation input from the dynamic-B conditions.
-7. The current subpopulation membership varies between individual time samples within a training batch.
-8. Some self-supervised objectives continue improving after behavioral decoding performance has peaked.
-9. The `drop_no_rank` condition has not yet been executed, so the effect of dropping decoys has not been fully separated from the effect of the ranking term.
-10. The reported validation results should be treated as exploratory rather than as estimates of generalization across animals, sessions, and seeds.
-
-# 12. Proposed Next Experiments
-
-The immediate next experiment should complete a controlled two-by-two ablation:
-
-| Input construction | MI only | MI + correct ranking |
-|---|---|---|
-| Time-Decoy | No Rank | Main |
-| Real neuronal subsets | **Drop No Rank — not yet tested** | Decoy Drop |
-
-This would isolate the effect of the real-subpopulation input strategy from the effect of ranking.
-
-Additional priorities are:
-
-- Run multiple random seeds on several representative sessions.
-- Add a temporally shuffled reference-population null for Gaussian MI.
-- Add a temporally matched linear Ridge baseline using the full 36-bin input window.
-- Separate batch-size effects from training-duration effects.
-- Use identical data-sampling random streams across experimental conditions.
-- Test fixed neuronal subset membership across time when estimating MI.
-- Investigate whether information quality between same-sized neuronal subsets offers a more informative self-supervised ranking signal than simply changing the number of observed neurons.
-
-## Overall Conclusion
-
-The strongest current evidence supports the usefulness of **cross-population self-supervised representation learning**, particularly when the input is constructed from genuine neuronal subsets.
-
-However, the additional nested-ranking constraint based purely on subset size has not demonstrated a reliable independent advantage.
-
-The results motivate retaining the cross-population information-learning framework while investigating more informative objectives that distinguish behaviorally relevant shared structure from other forms of neuronal dependence.
-
-These findings are preliminary and require matched temporal baselines, additional seeds, and further session-level evaluation before drawing broad conclusions.
+- [CADDA: Class-wise Automatic Differentiable Data Augmentation for EEG Signals (ICLR 2022)](https://www.iclr.cc/virtual/2022/poster/7154)
+- [Deep invariant networks with differentiable augmentation layers (AugNet)](https://arxiv.org/pdf/2202.02142)
+- [DiffEEG: Data Augmentation for Seizure Prediction with Generative Diffusion Model](https://arxiv.org/pdf/2306.08256)
+- [Inferring single-trial neural population dynamics using sequential auto-encoders (LFADS)](https://ctn.zuckermaninstitute.columbia.edu/sites/default/files/content/Publications/2018/Pandarinath%20%28Abbott%29%2C%20Inferring%20single-trial%20neural%20population%20dynamics%20using%20sequential%20auto-encoder_0.pdf)
+- [Targeted Neural Dynamical Modeling (TNDM, NeurIPS 2021)](https://research.ibm.com/publications/targeted-neural-dynamical-modeling)
+- [SNP-GPFA (Keeley et al., NeurIPS 2020)](https://paperswithcode.com/author/mikio-aoi)
+- [Capturing cross-session neural population variability through self-supervised identification of consistent neuron ensembles](https://proceedings.mlr.press/v197/jude23a.html)
