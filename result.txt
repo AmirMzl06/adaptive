@@ -1,479 +1,602 @@
-I have no name!@mm8-check-0-0:~/sam/result/Aggregate$ mkdir -p mi_analysis_all
-for f in /data/hossein/mm_project/perich_data_valid_final_raw/*.npz; do
-    python mi_subset_analysis.py --npz "$f" --b_frac 0.35 --ks 5,10,20,40 --out_dir mi_analysis_all > "mi_analysis_all/$(basename "$f" .npz).txt" 2>&1
-done
-I have no name!@mm8-check-0-0:~/sam/result/Aggregate$ grep -H "active neurons\|mean within-size rho" mi_analysis_all/*.txt
-grep -H "%" mi_analysis_all/*.txt | grep -v "100.0%"
-mi_analysis_all/C-CO0.txt:69 active neurons -> |B| = 24, |A| = 45, subset sizes [5, 10, 20, 40, 45]
-mi_analysis_all/C-CO0.txt:  mean within-size rho = +0.600   (> 0: subsets that know more about B also know more about behavior)
-mi_analysis_all/C-CO1.txt:41 active neurons -> |B| = 14, |A| = 27, subset sizes [5, 10, 20, 27]
-mi_analysis_all/C-CO1.txt:  mean within-size rho = +0.423   (> 0: subsets that know more about B also know more about behavior)
-mi_analysis_all/C-CO10.txt:87 active neurons -> |B| = 30, |A| = 57, subset sizes [5, 10, 20, 40, 57]
-mi_analysis_all/C-CO10.txt:  mean within-size rho = +0.592   (> 0: subsets that know more about B also know more about behavior)
-mi_analysis_all/C-CO11.txt:91 active neurons -> |B| = 32, |A| = 59, subset sizes [5, 10, 20, 40, 59]
-mi_analysis_all/C-CO11.txt:  mean within-size rho = +0.366   (> 0: subsets that know more about B also know more about behavior)
-mi_analysis_all/C-CO12.txt:85 active neurons -> |B| = 30, |A| = 55, subset sizes [5, 10, 20, 40, 55]
-mi_analysis_all/C-CO12.txt:  mean within-size rho = +0.630   (> 0: subsets that know more about B also know more about behavior)
-mi_analysis_all/C-CO13.txt:72 active neurons -> |B| = 25, |A| = 47, subset sizes [5, 10, 20, 40, 47]
-mi_analysis_all/C-CO13.txt:  mean within-size rho = +0.452   (> 0: subsets that know more about B also know more about behavior)
-mi_analysis_all/C-CO14.txt:49 active neurons -> |B| = 17, |A| = 32, subset sizes [5, 10, 20, 32]
-mi_analysis_all/C-CO14.txt:  mean within-size rho = +0.533   (> 0: subsets that know more about B also know more about behavior)
-mi_analysis_all/C-CO15.txt:44 active neurons -> |B| = 15, |A| = 29, subset sizes [5, 10, 20, 29]
-mi_analysis_all/C-CO15.txt:  mean within-size rho = +0.612   (> 0: subsets that know more about B also know more about behavior)
-mi_analysis_all/C-CO16.txt:49 active neurons -> |B| = 17, |A| = 32, subset sizes [5, 10, 20, 32]
-mi_analysis_all/C-CO16.txt:  mean within-size rho = +0.655   (> 0: subsets that know more about B also know more about behavior)
-mi_analysis_all/C-CO17.txt:52 active neurons -> |B| = 18, |A| = 34, subset sizes [5, 10, 20, 34]
-mi_analysis_all/C-CO17.txt:  mean within-size rho = +0.526   (> 0: subsets that know more about B also know more about behavior)
-mi_analysis_all/C-CO18.txt:46 active neurons -> |B| = 16, |A| = 30, subset sizes [5, 10, 20, 30]
-mi_analysis_all/C-CO18.txt:  mean within-size rho = +0.565   (> 0: subsets that know more about B also know more about behavior)
-mi_analysis_all/C-CO19.txt:42 active neurons -> |B| = 15, |A| = 27, subset sizes [5, 10, 20, 27]
-mi_analysis_all/C-CO19.txt:  mean within-size rho = +0.513   (> 0: subsets that know more about B also know more about behavior)
-mi_analysis_all/C-CO2.txt:60 active neurons -> |B| = 21, |A| = 39, subset sizes [5, 10, 20, 39]
-mi_analysis_all/C-CO2.txt:  mean within-size rho = +0.440   (> 0: subsets that know more about B also know more about behavior)
-mi_analysis_all/C-CO20.txt:64 active neurons -> |B| = 22, |A| = 42, subset sizes [5, 10, 20, 40, 42]
-mi_analysis_all/C-CO20.txt:  mean within-size rho = +0.570   (> 0: subsets that know more about B also know more about behavior)
-mi_analysis_all/C-CO21.txt:61 active neurons -> |B| = 21, |A| = 40, subset sizes [5, 10, 20, 40]
-mi_analysis_all/C-CO21.txt:  mean within-size rho = +0.710   (> 0: subsets that know more about B also know more about behavior)
-mi_analysis_all/C-CO22.txt:55 active neurons -> |B| = 19, |A| = 36, subset sizes [5, 10, 20, 36]
-mi_analysis_all/C-CO22.txt:  mean within-size rho = +0.666   (> 0: subsets that know more about B also know more about behavior)
-mi_analysis_all/C-CO23.txt:58 active neurons -> |B| = 20, |A| = 38, subset sizes [5, 10, 20, 38]
-mi_analysis_all/C-CO23.txt:  mean within-size rho = +0.602   (> 0: subsets that know more about B also know more about behavior)
-mi_analysis_all/C-CO24.txt:66 active neurons -> |B| = 23, |A| = 43, subset sizes [5, 10, 20, 40, 43]
-mi_analysis_all/C-CO24.txt:  mean within-size rho = +0.657   (> 0: subsets that know more about B also know more about behavior)
-mi_analysis_all/C-CO25.txt:60 active neurons -> |B| = 21, |A| = 39, subset sizes [5, 10, 20, 39]
-mi_analysis_all/C-CO25.txt:  mean within-size rho = +0.450   (> 0: subsets that know more about B also know more about behavior)
-mi_analysis_all/C-CO26.txt:61 active neurons -> |B| = 21, |A| = 40, subset sizes [5, 10, 20, 40]
-mi_analysis_all/C-CO26.txt:  mean within-size rho = +0.708   (> 0: subsets that know more about B also know more about behavior)
-mi_analysis_all/C-CO27.txt:38 active neurons -> |B| = 13, |A| = 25, subset sizes [5, 10, 20, 25]
-mi_analysis_all/C-CO27.txt:  mean within-size rho = +0.546   (> 0: subsets that know more about B also know more about behavior)
-mi_analysis_all/C-CO28.txt:59 active neurons -> |B| = 21, |A| = 38, subset sizes [5, 10, 20, 38]
-mi_analysis_all/C-CO28.txt:  mean within-size rho = +0.493   (> 0: subsets that know more about B also know more about behavior)
-mi_analysis_all/C-CO29.txt:60 active neurons -> |B| = 21, |A| = 39, subset sizes [5, 10, 20, 39]
-mi_analysis_all/C-CO29.txt:  mean within-size rho = +0.645   (> 0: subsets that know more about B also know more about behavior)
-mi_analysis_all/C-CO3.txt:48 active neurons -> |B| = 17, |A| = 31, subset sizes [5, 10, 20, 31]
-mi_analysis_all/C-CO3.txt:  mean within-size rho = +0.581   (> 0: subsets that know more about B also know more about behavior)
-mi_analysis_all/C-CO30.txt:65 active neurons -> |B| = 23, |A| = 42, subset sizes [5, 10, 20, 40, 42]
-mi_analysis_all/C-CO30.txt:  mean within-size rho = +0.480   (> 0: subsets that know more about B also know more about behavior)
-mi_analysis_all/C-CO31.txt:61 active neurons -> |B| = 21, |A| = 40, subset sizes [5, 10, 20, 40]
-mi_analysis_all/C-CO31.txt:  mean within-size rho = +0.627   (> 0: subsets that know more about B also know more about behavior)
-mi_analysis_all/C-CO32.txt:42 active neurons -> |B| = 15, |A| = 27, subset sizes [5, 10, 20, 27]
-mi_analysis_all/C-CO32.txt:  mean within-size rho = +0.359   (> 0: subsets that know more about B also know more about behavior)
-mi_analysis_all/C-CO33.txt:53 active neurons -> |B| = 19, |A| = 34, subset sizes [5, 10, 20, 34]
-mi_analysis_all/C-CO33.txt:  mean within-size rho = +0.290   (> 0: subsets that know more about B also know more about behavior)
-mi_analysis_all/C-CO34.txt:55 active neurons -> |B| = 19, |A| = 36, subset sizes [5, 10, 20, 36]
-mi_analysis_all/C-CO34.txt:  mean within-size rho = +0.573   (> 0: subsets that know more about B also know more about behavior)
-mi_analysis_all/C-CO35.txt:58 active neurons -> |B| = 20, |A| = 38, subset sizes [5, 10, 20, 38]
-mi_analysis_all/C-CO35.txt:  mean within-size rho = +0.569   (> 0: subsets that know more about B also know more about behavior)
-mi_analysis_all/C-CO36.txt:70 active neurons -> |B| = 24, |A| = 46, subset sizes [5, 10, 20, 40, 46]
-mi_analysis_all/C-CO36.txt:  mean within-size rho = +0.427   (> 0: subsets that know more about B also know more about behavior)
-mi_analysis_all/C-CO37.txt:55 active neurons -> |B| = 19, |A| = 36, subset sizes [5, 10, 20, 36]
-mi_analysis_all/C-CO37.txt:  mean within-size rho = +0.575   (> 0: subsets that know more about B also know more about behavior)
-mi_analysis_all/C-CO38.txt:53 active neurons -> |B| = 19, |A| = 34, subset sizes [5, 10, 20, 34]
-mi_analysis_all/C-CO38.txt:  mean within-size rho = +0.517   (> 0: subsets that know more about B also know more about behavior)
-mi_analysis_all/C-CO39.txt:241 active neurons -> |B| = 84, |A| = 157, subset sizes [5, 10, 20, 40, 157]
-mi_analysis_all/C-CO39.txt:  mean within-size rho = +0.401   (> 0: subsets that know more about B also know more about behavior)
-mi_analysis_all/C-CO4.txt:40 active neurons -> |B| = 14, |A| = 26, subset sizes [5, 10, 20, 26]
-mi_analysis_all/C-CO4.txt:  mean within-size rho = +0.750   (> 0: subsets that know more about B also know more about behavior)
-mi_analysis_all/C-CO40.txt:240 active neurons -> |B| = 84, |A| = 156, subset sizes [5, 10, 20, 40, 156]
-mi_analysis_all/C-CO40.txt:  mean within-size rho = +0.431   (> 0: subsets that know more about B also know more about behavior)
-mi_analysis_all/C-CO41.txt:351 active neurons -> |B| = 123, |A| = 228, subset sizes [5, 10, 20, 40, 228]
-mi_analysis_all/C-CO41.txt:  mean within-size rho = +0.388   (> 0: subsets that know more about B also know more about behavior)
-mi_analysis_all/C-CO42.txt:306 active neurons -> |B| = 107, |A| = 199, subset sizes [5, 10, 20, 40, 199]
-mi_analysis_all/C-CO42.txt:  mean within-size rho = +0.491   (> 0: subsets that know more about B also know more about behavior)
-mi_analysis_all/C-CO43.txt:293 active neurons -> |B| = 103, |A| = 190, subset sizes [5, 10, 20, 40, 190]
-mi_analysis_all/C-CO43.txt:  mean within-size rho = +0.466   (> 0: subsets that know more about B also know more about behavior)
-mi_analysis_all/C-CO44.txt:306 active neurons -> |B| = 107, |A| = 199, subset sizes [5, 10, 20, 40, 199]
-mi_analysis_all/C-CO44.txt:  mean within-size rho = +0.584   (> 0: subsets that know more about B also know more about behavior)
-mi_analysis_all/C-CO45.txt:297 active neurons -> |B| = 104, |A| = 193, subset sizes [5, 10, 20, 40, 193]
-mi_analysis_all/C-CO45.txt:  mean within-size rho = +0.165   (> 0: subsets that know more about B also know more about behavior)
-mi_analysis_all/C-CO46.txt:188 active neurons -> |B| = 66, |A| = 122, subset sizes [5, 10, 20, 40, 122]
-mi_analysis_all/C-CO46.txt:  mean within-size rho = +0.211   (> 0: subsets that know more about B also know more about behavior)
-mi_analysis_all/C-CO47.txt:247 active neurons -> |B| = 86, |A| = 161, subset sizes [5, 10, 20, 40, 161]
-mi_analysis_all/C-CO47.txt:  mean within-size rho = +0.466   (> 0: subsets that know more about B also know more about behavior)
-mi_analysis_all/C-CO48.txt:254 active neurons -> |B| = 89, |A| = 165, subset sizes [5, 10, 20, 40, 165]
-mi_analysis_all/C-CO48.txt:  mean within-size rho = +0.199   (> 0: subsets that know more about B also know more about behavior)
-mi_analysis_all/C-CO49.txt:207 active neurons -> |B| = 72, |A| = 135, subset sizes [5, 10, 20, 40, 135]
-mi_analysis_all/C-CO49.txt:  mean within-size rho = +0.416   (> 0: subsets that know more about B also know more about behavior)
-mi_analysis_all/C-CO5.txt:47 active neurons -> |B| = 16, |A| = 31, subset sizes [5, 10, 20, 31]
-mi_analysis_all/C-CO5.txt:  mean within-size rho = +0.651   (> 0: subsets that know more about B also know more about behavior)
-mi_analysis_all/C-CO50.txt:240 active neurons -> |B| = 84, |A| = 156, subset sizes [5, 10, 20, 40, 156]
-mi_analysis_all/C-CO50.txt:  mean within-size rho = +0.381   (> 0: subsets that know more about B also know more about behavior)
-mi_analysis_all/C-CO51.txt:224 active neurons -> |B| = 78, |A| = 146, subset sizes [5, 10, 20, 40, 146]
-mi_analysis_all/C-CO51.txt:  mean within-size rho = +0.348   (> 0: subsets that know more about B also know more about behavior)
-mi_analysis_all/C-CO52.txt:289 active neurons -> |B| = 101, |A| = 188, subset sizes [5, 10, 20, 40, 188]
-mi_analysis_all/C-CO52.txt:  mean within-size rho = +0.404   (> 0: subsets that know more about B also know more about behavior)
-mi_analysis_all/C-CO6.txt:50 active neurons -> |B| = 18, |A| = 32, subset sizes [5, 10, 20, 32]
-mi_analysis_all/C-CO6.txt:  mean within-size rho = +0.652   (> 0: subsets that know more about B also know more about behavior)
-mi_analysis_all/C-CO7.txt:64 active neurons -> |B| = 22, |A| = 42, subset sizes [5, 10, 20, 40, 42]
-mi_analysis_all/C-CO7.txt:  mean within-size rho = +0.313   (> 0: subsets that know more about B also know more about behavior)
-mi_analysis_all/C-CO8.txt:65 active neurons -> |B| = 23, |A| = 42, subset sizes [5, 10, 20, 40, 42]
-mi_analysis_all/C-CO8.txt:  mean within-size rho = +0.263   (> 0: subsets that know more about B also know more about behavior)
-mi_analysis_all/C-CO9.txt:74 active neurons -> |B| = 26, |A| = 48, subset sizes [5, 10, 20, 40, 48]
-mi_analysis_all/C-CO9.txt:  mean within-size rho = +0.396   (> 0: subsets that know more about B also know more about behavior)
-mi_analysis_all/C-RT0.txt:74 active neurons -> |B| = 26, |A| = 48, subset sizes [5, 10, 20, 40, 48]
-mi_analysis_all/C-RT0.txt:  mean within-size rho = +0.101   (> 0: subsets that know more about B also know more about behavior)
-mi_analysis_all/C-RT1.txt:72 active neurons -> |B| = 25, |A| = 47, subset sizes [5, 10, 20, 40, 47]
-mi_analysis_all/C-RT1.txt:  mean within-size rho = +0.095   (> 0: subsets that know more about B also know more about behavior)
-mi_analysis_all/C-RT10.txt:62 active neurons -> |B| = 22, |A| = 40, subset sizes [5, 10, 20, 40]
-mi_analysis_all/C-RT10.txt:  mean within-size rho = +0.157   (> 0: subsets that know more about B also know more about behavior)
-mi_analysis_all/C-RT11.txt:75 active neurons -> |B| = 26, |A| = 49, subset sizes [5, 10, 20, 40, 49]
-mi_analysis_all/C-RT11.txt:  mean within-size rho = +0.397   (> 0: subsets that know more about B also know more about behavior)
-mi_analysis_all/C-RT12.txt:76 active neurons -> |B| = 27, |A| = 49, subset sizes [5, 10, 20, 40, 49]
-mi_analysis_all/C-RT12.txt:  mean within-size rho = +0.057   (> 0: subsets that know more about B also know more about behavior)
-mi_analysis_all/C-RT13.txt:75 active neurons -> |B| = 26, |A| = 49, subset sizes [5, 10, 20, 40, 49]
-mi_analysis_all/C-RT13.txt:  mean within-size rho = +0.524   (> 0: subsets that know more about B also know more about behavior)
-mi_analysis_all/C-RT14.txt:67 active neurons -> |B| = 23, |A| = 44, subset sizes [5, 10, 20, 40, 44]
-mi_analysis_all/C-RT14.txt:  mean within-size rho = +0.400   (> 0: subsets that know more about B also know more about behavior)
-mi_analysis_all/C-RT2.txt:86 active neurons -> |B| = 30, |A| = 56, subset sizes [5, 10, 20, 40, 56]
-mi_analysis_all/C-RT2.txt:  mean within-size rho = +0.083   (> 0: subsets that know more about B also know more about behavior)
-mi_analysis_all/C-RT3.txt:77 active neurons -> |B| = 27, |A| = 50, subset sizes [5, 10, 20, 40, 50]
-mi_analysis_all/C-RT3.txt:  mean within-size rho = +0.389   (> 0: subsets that know more about B also know more about behavior)
-mi_analysis_all/C-RT4.txt:67 active neurons -> |B| = 23, |A| = 44, subset sizes [5, 10, 20, 40, 44]
-mi_analysis_all/C-RT4.txt:  mean within-size rho = +0.283   (> 0: subsets that know more about B also know more about behavior)
-mi_analysis_all/C-RT5.txt:64 active neurons -> |B| = 22, |A| = 42, subset sizes [5, 10, 20, 40, 42]
-mi_analysis_all/C-RT5.txt:  mean within-size rho = +0.516   (> 0: subsets that know more about B also know more about behavior)
-mi_analysis_all/C-RT6.txt:62 active neurons -> |B| = 22, |A| = 40, subset sizes [5, 10, 20, 40]
-mi_analysis_all/C-RT6.txt:  mean within-size rho = +0.447   (> 0: subsets that know more about B also know more about behavior)
-mi_analysis_all/C-RT7.txt:61 active neurons -> |B| = 21, |A| = 40, subset sizes [5, 10, 20, 40]
-mi_analysis_all/C-RT7.txt:  mean within-size rho = +0.250   (> 0: subsets that know more about B also know more about behavior)
-mi_analysis_all/C-RT8.txt:65 active neurons -> |B| = 23, |A| = 42, subset sizes [5, 10, 20, 40, 42]
-mi_analysis_all/C-RT8.txt:  mean within-size rho = +0.259   (> 0: subsets that know more about B also know more about behavior)
-mi_analysis_all/C-RT9.txt:56 active neurons -> |B| = 20, |A| = 36, subset sizes [5, 10, 20, 36]
-mi_analysis_all/C-RT9.txt:  mean within-size rho = +0.536   (> 0: subsets that know more about B also know more about behavior)
-mi_analysis_all/J-CO0.txt:36 active neurons -> |B| = 13, |A| = 23, subset sizes [5, 10, 20, 23]
-mi_analysis_all/J-CO0.txt:  mean within-size rho = +0.184   (> 0: subsets that know more about B also know more about behavior)
-mi_analysis_all/J-CO1.txt:18 active neurons -> |B| = 6, |A| = 12, subset sizes [5, 10, 12]
-mi_analysis_all/J-CO1.txt:  mean within-size rho = +0.356   (> 0: subsets that know more about B also know more about behavior)
-mi_analysis_all/J-CO2.txt:19 active neurons -> |B| = 7, |A| = 12, subset sizes [5, 10, 12]
-mi_analysis_all/J-CO2.txt:  mean within-size rho = +0.219   (> 0: subsets that know more about B also know more about behavior)
-mi_analysis_all/M-CO0.txt:114 active neurons -> |B| = 40, |A| = 74, subset sizes [5, 10, 20, 40, 74]
-mi_analysis_all/M-CO0.txt:  mean within-size rho = +0.183   (> 0: subsets that know more about B also know more about behavior)
-mi_analysis_all/M-CO1.txt:147 active neurons -> |B| = 51, |A| = 96, subset sizes [5, 10, 20, 40, 96]
-mi_analysis_all/M-CO1.txt:  mean within-size rho = +0.569   (> 0: subsets that know more about B also know more about behavior)
-mi_analysis_all/M-CO10.txt:58 active neurons -> |B| = 20, |A| = 38, subset sizes [5, 10, 20, 38]
-mi_analysis_all/M-CO10.txt:  mean within-size rho = +0.562   (> 0: subsets that know more about B also know more about behavior)
-mi_analysis_all/M-CO11.txt:68 active neurons -> |B| = 24, |A| = 44, subset sizes [5, 10, 20, 40, 44]
-mi_analysis_all/M-CO11.txt:  mean within-size rho = +0.667   (> 0: subsets that know more about B also know more about behavior)
-mi_analysis_all/M-CO12.txt:89 active neurons -> |B| = 31, |A| = 58, subset sizes [5, 10, 20, 40, 58]
-mi_analysis_all/M-CO12.txt:  mean within-size rho = -0.135   (> 0: subsets that know more about B also know more about behavior)
-mi_analysis_all/M-CO13.txt:49 active neurons -> |B| = 17, |A| = 32, subset sizes [5, 10, 20, 32]
-mi_analysis_all/M-CO13.txt:  mean within-size rho = +0.501   (> 0: subsets that know more about B also know more about behavior)
-mi_analysis_all/M-CO14.txt:55 active neurons -> |B| = 19, |A| = 36, subset sizes [5, 10, 20, 36]
-mi_analysis_all/M-CO14.txt:  mean within-size rho = +0.408   (> 0: subsets that know more about B also know more about behavior)
-mi_analysis_all/M-CO15.txt:37 active neurons -> |B| = 13, |A| = 24, subset sizes [5, 10, 20, 24]
-mi_analysis_all/M-CO15.txt:  mean within-size rho = +0.035   (> 0: subsets that know more about B also know more about behavior)
-mi_analysis_all/M-CO16.txt:41 active neurons -> |B| = 14, |A| = 27, subset sizes [5, 10, 20, 27]
-mi_analysis_all/M-CO16.txt:  mean within-size rho = +0.438   (> 0: subsets that know more about B also know more about behavior)
-mi_analysis_all/M-CO17.txt:53 active neurons -> |B| = 19, |A| = 34, subset sizes [5, 10, 20, 34]
-mi_analysis_all/M-CO17.txt:  mean within-size rho = +0.493   (> 0: subsets that know more about B also know more about behavior)
-mi_analysis_all/M-CO18.txt:56 active neurons -> |B| = 20, |A| = 36, subset sizes [5, 10, 20, 36]
-mi_analysis_all/M-CO18.txt:  mean within-size rho = +0.468   (> 0: subsets that know more about B also know more about behavior)
-mi_analysis_all/M-CO19.txt:52 active neurons -> |B| = 18, |A| = 34, subset sizes [5, 10, 20, 34]
-mi_analysis_all/M-CO19.txt:  mean within-size rho = +0.591   (> 0: subsets that know more about B also know more about behavior)
-mi_analysis_all/M-CO2.txt:159 active neurons -> |B| = 56, |A| = 103, subset sizes [5, 10, 20, 40, 103]
-mi_analysis_all/M-CO2.txt:  mean within-size rho = +0.646   (> 0: subsets that know more about B also know more about behavior)
-mi_analysis_all/M-CO20.txt:59 active neurons -> |B| = 21, |A| = 38, subset sizes [5, 10, 20, 38]
-mi_analysis_all/M-CO20.txt:  mean within-size rho = +0.456   (> 0: subsets that know more about B also know more about behavior)
-mi_analysis_all/M-CO21.txt:60 active neurons -> |B| = 21, |A| = 39, subset sizes [5, 10, 20, 39]
-mi_analysis_all/M-CO21.txt:  mean within-size rho = +0.613   (> 0: subsets that know more about B also know more about behavior)
-mi_analysis_all/M-CO3.txt:118 active neurons -> |B| = 41, |A| = 77, subset sizes [5, 10, 20, 40, 77]
-mi_analysis_all/M-CO3.txt:  mean within-size rho = +0.189   (> 0: subsets that know more about B also know more about behavior)
-mi_analysis_all/M-CO4.txt:115 active neurons -> |B| = 40, |A| = 75, subset sizes [5, 10, 20, 40, 75]
-mi_analysis_all/M-CO4.txt:  mean within-size rho = +0.648   (> 0: subsets that know more about B also know more about behavior)
-mi_analysis_all/M-CO5.txt:128 active neurons -> |B| = 45, |A| = 83, subset sizes [5, 10, 20, 40, 83]
-mi_analysis_all/M-CO5.txt:  mean within-size rho = +0.662   (> 0: subsets that know more about B also know more about behavior)
-mi_analysis_all/M-CO6.txt:92 active neurons -> |B| = 32, |A| = 60, subset sizes [5, 10, 20, 40, 60]
-mi_analysis_all/M-CO6.txt:  mean within-size rho = +0.615   (> 0: subsets that know more about B also know more about behavior)
-mi_analysis_all/M-CO7.txt:26 active neurons -> |B| = 9, |A| = 17, subset sizes [5, 10, 17]
-mi_analysis_all/M-CO7.txt:  mean within-size rho = +0.809   (> 0: subsets that know more about B also know more about behavior)
-mi_analysis_all/M-CO8.txt:25 active neurons -> |B| = 9, |A| = 16, subset sizes [5, 10, 16]
-mi_analysis_all/M-CO8.txt:  mean within-size rho = +0.546   (> 0: subsets that know more about B also know more about behavior)
-mi_analysis_all/M-CO9.txt:144 active neurons -> |B| = 50, |A| = 94, subset sizes [5, 10, 20, 40, 94]
-mi_analysis_all/M-CO9.txt:  mean within-size rho = +0.569   (> 0: subsets that know more about B also know more about behavior)
-mi_analysis_all/M-RT0.txt:165 active neurons -> |B| = 58, |A| = 107, subset sizes [5, 10, 20, 40, 107]
-mi_analysis_all/M-RT0.txt:  mean within-size rho = +0.618   (> 0: subsets that know more about B also know more about behavior)
-mi_analysis_all/M-RT1.txt:164 active neurons -> |B| = 57, |A| = 107, subset sizes [5, 10, 20, 40, 107]
-mi_analysis_all/M-RT1.txt:  mean within-size rho = +0.546   (> 0: subsets that know more about B also know more about behavior)
-mi_analysis_all/M-RT2.txt:160 active neurons -> |B| = 56, |A| = 104, subset sizes [5, 10, 20, 40, 104]
-mi_analysis_all/M-RT2.txt:  mean within-size rho = +0.512   (> 0: subsets that know more about B also know more about behavior)
-mi_analysis_all/M-RT3.txt:116 active neurons -> |B| = 41, |A| = 75, subset sizes [5, 10, 20, 40, 75]
-mi_analysis_all/M-RT3.txt:  mean within-size rho = +0.627   (> 0: subsets that know more about B also know more about behavior)
-mi_analysis_all/M-RT4.txt:127 active neurons -> |B| = 44, |A| = 83, subset sizes [5, 10, 20, 40, 83]
-mi_analysis_all/M-RT4.txt:  mean within-size rho = +0.547   (> 0: subsets that know more about B also know more about behavior)
-mi_analysis_all/M-RT5.txt:121 active neurons -> |B| = 42, |A| = 79, subset sizes [5, 10, 20, 40, 79]
-mi_analysis_all/M-RT5.txt:  mean within-size rho = +0.673   (> 0: subsets that know more about B also know more about behavior)
-mi_analysis_all/T-CO0.txt:55 active neurons -> |B| = 19, |A| = 36, subset sizes [5, 10, 20, 36]
-mi_analysis_all/T-CO0.txt:  mean within-size rho = +0.245   (> 0: subsets that know more about B also know more about behavior)
-mi_analysis_all/T-CO1.txt:59 active neurons -> |B| = 21, |A| = 38, subset sizes [5, 10, 20, 38]
-mi_analysis_all/T-CO1.txt:  mean within-size rho = +0.414   (> 0: subsets that know more about B also know more about behavior)
-mi_analysis_all/T-CO2.txt:45 active neurons -> |B| = 16, |A| = 29, subset sizes [5, 10, 20, 29]
-mi_analysis_all/T-CO2.txt:  mean within-size rho = +0.002   (> 0: subsets that know more about B also know more about behavior)
-mi_analysis_all/T-CO3.txt:53 active neurons -> |B| = 19, |A| = 34, subset sizes [5, 10, 20, 34]
-mi_analysis_all/T-CO3.txt:  mean within-size rho = +0.078   (> 0: subsets that know more about B also know more about behavior)
-mi_analysis_all/T-CO4.txt:65 active neurons -> |B| = 23, |A| = 42, subset sizes [5, 10, 20, 40, 42]
-mi_analysis_all/T-CO4.txt:  mean within-size rho = +0.165   (> 0: subsets that know more about B also know more about behavior)
-mi_analysis_all/T-CO5.txt:59 active neurons -> |B| = 21, |A| = 38, subset sizes [5, 10, 20, 38]
-mi_analysis_all/T-CO5.txt:  mean within-size rho = +0.394   (> 0: subsets that know more about B also know more about behavior)
-mi_analysis_all/T-RT0.txt:52 active neurons -> |B| = 18, |A| = 34, subset sizes [5, 10, 20, 34]
-mi_analysis_all/T-RT0.txt:  mean within-size rho = +0.194   (> 0: subsets that know more about B also know more about behavior)
-mi_analysis_all/T-RT1.txt:64 active neurons -> |B| = 22, |A| = 42, subset sizes [5, 10, 20, 40, 42]
-mi_analysis_all/T-RT1.txt:  mean within-size rho = +0.265   (> 0: subsets that know more about B also know more about behavior)
-mi_analysis_all/T-RT2.txt:36 active neurons -> |B| = 13, |A| = 23, subset sizes [5, 10, 20, 23]
-mi_analysis_all/T-RT2.txt:  mean within-size rho = +0.140   (> 0: subsets that know more about B also know more about behavior)
-mi_analysis_all/T-RT3.txt:73 active neurons -> |B| = 26, |A| = 47, subset sizes [5, 10, 20, 40, 47]
-mi_analysis_all/T-RT3.txt:  mean within-size rho = +0.259   (> 0: subsets that know more about B also know more about behavior)
-mi_analysis_all/T-RT4.txt:53 active neurons -> |B| = 19, |A| = 34, subset sizes [5, 10, 20, 34]
-mi_analysis_all/T-RT4.txt:  mean within-size rho = +0.195   (> 0: subsets that know more about B also know more about behavior)
-mi_analysis_all/T-RT5.txt:69 active neurons -> |B| = 24, |A| = 45, subset sizes [5, 10, 20, 40, 45]
-mi_analysis_all/T-RT5.txt:  mean within-size rho = +0.303   (> 0: subsets that know more about B also know more about behavior)
-mi_analysis_all/C-CO0.txt:    5->10    +0.2710           1.04        87.0% of draws
-mi_analysis_all/C-CO0.txt:   10->20    +0.4244           1.38        94.0% of draws
-mi_analysis_all/C-CO0.txt:   20->40    +0.4246           1.26        89.0% of draws
-mi_analysis_all/C-CO0.txt:   40->45    +0.0774           0.39        60.0% of draws
-mi_analysis_all/C-CO1.txt:    5->10    +0.2561           1.34        90.0% of draws
-mi_analysis_all/C-CO1.txt:   10->20    +0.3001           1.36        94.0% of draws
-mi_analysis_all/C-CO1.txt:   20->27    +0.0949           0.60        72.0% of draws
-mi_analysis_all/C-CO13.txt:    5->10    +0.3260           2.02        99.0% of draws
-mi_analysis_all/C-CO13.txt:   10->20    +0.5193           2.89        99.0% of draws
-mi_analysis_all/C-CO14.txt:   20->32    +0.2369           1.56        95.0% of draws
-mi_analysis_all/C-CO15.txt:   20->29    +0.2612           1.97        99.0% of draws
-mi_analysis_all/C-CO16.txt:   20->32    +0.5490           1.00        96.0% of draws
-mi_analysis_all/C-CO2.txt:    5->10    +0.6001           1.36        96.0% of draws
-mi_analysis_all/C-CO2.txt:   10->20    +0.7551           1.44        96.0% of draws
-mi_analysis_all/C-CO2.txt:   20->39    +0.7199           1.47        91.0% of draws
-mi_analysis_all/C-CO20.txt:   40->42    +0.1091           0.30        78.0% of draws
-mi_analysis_all/C-CO21.txt:   20->40    +0.5458           2.34        99.0% of draws
-mi_analysis_all/C-CO23.txt:    5->10    +0.3855           1.87        98.0% of draws
-mi_analysis_all/C-CO24.txt:    5->10    +0.3857           2.16        99.0% of draws
-mi_analysis_all/C-CO24.txt:   40->43    +0.0410           0.67        75.0% of draws
-mi_analysis_all/C-CO25.txt:    5->10    +0.4280           2.08        99.0% of draws
-mi_analysis_all/C-CO27.txt:   20->25    +0.1523           1.31        97.0% of draws
-mi_analysis_all/C-CO3.txt:    5->10    +0.2231           0.82        83.0% of draws
-mi_analysis_all/C-CO3.txt:   10->20    +0.3112           0.90        88.0% of draws
-mi_analysis_all/C-CO3.txt:   20->31    +0.1244           0.38        52.0% of draws
-mi_analysis_all/C-CO30.txt:    5->10    +0.4405           1.76        99.0% of draws
-mi_analysis_all/C-CO30.txt:   10->20    +0.5607           2.11        99.0% of draws
-mi_analysis_all/C-CO30.txt:   20->40    +0.5460           1.69        97.0% of draws
-mi_analysis_all/C-CO30.txt:   40->42    +0.0222           0.34        59.0% of draws
-mi_analysis_all/C-CO32.txt:    5->10    +0.4117           1.26        97.0% of draws
-mi_analysis_all/C-CO32.txt:   10->20    +0.5986           1.41        99.0% of draws
-mi_analysis_all/C-CO32.txt:   20->27    +0.3021           0.90        96.0% of draws
-mi_analysis_all/C-CO34.txt:   20->36    +0.5356           1.44        98.0% of draws
-mi_analysis_all/C-CO35.txt:    5->10    +0.4265           1.96        99.0% of draws
-mi_analysis_all/C-CO35.txt:   20->38    +0.6196           1.77        99.0% of draws
-mi_analysis_all/C-CO36.txt:    5->10    +0.5200           1.48        99.0% of draws
-mi_analysis_all/C-CO36.txt:   40->46    +0.0922           0.61        80.0% of draws
-mi_analysis_all/C-CO38.txt:    5->10    +0.4867           1.96        99.0% of draws
-mi_analysis_all/C-CO38.txt:   10->20    +0.4766           1.97        99.0% of draws
-mi_analysis_all/C-CO38.txt:   20->34    +0.3043           1.27        95.0% of draws
-mi_analysis_all/C-CO39.txt:    5->10    +0.1199           0.28        58.0% of draws
-mi_analysis_all/C-CO39.txt:   10->20    +0.2946           0.57        67.0% of draws
-mi_analysis_all/C-CO39.txt:   20->40    +0.0742           0.11        48.0% of draws
-mi_analysis_all/C-CO39.txt:   40->157   -3.9406          -3.58         0.0% of draws
-mi_analysis_all/C-CO4.txt:    5->10    +0.1978           1.51        97.0% of draws
-mi_analysis_all/C-CO4.txt:   20->26    +0.1577           1.12        89.0% of draws
-mi_analysis_all/C-CO40.txt:    5->10    +0.1551           0.59        72.0% of draws
-mi_analysis_all/C-CO40.txt:   10->20    +0.2701           0.84        81.0% of draws
-mi_analysis_all/C-CO40.txt:   20->40    +0.1931           0.54        73.0% of draws
-mi_analysis_all/C-CO40.txt:   40->156   -2.5762          -5.00         0.0% of draws
-mi_analysis_all/C-CO41.txt:    5->10    +0.0618           0.17        53.0% of draws
-mi_analysis_all/C-CO41.txt:   10->20    +0.0323           0.05        43.0% of draws
-mi_analysis_all/C-CO41.txt:   20->40    +0.0529           0.06        44.0% of draws
-mi_analysis_all/C-CO41.txt:   40->228   -6.9340          -5.17         0.0% of draws
-mi_analysis_all/C-CO42.txt:    5->10    +0.3917           0.85        82.0% of draws
-mi_analysis_all/C-CO42.txt:   10->20    +0.5308           0.73        83.0% of draws
-mi_analysis_all/C-CO42.txt:   20->40    +0.6781           0.68        77.0% of draws
-mi_analysis_all/C-CO42.txt:   40->199   -4.5596          -3.91         0.0% of draws
-mi_analysis_all/C-CO43.txt:    5->10    +0.4535           0.68        81.0% of draws
-mi_analysis_all/C-CO43.txt:   10->20    +0.6820           0.63        68.0% of draws
-mi_analysis_all/C-CO43.txt:   20->40    +0.5382           0.54        65.0% of draws
-mi_analysis_all/C-CO43.txt:   40->190   -3.0443          -1.95         0.0% of draws
-mi_analysis_all/C-CO44.txt:    5->10    +0.0163           0.06        50.0% of draws
-mi_analysis_all/C-CO44.txt:   10->20    +0.0788           0.16        50.0% of draws
-mi_analysis_all/C-CO44.txt:   20->40    -0.2096          -0.43        32.0% of draws
-mi_analysis_all/C-CO44.txt:   40->199   -7.1956          -5.63         0.0% of draws
-mi_analysis_all/C-CO45.txt:    5->10    +0.2244           0.39        63.0% of draws
-mi_analysis_all/C-CO45.txt:   10->20    +0.4613           0.55        73.0% of draws
-mi_analysis_all/C-CO45.txt:   20->40    +0.5316           0.54        68.0% of draws
-mi_analysis_all/C-CO45.txt:   40->193   -4.6985          -3.04         0.0% of draws
-mi_analysis_all/C-CO46.txt:    5->10    +0.4401           0.57        83.0% of draws
-mi_analysis_all/C-CO46.txt:   10->20    +0.8602           0.72        89.0% of draws
-mi_analysis_all/C-CO46.txt:   20->40    +1.2260           0.84        93.0% of draws
-mi_analysis_all/C-CO46.txt:   40->122   +1.4264           0.71        63.0% of draws
-mi_analysis_all/C-CO47.txt:    5->10    +0.2213           0.53        72.0% of draws
-mi_analysis_all/C-CO47.txt:   10->20    +0.5101           0.87        83.0% of draws
-mi_analysis_all/C-CO47.txt:   20->40    +0.6169           0.81        80.0% of draws
-mi_analysis_all/C-CO47.txt:   40->161   -0.1939          -0.17        45.0% of draws
-mi_analysis_all/C-CO48.txt:    5->10    -0.0786          -0.07        40.0% of draws
-mi_analysis_all/C-CO48.txt:   10->20    +0.4075           0.26        45.0% of draws
-mi_analysis_all/C-CO48.txt:   20->40    +0.8877           0.47        53.0% of draws
-mi_analysis_all/C-CO48.txt:   40->165   -1.4710          -0.68        30.0% of draws
-mi_analysis_all/C-CO49.txt:    5->10    +0.4943           0.97        89.0% of draws
-mi_analysis_all/C-CO49.txt:   10->20    +0.7364           0.90        92.0% of draws
-mi_analysis_all/C-CO49.txt:   20->40    +0.7373           0.84        92.0% of draws
-mi_analysis_all/C-CO49.txt:   40->135   -0.4727          -0.28        32.0% of draws
-mi_analysis_all/C-CO5.txt:    5->10    +0.2236           1.42        98.0% of draws
-mi_analysis_all/C-CO5.txt:   10->20    +0.3182           1.72        99.0% of draws
-mi_analysis_all/C-CO5.txt:   20->31    +0.2713           1.44        96.0% of draws
-mi_analysis_all/C-CO50.txt:    5->10    +0.3267           0.78        81.0% of draws
-mi_analysis_all/C-CO50.txt:   10->20    +0.5628           1.17        95.0% of draws
-mi_analysis_all/C-CO50.txt:   20->40    +0.5785           0.93        88.0% of draws
-mi_analysis_all/C-CO50.txt:   40->156   -0.8608          -0.70        27.0% of draws
-mi_analysis_all/C-CO51.txt:    5->10    +0.4128           1.24        92.0% of draws
-mi_analysis_all/C-CO51.txt:   10->20    +0.6058           1.80        98.0% of draws
-mi_analysis_all/C-CO51.txt:   20->40    +0.7545           1.54        96.0% of draws
-mi_analysis_all/C-CO51.txt:   40->146   -0.2784          -0.39        30.0% of draws
-mi_analysis_all/C-CO52.txt:    5->10    +0.2786           0.63        78.0% of draws
-mi_analysis_all/C-CO52.txt:   10->20    +0.5266           1.09        90.0% of draws
-mi_analysis_all/C-CO52.txt:   20->40    +0.7311           1.21        92.0% of draws
-mi_analysis_all/C-CO52.txt:   40->188   -0.1386          -0.12        40.0% of draws
-mi_analysis_all/C-CO6.txt:    5->10    +0.2833           1.59        97.0% of draws
-mi_analysis_all/C-CO6.txt:   10->20    +0.3463           1.66        98.0% of draws
-mi_analysis_all/C-CO6.txt:   20->32    +0.2542           1.33        92.0% of draws
-mi_analysis_all/C-CO7.txt:    5->10    +0.3145           1.20        97.0% of draws
-mi_analysis_all/C-CO7.txt:   10->20    +0.4571           1.33        95.0% of draws
-mi_analysis_all/C-CO7.txt:   20->40    +0.4685           1.14        93.0% of draws
-mi_analysis_all/C-CO7.txt:   40->42    +0.0403           0.31        54.0% of draws
-mi_analysis_all/C-CO8.txt:    5->10    +0.4403           0.97        93.0% of draws
-mi_analysis_all/C-CO8.txt:   10->20    +0.6333           1.34        96.0% of draws
-mi_analysis_all/C-CO8.txt:   20->40    +0.7821           1.20        90.0% of draws
-mi_analysis_all/C-CO8.txt:   40->42    +0.0588           0.35        62.0% of draws
-mi_analysis_all/C-CO9.txt:    5->10    +0.2706           1.40        99.0% of draws
-mi_analysis_all/C-CO9.txt:   40->48    +0.1868           1.30        94.0% of draws
-mi_analysis_all/C-RT0.txt:    5->10    +0.2443           1.20        91.0% of draws
-mi_analysis_all/C-RT0.txt:   10->20    +0.3056           1.29        91.0% of draws
-mi_analysis_all/C-RT0.txt:   20->40    +0.4108           1.75        94.0% of draws
-mi_analysis_all/C-RT0.txt:   40->48    +0.1041           0.87        86.0% of draws
-mi_analysis_all/C-RT1.txt:    5->10    -0.1771          -0.72        24.0% of draws
-mi_analysis_all/C-RT1.txt:   10->20    -0.1712          -0.52        29.0% of draws
-mi_analysis_all/C-RT1.txt:   20->40    -0.0291          -0.10        46.0% of draws
-mi_analysis_all/C-RT1.txt:   40->47    -0.0026          -0.02        45.0% of draws
-mi_analysis_all/C-RT10.txt:    5->10    +0.2356           1.41        94.0% of draws
-mi_analysis_all/C-RT10.txt:   10->20    +0.2662           1.19        92.0% of draws
-mi_analysis_all/C-RT10.txt:   20->40    +0.2899           1.18        87.0% of draws
-mi_analysis_all/C-RT12.txt:    5->10    +0.2469           0.87        83.0% of draws
-mi_analysis_all/C-RT12.txt:   10->20    +0.5125           1.66        97.0% of draws
-mi_analysis_all/C-RT12.txt:   40->49    +0.3521           1.34        99.0% of draws
-mi_analysis_all/C-RT2.txt:    5->10    +0.0322           0.09        60.0% of draws
-mi_analysis_all/C-RT2.txt:   10->20    +0.1836           0.49        74.0% of draws
-mi_analysis_all/C-RT2.txt:   20->40    +0.2804           0.78        79.0% of draws
-mi_analysis_all/C-RT2.txt:   40->56    +0.1380           0.42        59.0% of draws
-mi_analysis_all/C-RT3.txt:    5->10    +0.1920           0.81        86.0% of draws
-mi_analysis_all/C-RT3.txt:   10->20    +0.2429           0.90        83.0% of draws
-mi_analysis_all/C-RT3.txt:   20->40    +0.2279           0.79        81.0% of draws
-mi_analysis_all/C-RT3.txt:   40->50    +0.0550           0.26        65.0% of draws
-mi_analysis_all/C-RT4.txt:    5->10    +0.3129           1.18        93.0% of draws
-mi_analysis_all/C-RT4.txt:   10->20    +0.4332           1.26        97.0% of draws
-mi_analysis_all/C-RT4.txt:   20->40    +0.6251           1.23        93.0% of draws
-mi_analysis_all/C-RT4.txt:   40->44    +0.0962           0.48        75.0% of draws
-mi_analysis_all/C-RT5.txt:    5->10    -0.0346          -0.21        41.0% of draws
-mi_analysis_all/C-RT5.txt:   10->20    +0.0759           0.39        64.0% of draws
-mi_analysis_all/C-RT5.txt:   20->40    +0.1336           0.59        66.0% of draws
-mi_analysis_all/C-RT5.txt:   40->42    +0.0025           0.05        44.0% of draws
-mi_analysis_all/C-RT6.txt:    5->10    +0.0001           0.00        50.0% of draws
-mi_analysis_all/C-RT6.txt:   10->20    +0.0988           0.46        69.0% of draws
-mi_analysis_all/C-RT6.txt:   20->40    +0.2079           0.77        77.0% of draws
-mi_analysis_all/C-RT7.txt:    5->10    +0.1990           1.04        87.0% of draws
-mi_analysis_all/C-RT7.txt:   10->20    +0.2603           1.17        90.0% of draws
-mi_analysis_all/C-RT7.txt:   20->40    +0.4032           1.71        96.0% of draws
-mi_analysis_all/C-RT8.txt:    5->10    +0.0768           0.35        60.0% of draws
-mi_analysis_all/C-RT8.txt:   10->20    +0.2347           0.99        84.0% of draws
-mi_analysis_all/C-RT8.txt:   20->40    +0.3715           1.25        90.0% of draws
-mi_analysis_all/C-RT8.txt:   40->42    +0.0496           0.49        59.0% of draws
-mi_analysis_all/C-RT9.txt:    5->10    +0.0727           0.44        69.0% of draws
-mi_analysis_all/C-RT9.txt:   10->20    +0.2200           1.11        90.0% of draws
-mi_analysis_all/C-RT9.txt:   20->36    +0.2748           1.25        90.0% of draws
-mi_analysis_all/J-CO0.txt:    5->10    +1.7267           1.06        89.0% of draws
-mi_analysis_all/J-CO0.txt:   10->20    +1.4282           0.91        92.0% of draws
-mi_analysis_all/J-CO0.txt:   20->23    +0.2010           0.33        71.0% of draws
-mi_analysis_all/J-CO1.txt:   10->12    +0.1287           0.71        90.0% of draws
-mi_analysis_all/J-CO2.txt:   10->12    +0.0889           0.86        93.0% of draws
-mi_analysis_all/M-CO0.txt:    5->10    +0.3000           0.52        55.0% of draws
-mi_analysis_all/M-CO0.txt:   10->20    +0.4901           0.58        61.0% of draws
-mi_analysis_all/M-CO0.txt:   20->40    +0.7960           0.65        71.0% of draws
-mi_analysis_all/M-CO0.txt:   40->74    +1.4589           0.89        86.0% of draws
-mi_analysis_all/M-CO1.txt:    5->10    +0.0780           0.37        65.0% of draws
-mi_analysis_all/M-CO1.txt:   10->20    +0.0829           0.35        60.0% of draws
-mi_analysis_all/M-CO1.txt:   20->40    -0.0508          -0.17        37.0% of draws
-mi_analysis_all/M-CO1.txt:   40->96    -0.8311          -2.33         0.0% of draws
-mi_analysis_all/M-CO10.txt:    5->10    +0.1568           1.05        88.0% of draws
-mi_analysis_all/M-CO10.txt:   10->20    +0.2277           1.25        85.0% of draws
-mi_analysis_all/M-CO10.txt:   20->38    +0.1547           0.88        83.0% of draws
-mi_analysis_all/M-CO11.txt:   40->44    +0.0820           1.08        92.0% of draws
-mi_analysis_all/M-CO12.txt:    5->10    +0.6271           0.87        96.0% of draws
-mi_analysis_all/M-CO13.txt:    5->10    +0.3383           1.75        98.0% of draws
-mi_analysis_all/M-CO13.txt:   10->20    +0.4015           2.10        99.0% of draws
-mi_analysis_all/M-CO13.txt:   20->32    +0.2712           1.53        95.0% of draws
-mi_analysis_all/M-CO14.txt:    5->10    +0.1736           1.25        90.0% of draws
-mi_analysis_all/M-CO14.txt:   10->20    +0.2089           1.38        91.0% of draws
-mi_analysis_all/M-CO14.txt:   20->36    +0.1416           0.86        82.0% of draws
-mi_analysis_all/M-CO15.txt:    5->10    +0.2444           1.77        98.0% of draws
-mi_analysis_all/M-CO15.txt:   10->20    +0.2823           1.72        97.0% of draws
-mi_analysis_all/M-CO15.txt:   20->24    +0.0737           0.76        79.0% of draws
-mi_analysis_all/M-CO16.txt:    5->10    +0.2463           1.98        99.0% of draws
-mi_analysis_all/M-CO16.txt:   10->20    +0.3111           2.23        99.0% of draws
-mi_analysis_all/M-CO16.txt:   20->27    +0.1393           1.32        91.0% of draws
-mi_analysis_all/M-CO17.txt:   20->34    +0.3155           1.91        99.0% of draws
-mi_analysis_all/M-CO18.txt:    5->10    +0.2071           1.49        95.0% of draws
-mi_analysis_all/M-CO18.txt:   10->20    +0.2950           1.74        98.0% of draws
-mi_analysis_all/M-CO18.txt:   20->36    +0.2268           1.20        88.0% of draws
-mi_analysis_all/M-CO19.txt:    5->10    +0.3485           1.82        98.0% of draws
-mi_analysis_all/M-CO19.txt:   10->20    +0.3579           1.95        99.0% of draws
-mi_analysis_all/M-CO19.txt:   20->34    +0.3164           1.76        99.0% of draws
-mi_analysis_all/M-CO2.txt:    5->10    +0.1863           0.89        83.0% of draws
-mi_analysis_all/M-CO2.txt:   10->20    +0.2400           1.04        87.0% of draws
-mi_analysis_all/M-CO2.txt:   20->40    +0.1696           0.65        77.0% of draws
-mi_analysis_all/M-CO2.txt:   40->103   -0.4393          -1.31        10.0% of draws
-mi_analysis_all/M-CO20.txt:    5->10    +0.6179           0.99        99.0% of draws
-mi_analysis_all/M-CO21.txt:    5->10    +0.3328           1.88        98.0% of draws
-mi_analysis_all/M-CO21.txt:   10->20    +0.3986           1.98        98.0% of draws
-mi_analysis_all/M-CO21.txt:   20->39    +0.4245           1.91        99.0% of draws
-mi_analysis_all/M-CO3.txt:    5->10    +0.6246           1.01        98.0% of draws
-mi_analysis_all/M-CO3.txt:   20->40    +1.3262           1.36        97.0% of draws
-mi_analysis_all/M-CO3.txt:   40->77    +1.9423           1.73        96.0% of draws
-mi_analysis_all/M-CO4.txt:    5->10    +0.3021           1.58        94.0% of draws
-mi_analysis_all/M-CO4.txt:   10->20    +0.3990           1.90        98.0% of draws
-mi_analysis_all/M-CO4.txt:   20->40    +0.3399           1.46        93.0% of draws
-mi_analysis_all/M-CO4.txt:   40->75    -0.0918          -0.39        26.0% of draws
-mi_analysis_all/M-CO5.txt:    5->10    +0.2430           1.11        94.0% of draws
-mi_analysis_all/M-CO5.txt:   10->20    +0.3337           1.42        93.0% of draws
-mi_analysis_all/M-CO5.txt:   20->40    +0.4541           1.64        97.0% of draws
-mi_analysis_all/M-CO5.txt:   40->83    +0.2016           0.66        75.0% of draws
-mi_analysis_all/M-CO6.txt:    5->10    +0.2556           1.48        96.0% of draws
-mi_analysis_all/M-CO6.txt:   10->20    +0.3278           1.69        97.0% of draws
-mi_analysis_all/M-CO6.txt:   20->40    +0.2739           1.32        89.0% of draws
-mi_analysis_all/M-CO6.txt:   40->60    +0.0651           0.40        62.0% of draws
-mi_analysis_all/M-CO7.txt:   10->17    +0.2920           1.96        99.0% of draws
-mi_analysis_all/M-CO8.txt:    5->10    +0.2464           1.63        98.0% of draws
-mi_analysis_all/M-CO9.txt:    5->10    +0.1971           1.11        86.0% of draws
-mi_analysis_all/M-CO9.txt:   10->20    +0.3627           1.72        98.0% of draws
-mi_analysis_all/M-RT0.txt:    5->10    +0.2720           1.34        94.0% of draws
-mi_analysis_all/M-RT0.txt:   40->107   +0.5778           2.04        98.0% of draws
-mi_analysis_all/M-RT1.txt:   10->20    +0.6355           1.51        99.0% of draws
-mi_analysis_all/M-RT2.txt:    5->10    +0.3757           1.41        99.0% of draws
-mi_analysis_all/M-RT3.txt:    5->10    +0.2526           1.46        97.0% of draws
-mi_analysis_all/M-RT4.txt:   40->83    +0.6686           1.58        99.0% of draws
-mi_analysis_all/M-RT5.txt:    5->10    +0.2500           1.62        97.0% of draws
-mi_analysis_all/M-RT5.txt:   20->40    +0.4331           2.20        98.0% of draws
-mi_analysis_all/M-RT5.txt:   40->79    +0.3983           1.82        98.0% of draws
-mi_analysis_all/T-CO0.txt:    5->10    +0.1712           0.81        86.0% of draws
-mi_analysis_all/T-CO0.txt:   10->20    +0.2073           0.78        80.0% of draws
-mi_analysis_all/T-CO0.txt:   20->36    +0.1868           0.52        62.0% of draws
-mi_analysis_all/T-CO1.txt:    5->10    +0.2297           1.14        90.0% of draws
-mi_analysis_all/T-CO1.txt:   10->20    +0.2397           1.09        91.0% of draws
-mi_analysis_all/T-CO1.txt:   20->38    +0.0713           0.29        60.0% of draws
-mi_analysis_all/T-CO2.txt:   20->29    +0.4738           1.13        99.0% of draws
-mi_analysis_all/T-CO3.txt:    5->10    +0.2002           0.96        91.0% of draws
-mi_analysis_all/T-CO3.txt:   10->20    +0.3250           1.00        93.0% of draws
-mi_analysis_all/T-CO3.txt:   20->34    +0.3266           0.94        85.0% of draws
-mi_analysis_all/T-CO4.txt:    5->10    +0.4402           1.20        99.0% of draws
-mi_analysis_all/T-CO4.txt:   10->20    +0.6847           1.23        99.0% of draws
-mi_analysis_all/T-CO4.txt:   20->40    +0.7897           1.42        98.0% of draws
-mi_analysis_all/T-CO4.txt:   40->42    +0.0298           0.30        54.0% of draws
-mi_analysis_all/T-RT0.txt:    5->10    +0.1720           1.35        96.0% of draws
-mi_analysis_all/T-RT1.txt:   40->42    +0.0558           0.65        92.0% of draws
-mi_analysis_all/T-RT2.txt:    5->10    +0.2761           0.80        99.0% of draws
-mi_analysis_all/T-RT2.txt:   20->23    +0.0998           0.52        96.0% of draws
-mi_analysis_all/T-RT3.txt:   40->47    +0.3248           1.18        97.0% of draws
-mi_analysis_all/T-RT5.txt:   40->45    +0.1496           1.04        98.0% of draws
-I have no name!@mm8-check-0-0:~/sam/result/Aggregate$ 
+# Self-Supervised Neural Population Representation Learning
+## Experimental Report: Cross-Population Gaussian Mutual Information and Nested Subpopulation Ranking
+
+**Dataset:** Perich monkey motor-cortex recordings  
+**Evaluation:** Frozen neural embeddings followed by supervised Ridge regression for behavioral decoding  
+**Experiments:** 17 completed training runs across two configurations  
+**Hardware:** One NVIDIA H200 GPU per job  
+**Random seed:** 0
+
+---
+
+## 1. Research Objective
+
+The goal is to learn representations of neural population activity without using behavioral labels during pretraining, without reconstructing spike activity, and without predicting future spikes.
+
+The central hypothesis is that a useful neural representation should preserve information shared between different neuronal subpopulations.
+
+For each training batch, the neural population is divided into two disjoint groups:
+
+- **A:** Input neuronal population.
+- **B:** Reference neuronal population used to define the self-supervised objective.
+
+An encoder receives spike-count windows from a subset of A and produces a low-dimensional representation.
+
+We maximize a Gaussian mutual-information estimate between that representation and the simultaneously recorded activity of B.
+
+We also investigated an auxiliary ranking constraint based on the expected increase in information when more neurons from A are included.
+
+Behavioral labels are used only to train and evaluate downstream probes; they are not used to update the encoder during self-supervised pretraining.
+
+## 2. Shared Neural Encoder Architecture
+
+All self-supervised conditions use the same neural network. The ablations modify the input construction and/or training objective, not the encoder architecture.
+
+**Input**
+
+- Spike-count windows spanning 36 time bins.
+- A variable number of input neurons.
+- Separate learned identity embeddings for each neuron.
+
+**Architecture**
+
+1. A shared per-neuron temporal CNN with three Conv1D layers, GELU activations, and a linear projection.
+2. A learned neuron-ID embedding added to each temporal token.
+3. Two Transformer encoder layers with four attention heads per layer, operating across neuronal tokens.
+4. Attention pooling using four learned query vectors.
+5. A final linear projection producing a **32-dimensional representation**.
+
+**Architectural hyperparameters**
+
+| Parameter | Value |
+|---|---|
+| Temporal window | 36 bins |
+| Token dimension | 64 |
+| Transformer layers | 2 |
+| Attention heads | 4 |
+| Learned pooling queries | 4 |
+| Output embedding dimension | 32 |
+| Dropout | 0 |
+| Input spike smoothing | 0 |
+| Reference population smoothing | Gaussian sigma = 2 bins |
+
+The model can process variable-sized neuronal sets because the Transformer and learned-query pooling are applied across the available neuron tokens.
+
+## 3. Self-Supervised Training Objective
+
+For nested subpopulations:
+
+`A_k1 ⊂ A_k2 ⊂ A_k3 ⊂ A_k4`
+
+the encoder produces:
+
+`z_k = f_theta(X_Ak)`
+
+For each representation, a Gaussian mutual-information proxy is computed with the activity of reference population B:
+
+`M_k = I_G(z_k ; X_B)`
+
+The estimate is based on regularized covariance matrices and Gaussian log-determinants:
+
+`I_G(z; B) = 0.5 [logdet(C_z) + logdet(C_B) - logdet(C_joint)]`
+
+The covariance regularization parameter is `mi_eps = 0.01`.
+
+**Main information objective**
+
+`L_MI = -(M_k1 + M_k2 + M_k3 + M_k4) / 4`
+
+**Auxiliary ranking objective**
+
+`L_rank = mean_{i<j} max(0, M_kj - M_ki + margin)`
+
+where the levels are ordered from the largest to the smallest neuronal subset.
+
+The intended ordering is:
+
+`M_large > M_medium > M_small > M_smallest`
+
+with `margin = 0.05`.
+
+**Total loss**
+
+`L_total = L_MI + lambda_rank * L_rank`
+
+The default ranking weight is `lambda_rank = 1.0`.
+
+The Gaussian MI values are batch-based statistical estimates rather than ground-truth mutual information. Their absolute magnitudes should not be directly compared across different batch sizes.
+
+## 4. Experimental Conditions
+
+| Condition | Input construction | Training objective |
+|---|---|---|
+| **Main** | Time-decoy replacement | MI over all levels + correct ranking |
+| **No Rank** | Time-decoy replacement | MI over all levels; ranking weight = 0 |
+| **Shuffled Rank** | Time-decoy replacement | MI over all levels + randomly permuted ranking order |
+| **MI Full** | Time-decoy replacement | MI only at the largest level + correct ranking |
+| **Decoy Zero** | Missing-neuron activity replaced with zero | MI over all levels + correct ranking |
+| **Decoy Drop** | Missing neurons completely removed | MI over all levels + correct ranking |
+| **Fixed B** | Time-decoy replacement with one fixed reference population | MI over all levels + correct ranking |
+| **Raw Ridge** | Smoothed neural activity directly supplied to Ridge regression | Fully supervised linear baseline; no encoder pretraining |
+
+### What is a time decoy?
+
+In the Main condition, the number of input neuron tokens stays constant. When only some neurons are designated as the genuine subset, the remaining neurons are represented by their activity at other, temporally distant time points.
+
+The minimum decoy offset is 360 bins.
+
+### What is Decoy Drop?
+
+In Decoy Drop, unselected neurons are removed completely rather than replaced. Therefore, the encoder receives actual subsets of different sizes.
+
+For example, with 57 candidate input neurons, the four views contain 57, 28, 14, and 7 real neurons.
+
+The same neural encoder processes all four views.
+
+### Important implementation detail
+
+In the current implementation, the neuronal subset can differ across individual time samples within a batch. Thus, the nested-subpopulation training protocol is not identical to a statistical analysis based on fixed neuronal subsets observed across all time points.
+
+### Raw Ridge baseline
+
+The Raw Ridge baseline uses Gaussian-smoothed neural activity at each time point and directly predicts six behavioral dimensions.
+
+Unlike the self-supervised encoder, the current Raw Ridge baseline does not receive an explicit 36-bin feature window. Consequently, a Ridge baseline with the same temporal context remains necessary for a fully matched comparison.
+
+---
+
+# 5. Experiment A: Original Long Run
+
+**Output directory:** `rank_runs/`  
+**RunAI job:** `mm8-ssl`  
+**Training steps:** 5,000  
+**Batch size:** 1,024  
+**Evaluation frequency:** Every 1,000 steps  
+**Logging frequency:** Every 100 steps  
+**Seed:** 0
+
+This experiment ultimately used the suite's default configuration.
+
+Although an initial RunAI submission was intended to launch a smaller pilot, process inspection showed that the Python process actually ran as:
+
+`python -u run_rank_ssl_suite.py`
+
+without the intended command-line arguments.
+
+Therefore, the actual run used the suite's defaults: 5,000 steps, batch size 1,024, and output directory `rank_runs/`.
+
+**Nine completed models were verified:** seven conditions for C-CO12 and two conditions for C-CO41. Other default jobs were configured by the suite, but no additional completed results were present in the reviewed outputs.
+
+## 5.1 Behavioral Decoding Results
+
+The metric is mean validation R² over six behavioral dimensions, using a frozen encoder and a trained Ridge probe.
+
+| Condition | C-CO12 | C-CO41 |
+|---|---:|---:|
+| Raw Ridge | 0.5164 | 0.5965 |
+| Randomly initialized encoder | 0.0997 | 0.0825 |
+| Main | 0.6975 | 0.6728 |
+| No Rank | 0.6915 | 0.6689 |
+| Shuffled Rank | **0.7085** | Not completed |
+| MI Full | 0.6463 | Not completed |
+| Decoy Zero | 0.6915 | Not completed |
+| Decoy Drop | 0.7040 | Not completed |
+| Fixed B | 0.5665 | Not completed |
+
+On C-CO12, all seven trained self-supervised models outperformed the randomly initialized encoder.
+
+The largest final R² was obtained by Shuffled Rank (0.7085), closely followed by Decoy Drop (0.7040).
+
+On C-CO41, Main and No Rank performed similarly, with final R² values of 0.6728 and 0.6689, respectively.
+
+The Fixed B condition is not directly comparable with the other full-population evaluations because its evaluation input excludes the fixed reference population B.
+
+## 5.2 Detailed Final Diagnostics
+
+The MI values and loss values below are averages over the final 200 training steps.
+
+The effective rank is taken from the final logged step.
+
+| Session / Condition | Final R² | Subset R² | Mean total loss | Mean rank loss | Effective rank |
+|---|---:|---:|---:|---:|---:|
+| C-CO12 / Main | 0.6975 | 0.6952 | -3.3785 | 0.0000 | 20.35 |
+| C-CO12 / No Rank | 0.6915 | 0.6913 | -3.3871 | 0.0000 | 20.40 |
+| C-CO12 / Shuffled Rank | 0.7085 | 0.7058 | -1.8440 | 1.2554 | 17.74 |
+| C-CO12 / MI Full | 0.6463 | 0.6401 | -6.8546 | 0.0000 | 21.83 |
+| C-CO12 / Decoy Zero | 0.6915 | 0.6889 | -4.8768 | 0.0000 | 21.69 |
+| C-CO12 / Decoy Drop | 0.7040 | 0.7022 | -4.8615 | 0.0000 | 21.12 |
+| C-CO12 / Fixed B | 0.5665 | N/A | -4.6356 | 0.0000 | 22.19 |
+| C-CO41 / Main | 0.6728 | 0.6715 | -5.1743 | 0.0000 | 24.62 |
+| C-CO41 / No Rank | 0.6689 | 0.6678 | -5.1877 | 0.0000 | 24.81 |
+
+For No Rank, the reported ranking loss is a diagnostic quantity, not part of the optimized loss.
+
+## 5.3 Gaussian MI Diagnostics — Final 200 Steps
+
+For C-CO12, the four nested subset sizes were `[57, 28, 14, 7]`.
+
+| Condition | M57 | M28 | M14 | M7 |
+|---|---:|---:|---:|---:|
+| Main | 6.236 | 4.342 | 2.082 | 0.855 |
+| No Rank | 6.248 | 4.351 | 2.090 | 0.859 |
+| Shuffled Rank | 5.231 | 4.130 | 2.142 | 0.895 |
+| MI Full | 6.855 | 2.940 | 1.200 | 0.631 |
+| Decoy Zero | 6.294 | 5.432 | 4.482 | 3.300 |
+| Decoy Drop | 6.265 | 5.479 | 4.498 | 3.203 |
+| Fixed B | 11.313 | 4.473 | 1.928 | 0.828 |
+
+For C-CO41, the larger population generated subset sizes `[319, 160, 80, 40]`, with 32 neurons in B.
+
+| Condition | M319 | M160 | M80 | M40 |
+|---|---:|---:|---:|---:|
+| Main | 7.834 | 6.561 | 4.306 | 1.996 |
+| No Rank | 7.852 | 6.568 | 4.319 | 2.012 |
+
+**Observation:** The correct-ranking loss was already zero at the first recorded 100-step interval in every completed condition from this experiment, except Shuffled Rank.
+
+The Shuffled Rank objective remained strongly active, with a final-200-step mean ranking loss of approximately 1.255.
+
+This suggests that the original ranking constraint was largely redundant under this configuration.
+
+## 5.4 Learning Curves — Experiment A
+
+Validation R² at successive checkpoints:
+
+| C-CO12 condition | Step 1,000 | Step 2,000 | Step 3,000 | Step 4,000 | Step 5,000 |
+|---|---:|---:|---:|---:|---:|
+| Main | 0.6875 | 0.6904 | 0.6946 | 0.6923 | 0.6975 |
+| No Rank | 0.6774 | 0.6893 | 0.6917 | 0.6876 | 0.6915 |
+| Shuffled Rank | 0.6443 | 0.6770 | 0.6942 | 0.7065 | 0.7085 |
+| MI Full | 0.6599 | 0.6622 | 0.6517 | 0.6445 | 0.6463 |
+| Decoy Zero | 0.6729 | 0.6869 | 0.6918 | 0.6902 | 0.6915 |
+| Decoy Drop | 0.6982 | 0.7042 | **0.7100** | 0.7073 | 0.7040 |
+| Fixed B | 0.6106 | 0.5833 | 0.5781 | 0.5749 | 0.5665 |
+
+| C-CO41 condition | Step 1,000 | Step 2,000 | Step 3,000 | Step 4,000 | Step 5,000 |
+|---|---:|---:|---:|---:|---:|
+| Main | 0.6617 | **0.6817** | 0.6740 | 0.6705 | 0.6728 |
+| No Rank | 0.6644 | **0.6787** | 0.6747 | 0.6674 | 0.6689 |
+
+Several models showed a decrease in behavioral R² despite continued optimization of the self-supervised objective.
+
+---
+
+# 6. Experiment B: Short Pilot
+
+**Output directory:** `rank_pilot_2500/`  
+**RunAI job:** `mm8-ssl-pilot`  
+**Sessions:** C-CO12 and C-RT2  
+**Conditions:** Main, No Rank, Shuffled Rank, Decoy Drop  
+**Training steps:** 2,500  
+**Batch size:** 256  
+**Evaluation frequency:** Every 500 steps  
+**Logging frequency:** Every 100 steps  
+**Seed:** 0
+
+The actual Python command for this experiment was:
+
+`python -u run_rank_ssl_suite.py --sessions C-CO12,C-RT2 --conditions main,no_rank,shuffled_rank,decoy_drop --gpus 0 --root rank_pilot_2500 --extra "--steps 2500 --batch 256 --eval_every 500 --log_every 100"`
+
+Eight models were trained sequentially on one H200 GPU.
+
+The job logs show that all eight conditions completed between 20:11:56 and 20:23:42, approximately 12 minutes in total.
+
+## 6.1 Behavioral Decoding Results
+
+| Condition | C-CO12 | C-RT2 | Mean |
+|---|---:|---:|---:|
+| Raw Ridge | 0.5164 | 0.3893 | 0.4528 |
+| Randomly initialized encoder | 0.0997 | 0.0265 | 0.0631 |
+| Main | 0.6667 | 0.2616 | 0.4641 |
+| No Rank | 0.6750 | 0.2614 | 0.4682 |
+| Shuffled Rank | 0.6078 | 0.0226 | 0.3152 |
+| Decoy Drop | **0.6895** | **0.3208** | **0.5052** |
+
+Decoy Drop achieved the highest frozen-embedding decoding R² among the four trained SSL conditions on both sessions.
+
+However, on C-RT2, even the best SSL condition (0.3208) underperformed the Raw Ridge baseline (0.3893).
+
+This session dependence is scientifically important and requires further investigation.
+
+## 6.2 Detailed Final Diagnostics
+
+| Session / Condition | Final R² | Subset R² | Mean total loss | Mean rank loss | Effective rank |
+|---|---:|---:|---:|---:|---:|
+| C-CO12 / Main | 0.6667 | 0.6693 | -4.4969 | 0.0000 | 20.67 |
+| C-CO12 / No Rank | 0.6750 | 0.6760 | -4.4933 | 0.0000 | 19.73 |
+| C-CO12 / Shuffled Rank | 0.6078 | 0.6029 | -3.1486 | 1.0303 | 16.45 |
+| C-CO12 / Decoy Drop | 0.6895 | 0.6858 | -5.9109 | 0.0000 | 21.16 |
+| C-RT2 / Main | 0.2616 | 0.2553 | -8.7458 | 0.00017 | 13.84 |
+| C-RT2 / No Rank | 0.2614 | 0.2584 | -8.7679 | 0.00034 | 13.64 |
+| C-RT2 / Shuffled Rank | 0.0226 | 0.0222 | -7.5115 | 0.55648 | 9.76 |
+| C-RT2 / Decoy Drop | 0.3208 | 0.3134 | -9.6818 | 0.00057 | 14.97 |
+
+Again, the ranking loss reported under No Rank was monitored but had zero weight in the total objective.
+
+## 6.3 Gaussian MI Diagnostics — Final 200 Steps
+
+Both sessions used the same nested subset sizes `[57, 28, 14, 7]`.
+
+C-CO12 used 85 neurons in total, partitioned into 57 input candidates and 28 reference neurons.
+
+C-RT2 used 86 neurons in total, partitioned into 57 input candidates and 29 reference neurons.
+
+| Session / Condition | M57 | M28 | M14 | M7 |
+|---|---:|---:|---:|---:|
+| C-CO12 / Main | 6.994 | 5.241 | 3.363 | 2.390 |
+| C-CO12 / No Rank | 7.011 | 5.229 | 3.353 | 2.381 |
+| C-CO12 / Shuffled Rank | 6.159 | 4.879 | 3.289 | 2.389 |
+| C-CO12 / Decoy Drop | 7.130 | 6.475 | 5.596 | 4.442 |
+| C-RT2 / Main | 10.599 | 9.196 | 8.416 | 6.772 |
+| C-RT2 / No Rank | 10.623 | 9.200 | 8.423 | 6.825 |
+| C-RT2 / Shuffled Rank | 8.928 | 8.445 | 8.077 | 6.822 |
+| C-RT2 / Decoy Drop | 10.857 | 9.955 | 9.276 | 8.642 |
+
+The larger Gaussian MI values on C-RT2 did not translate into better behavioral decoding.
+
+Therefore, maximizing the estimated shared information between neuronal groups does not necessarily maximize information relevant to the measured behavior.
+
+## 6.4 Learning Curves — Experiment B
+
+| Session / Condition | Step 500 | Step 1,000 | Step 1,500 | Step 2,000 | Step 2,500 |
+|---|---:|---:|---:|---:|---:|
+| C-CO12 / Main | 0.6207 | 0.6458 | 0.6624 | 0.6657 | 0.6667 |
+| C-CO12 / No Rank | 0.6116 | 0.6437 | 0.6686 | 0.6710 | 0.6750 |
+| C-CO12 / Shuffled Rank | 0.4780 | 0.5597 | 0.5863 | 0.6025 | 0.6078 |
+| C-CO12 / Decoy Drop | 0.6367 | 0.6488 | 0.6759 | 0.6837 | 0.6895 |
+| C-RT2 / Main | 0.1263 | 0.2028 | 0.2387 | 0.2587 | 0.2616 |
+| C-RT2 / No Rank | 0.1322 | 0.2136 | 0.2254 | 0.2472 | 0.2614 |
+| C-RT2 / Shuffled Rank | -0.0106 | -0.0077 | 0.0138 | 0.0156 | 0.0226 |
+| C-RT2 / Decoy Drop | 0.1869 | 0.2727 | 0.2952 | **0.3333** | 0.3208 |
+
+On C-RT2, Decoy Drop reached its highest reported validation R² at Step 2,000, followed by a slight decline.
+
+---
+
+# 7. Per-Behavior-Dimension Results — Short Pilot
+
+There are six behavioral output dimensions. The following values are validation R² for each dimension.
+
+## C-CO12
+
+| Condition | Dim 1 | Dim 2 | Dim 3 | Dim 4 | Dim 5 | Dim 6 |
+|---|---:|---:|---:|---:|---:|---:|
+| Raw Ridge | 0.7204 | 0.7644 | 0.6940 | 0.5568 | 0.2566 | 0.1061 |
+| Main | 0.8772 | 0.8701 | 0.8374 | 0.7572 | 0.4007 | 0.2575 |
+| No Rank | 0.8821 | 0.8741 | 0.8521 | 0.7858 | 0.4046 | 0.2512 |
+| Shuffled Rank | 0.7404 | 0.7729 | 0.8101 | 0.7456 | 0.3565 | 0.2212 |
+| Decoy Drop | **0.8939** | **0.8897** | **0.8592** | **0.7976** | **0.4273** | **0.2691** |
+
+Decoy Drop improved all six behavioral dimensions relative to Raw Ridge on this session.
+
+## C-RT2
+
+| Condition | Dim 1 | Dim 2 | Dim 3 | Dim 4 | Dim 5 | Dim 6 |
+|---|---:|---:|---:|---:|---:|---:|
+| Raw Ridge | **0.5661** | **0.5011** | **0.5524** | **0.4599** | **0.2110** | **0.0453** |
+| Main | 0.3573 | 0.4070 | 0.4563 | 0.2827 | 0.0819 | -0.0157 |
+| No Rank | 0.2941 | 0.3950 | 0.4737 | 0.3024 | 0.0913 | 0.0120 |
+| Shuffled Rank | -0.0043 | -0.0125 | 0.1056 | 0.0474 | 0.0131 | -0.0137 |
+| Decoy Drop | 0.4032 | 0.4598 | 0.4634 | 0.3973 | 0.1667 | 0.0347 |
+
+On C-RT2, Raw Ridge remained better than all tested SSL encoders for every behavioral dimension.
+
+---
+
+# 8. Detailed Observations About the Ranking Objective
+
+The most consistent finding is that the correct nested-subpopulation ordering emerges almost automatically.
+
+In the 5,000-step experiment, Main, No Rank, and Decoy Drop showed zero ranking loss from the first recorded logging interval.
+
+In the 2,500-step pilot:
+
+- C-CO12 / Main: mean ranking loss approximately 0.00094 over the first 100 steps, approximately 0.00006 over the next 100 steps, and zero from around Step 300 onward.
+- C-CO12 / No Rank: the same ordering emerged without any ranking optimization.
+- C-CO12 / Decoy Drop: ranking loss had already become zero by Step 200.
+- C-RT2: small ranking violations occasionally remained, but their contribution was substantially smaller than the information objective.
+
+This indicates that ranking subpopulations by their size is a relatively easy task and may contribute little additional learning signal.
+
+Shuffled Rank behaved differently. Its ranking loss remained active because the imposed ordering conflicted with the natural information ordering.
+
+Interestingly, it underperformed badly in the short pilot but achieved the highest final R² on C-CO12 in the long run.
+
+Because the two runs differed in both batch size and training length, this cannot yet be interpreted as evidence that shuffled ranking is beneficial regularization.
+
+There is also a random-number-generation confound in the current shuffled-ranking implementation: drawing the random ranking order can alter the subsequent sampling sequence. Therefore, matched random streams are needed for a rigorous causal comparison.
+
+# 9. Comparison Between the Two Training Configurations
+
+For C-CO12:
+
+| Condition | 2,500 steps / Batch 256 | 5,000 steps / Batch 1,024 |
+|---|---:|---:|
+| Main | 0.6667 | 0.6975 |
+| No Rank | 0.6750 | 0.6915 |
+| Shuffled Rank | 0.6078 | 0.7085 |
+| Decoy Drop | 0.6895 | 0.7040 |
+
+All four methods had higher final R² in the longer, larger-batch run.
+
+However, the effect was particularly pronounced for Shuffled Rank.
+
+The batch-size change also affects the finite-sample covariance estimate underlying Gaussian MI. Consequently, the MI values obtained with batches of 256 and 1,024 cannot be interpreted as directly comparable measurements of population information.
+
+A controlled batch-size ablation is necessary to separate the effects of batch size, training length, and ranking.
+
+---
+
+# 10. Training Hyperparameters and Reproducibility
+
+The following settings were verified from the saved argument dictionaries.
+
+| Setting | Value |
+|---|---|
+| Learning rate | 0.0003 |
+| Weight decay | 0.0001 |
+| Warmup steps | 250 |
+| Gradient clipping | 1.0 |
+| Random seed | 0 |
+| Temporal input window | 36 |
+| Input smoothing sigma | 0 |
+| Reference smoothing sigma | 2 |
+| Minimum validation neuron standard deviation | 0.2 |
+| Maximum reference population size | 32 |
+| Reference population fraction | Approximately one-third |
+| Nested fractions | 1, 0.5, 0.25, 0.125 |
+| Minimum subset size | 4 |
+| Decoy temporal gap | 360 |
+| Gaussian MI regularization | 0.01 |
+| Ranking margin | 0.05 |
+| Default ranking weight | 1.0 |
+| Encoder output dimension | 32 |
+| Mixed precision | Enabled |
+| MLP probe | Disabled |
+| Evaluation subset averages | 4 random subsets |
+
+**Data location**
+
+`/data/hossein/mm_project/perich_data_valid_final_raw/`
+
+**Working directory**
+
+`~/sam/result/Aggregate/`
+
+**Training scripts**
+
+- `run_rank_ssl_suite.py`
+- `train_rank_ssl.py`
+- `rank_ssl_model.py`
+
+## 10.1 Original Long-Run Command
+
+The actual Python child process used the default suite settings:
+
+`python -u run_rank_ssl_suite.py`
+
+The original RunAI job name was `mm8-ssl`, and its verified output directory was `rank_runs/`.
+
+The intended restricted pilot arguments were not passed to that Python child process. This distinction matters for reproducibility.
+
+## 10.2 Successful Pilot Command
+
+The successful restricted pilot executed:
+
+`python -u run_rank_ssl_suite.py --sessions C-CO12,C-RT2 --conditions main,no_rank,shuffled_rank,decoy_drop --gpus 0 --root rank_pilot_2500 --extra "--steps 2500 --batch 256 --eval_every 500 --log_every 100"`
+
+It ran inside a RunAI H200 container under job name `mm8-ssl-pilot`.
+
+## 10.3 Commands Used to Summarize Results
+
+**Original run**
+
+`python run_rank_ssl_suite.py --sessions C-CO12,C-CO41 --root rank_runs --summary`
+
+**Short pilot**
+
+`python run_rank_ssl_suite.py --sessions C-CO12,C-RT2 --conditions main,no_rank,shuffled_rank,decoy_drop --root rank_pilot_2500 --summary`
+
+The summaries were also saved as:
+
+- `rank_runs/summary.csv`
+- `rank_pilot_2500/summary.csv`
+
+## 10.4 How Training Losses and MI Values Were Retrieved
+
+For each completed experiment, the following files were inspected:
+
+- `final.json` for final R², last-200-step mean losses, Gaussian MI levels, and run configuration.
+- `history.json` for training-step loss, ranking loss, ranking-order violations, effective rank, and Ridge evaluation trajectories.
+
+Relevant JSON fields:
+
+`final["train_last200"]["loss"]`
+
+`final["train_last200"]["loss_rank"]`
+
+`final["train_last200"]["viol"]`
+
+`final["train_last200"]["M57"]`
+
+`history["log"]`
+
+`history["eval"]`
+
+For C-CO41, the MI keys are `M319`, `M160`, `M80`, and `M40` instead of the corresponding smaller-session keys.
+
+The original inspection commands iterated through the run directories and printed these fields for each experimental condition.
+
+---
+
+# 11. Interpretation and Limitations
+
+### 11.1 Positive results
+
+The cross-population Gaussian MI objective learned representations that substantially outperformed random initialization on most tested sessions.
+
+On C-CO12, trained representations also outperformed the current single-time-point Raw Ridge baseline.
+
+Decoy Drop was consistently competitive and achieved the highest R² among the four conditions in the short pilot.
+
+The improvement with Decoy Drop suggests that providing genuine neuronal subsets rather than temporally mismatched replacement activity may be a better training strategy.
+
+### 11.2 The current ranking objective does not show a consistent benefit
+
+The correct-ranking loss was typically zero or extremely small early in training, even in the absence of ranking optimization.
+
+Main and No Rank also produced very similar behavioral decoding results.
+
+Therefore, these experiments do not establish an independent benefit from ranking neuronal subsets by size.
+
+### 11.3 Cross-population information is not always behaviorally relevant
+
+C-RT2 is an important negative result.
+
+Although the representations learned substantial statistical dependence with the reference neuronal population, behavioral decoding remained inferior to Raw Ridge.
+
+This suggests that the shared information captured between neuronal subpopulations may contain behavior-irrelevant structure.
+
+### 11.4 Current limitations
+
+1. Only one random seed has been tested in the reported runs.
+2. The 2,500-step and 5,000-step experiments differ in both batch size and training duration.
+3. The self-supervised encoder uses a 36-bin temporal window, while the Raw Ridge baseline does not explicitly use an equivalent window.
+4. The batch-based Gaussian MI estimator may exhibit finite-sample bias, especially with high-dimensional representations and small batches.
+5. A shuffled-reference or temporally permuted reference-population MI null control has not yet been evaluated.
+6. The Fixed B ablation has a different evaluation input from the dynamic-B conditions.
+7. The current subpopulation membership varies between individual time samples within a training batch.
+8. Some self-supervised objectives continue improving after behavioral decoding performance has peaked.
+9. The `drop_no_rank` condition has not yet been executed, so the effect of dropping decoys has not been fully separated from the effect of the ranking term.
+10. The reported validation results should be treated as exploratory rather than as estimates of generalization across animals, sessions, and seeds.
+
+# 12. Proposed Next Experiments
+
+The immediate next experiment should complete a controlled two-by-two ablation:
+
+| Input construction | MI only | MI + correct ranking |
+|---|---|---|
+| Time-Decoy | No Rank | Main |
+| Real neuronal subsets | **Drop No Rank — not yet tested** | Decoy Drop |
+
+This would isolate the effect of the real-subpopulation input strategy from the effect of ranking.
+
+Additional priorities are:
+
+- Run multiple random seeds on several representative sessions.
+- Add a temporally shuffled reference-population null for Gaussian MI.
+- Add a temporally matched linear Ridge baseline using the full 36-bin input window.
+- Separate batch-size effects from training-duration effects.
+- Use identical data-sampling random streams across experimental conditions.
+- Test fixed neuronal subset membership across time when estimating MI.
+- Investigate whether information quality between same-sized neuronal subsets offers a more informative self-supervised ranking signal than simply changing the number of observed neurons.
+
+## Overall Conclusion
+
+The strongest current evidence supports the usefulness of **cross-population self-supervised representation learning**, particularly when the input is constructed from genuine neuronal subsets.
+
+However, the additional nested-ranking constraint based purely on subset size has not demonstrated a reliable independent advantage.
+
+The results motivate retaining the cross-population information-learning framework while investigating more informative objectives that distinguish behaviorally relevant shared structure from other forms of neuronal dependence.
+
+These findings are preliminary and require matched temporal baselines, additional seeds, and further session-level evaluation before drawing broad conclusions.
