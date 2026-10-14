@@ -1,790 +1,418 @@
-code :
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""C-CO12: 4-GPU parallel Acorn-dprime comparison with crash-safe results.
+Hi,
 
-Place next to Acorn-dprime/ and execute on a node/pod ALLOCATED FOUR GPUs:
-    python -u dprime_4gpu.py --gpu-workers 4
+I ran two sets of experiments using the **Acorn-dprime** fork. The first experiment evaluated 24 adversarial-training configurations covering the main implemented ideas. Based on those results, I ran a second experiment with four controlled configurations to investigate whether the observed improvements came primarily from TRADES or from instance-adaptive epsilon.
 
-24 DISTINCT experiments: original raw PGD L2/Linf eps=3 and 22 dprime arms.
-Each worker is a SEPARATE subprocess that sees exactly one GPU, so the four
-independent experiments run concurrently. This is NOT multi-GPU data-parallel
-training of a single encoder. All results are persisted after EACH experiment
-under --output-dir (default: DPRIME_CCO12_4GPU_RESULTS beside this script).
+Below are the experimental results, calibration diagnostics, and observations from reviewing the implementation.
 
-If a workload is interrupted, restart the SAME script using --resume and
---output-dir pointing to the old, persistent directory. Completed records
-are skipped; failed/incomplete ones are retried. Runs with different settings
-must use different output directories.
+# 1. Experimental Setup
 
-IMPORTANT: Acorn-dprime uses whitened L2 in dprime mode, regardless of
-attack_norm. Raw baselines support L2 and Linf; dprime-Linf is NOT implemented.
-Data-only CEBRA.fit(x_train); y_train goes only to the downstream decoder.
-"""
+Both experiments were performed on the **C-CO12 session of the Perich dataset**, using raw binned neural spike counts.
 
-from __future__ import annotations
+| Parameter | Value |
+|---|---|
+| CEBRA architecture | `offset36-model-more-dropout` |
+| Number of neurons | 86 |
+| Receptive field | 36 time bins |
+| Training time bins | 18,384 |
+| CEBRA iterations | 3,000 |
+| Batch size | 2,048 |
+| Embedding dimension | 64 |
+| Hidden units | 64 |
+| Temperature | 0.4 |
+| Learning rate | 3e-4 |
+| Attack steps | 10 |
+| Decoder | Two-layer MLP |
+| Decoder hidden units | 64 |
+| Decoder dropout | 0.4 |
+| Decoder learning rate | 1e-3 |
+| Decoder epochs | 2,500 |
+| Seed | 42 |
+| Metric | Mean validation R² |
 
-import argparse
-import csv
-import json
-from datetime import datetime, timezone
-import hashlib
-import contextlib
-from dataclasses import dataclass, field
-import gc
-import inspect
-import os
-from pathlib import Path
-import random
-import queue
-import subprocess
-import tempfile
-import threading
-import time
-import traceback
-import sys
-from typing import Any, Dict, List, Optional, Tuple
+CEBRA was trained in a **time-only setting** using `encoder.fit(x_train)`. Behavioral labels were used only to train and evaluate the downstream decoder.
 
-sys.dont_write_bytecode = True
+All R² values refer to decoding performance on unperturbed validation data, not adversarial test accuracy.
 
-import numpy as np
-import torch
-from torch import nn
-from sklearn.metrics import r2_score
+# 2. Experiment 1 — Comparison of 24 Configurations
 
-ROOT = Path(__file__).resolve().parent
-DEFAULT_FORK_DIR = ROOT / "Acorn-dprime"
-DEFAULT_DATA_DIR = Path("/data/hossein/mm_project/perich_data_valid_final_raw/")
-DEFAULT_SESSION = "C-CO12"
-DEFAULT_RESULTS_DIR = ROOT / "DPRIME_CCO12_4GPU_RESULTS"
+The first experiment compared standard PGD against the different components implemented in Acorn-dprime, including:
 
-SEED = 42
-PGD_EPS = 3.0
-ATTACK_STEPS = 10
-PGD_ALPHA = PGD_EPS / 5.0
+- Stationary d′-PGD and APGD
+- Automatic and instance-adaptive epsilon calibration
+- Alternative spatial covariance estimators
+- Alternative temporal covariance models
+- Nonstationary trial-level masking
+- TRADES adversarial training
+- Physiological guards and their combinations
 
-LATENT_DIM = 64
-HIDDEN = 64
-BATCH_SIZE = 2048
-MAX_ITER = 3000
-TEMPERATURE = 0.4
-ARCH = "offset36-model-more-dropout"
-DEVICE = "cuda_if_available"
+The original PGD baselines used ε=3 with L2 and L∞ norms. The d′ attacks used whitened L2 geometry, so their numerical epsilon values are not directly equivalent to the original input-space PGD budgets.
 
-MLP_EPOCHS = 2500
-MLP_HIDDEN = 64
-MLP_DROP = 0.4
-MLP_LR = 1e-3
-EVAL_BATCH_SIZE = 8192
+The default d′ configurations used Ledoit–Wolf spatial covariance, Welch temporal modeling, APGD, and one restart. Warmup and curriculum fractions were initially 0.10 and 0.50, except where explicitly overridden.
 
+## Results — All 24 Models
 
-@dataclass(frozen=True)
-class Experiment:
-    name: str
-    overrides: Dict[str, Any] = field(default_factory=dict)
-    core: bool = False
+| Model | R² | ε* | Mean d′ |
+|---|---:|---:|---:|
+| PGD L2 Fixed ε=3 | 0.563620 | — | — |
+| PGD L∞ Fixed ε=3 | 0.479345 | — | — |
+| Stationary d′-PGD Fixed3 | 0.568449 | 3.0 | 2.2445 |
+| Stationary d′-APGD Fixed3 | 0.574148 | 3.0 | 2.2606 |
+| d′-APGD 3 Restarts Fixed3 | 0.570517 | 3.0 | 2.3030 |
+| d′ Auto Global | 0.532016 | 1.0 | 0.7707 |
+| d′ Auto Instance | 0.541490 | 1.0 | 0.7701 |
+| d′ Auto Instance No Curriculum | 0.549536 | 1.0 | 0.9474 |
+| **d′ TRADES Auto Instance** | **0.581986** | **1.0** | **0.8045** |
+| Spatial OAS | 0.541265 | 1.0 | 0.7712 |
+| Spatial Tyler | 0.514202 | 1.0 | 0.7691 |
+| Spatial Empirical | 0.542682 | 1.0 | 0.7706 |
+| Temporal AR(4) | 0.528971 | 1.0 | 0.7706 |
+| Temporal White | 0.522753 | 1.0 | 0.7645 |
+| Temporal Van Rossum | 0.519936 | 1.0 | 0.7513 |
+| Trial Mask APGD | 0.519225 | 1.0 | 0.7740 |
+| Trial Mask PGD | 0.517649 | 1.0 | 0.7574 |
+| Riemannian Guard | 0.522705 | 1.0 | 0.7703 |
+| Artifact Guard | 0.528019 | 1.0 | 0.7703 |
+| Band Power Guard | 0.513530 | 1.0 | 0.2945 |
+| Aperiodic Guard | 0.517486 | 1.0 | 0.2937 |
+| All Guards Combined | 0.491762 | 1.0 | 0.2935 |
+| Guards Final Check Only | 0.533364 | 1.0 | 0.7702 |
+| Soft Riemannian Guard | 0.533763 | 1.0 | 0.7707 |
 
+All 24 experiments completed successfully.
 
-def experiments() -> List[Experiment]:
-    """One-factor-at-a-time comparisons and a few faithful combined methods.
+## Main Observations
 
-    Fixed d' epsilon=3 is NOT equivalent to raw L2/Linf epsilon=3: the units
-    and feasible sets differ. Auto-epsilon runs include detector calibration.
-    """
-    base = [
-        Experiment("PGD_L2_EPS3", {"adv_epsilon_mode": "constant", "attack_norm": "l2"}, True),
-        Experiment("PGD_LINF_EPS3", {"adv_epsilon_mode": "constant", "attack_norm": "linf"}, True),
-    ]
+The stationary d′ methods performed slightly better than standard L2-PGD under the tested settings.
 
-    # d' defaults: stationary, APGD, Madry, auto epsilon, instance-adaptive,
-    # Ledoit-Wolf + Welch, guards off, time-only calibration, 1 restart.
-    d = dict(
-        adv_epsilon_mode="dprime",
-        adv_dprime_layer="stationary",
-        adv_dprime_epsilon="auto",
-        adv_dprime_jnd=1.0,
-        adv_dprime_residuals="whole",  # No behavior labels anywhere in CEBRA.
-        adv_dprime_spatial="ledoit_wolf",
-        adv_dprime_temporal="welch",
-        adv_dprime_optimizer="apgd",
-        adv_dprime_restarts=1,
-        adv_dprime_objective="madry",
-        adv_dprime_instance_adaptive=True,
-        adv_dprime_guards=(),
-        adv_dprime_guard_mode="off",
-        adv_dprime_warmup=0.10,
-        adv_dprime_curriculum=0.50,
-    )
+For example:
 
-    def arm(name: str, core: bool = False, **kw: Any) -> Experiment:
-        return Experiment(name, {**d, **kw}, core)
+- Standard L2-PGD: R² = 0.563620
+- Stationary d′-PGD Fixed3: R² = 0.568449
+- Stationary d′-APGD Fixed3: R² = 0.574148
 
-    return base + [
-        # Algorithm and step adaptation, with the same fixed whitened L2 budget.
-        arm("DPRIME_STATIONARY_PGD_FIXED3", True,
-            adv_dprime_epsilon=3.0, adv_dprime_optimizer="pgd",
-            adv_dprime_instance_adaptive=False),
-        arm("DPRIME_STATIONARY_APGD_FIXED3", True,
-            adv_dprime_epsilon=3.0, adv_dprime_instance_adaptive=False),
-        arm("DPRIME_APGD_RESTARTS3_FIXED3",
-            adv_dprime_epsilon=3.0, adv_dprime_instance_adaptive=False,
-            adv_dprime_restarts=3),
-        # The full 3-criterion (JND/NN/detector) epsilon protocol.
-        arm("DPRIME_AUTO_GLOBAL", True, adv_dprime_instance_adaptive=False),
-        arm("DPRIME_AUTO_INSTANCE", True),
-        arm("DPRIME_AUTO_INSTANCE_NO_CURRICULUM", adv_dprime_curriculum=0.0),
-        # TRADES is a DIFFERENT training objective than the original Madry AT.
-        arm("DPRIME_TRADES_AUTO_INSTANCE", adv_dprime_objective="trades"),
-        # Spatial and temporal ablations of stationary NoiseModel.
-        arm("DPRIME_SPATIAL_OAS", adv_dprime_spatial="oas"),
-        arm("DPRIME_SPATIAL_TYLER", adv_dprime_spatial="tyler"),
-        arm("DPRIME_SPATIAL_EMPIRICAL", adv_dprime_spatial="empirical"),
-        arm("DPRIME_TEMPORAL_AR4", adv_dprime_temporal="ar", adv_dprime_ar_order=4),
-        arm("DPRIME_TEMPORAL_WHITE", adv_dprime_temporal="white"),
-        arm("DPRIME_TEMPORAL_VANROSSUM", True,
-            adv_dprime_temporal="vanrossum", adv_dprime_vanrossum_tau="auto"),
-        # Nonstationary, trial-specific time-frequency coloring (still whitened L2).
-        arm("DPRIME_TRIAL_MASK", True, adv_dprime_layer="trial_mask"),
-        arm("DPRIME_TRIAL_MASK_PGD", adv_dprime_layer="trial_mask",
-            adv_dprime_optimizer="pgd"),
-        # Layer 3, evaluated separately from the basic metric for ablations.
-        arm("DPRIME_GUARD_RIEMANN", adv_dprime_guards=("riemann",),
-            adv_dprime_guard_mode="backtrack"),
-        arm("DPRIME_GUARD_ARTIFACT", adv_dprime_guards=("artifact",),
-            adv_dprime_guard_mode="backtrack"),
-        arm("DPRIME_GUARD_BAND_POWER", adv_dprime_guards=("band_power",),
-            adv_dprime_guard_mode="backtrack"),
-        arm("DPRIME_GUARD_APERIODIC", adv_dprime_guards=("aperiodic",),
-            adv_dprime_guard_mode="backtrack"),
-        arm("DPRIME_GUARDS_ALL", adv_dprime_guards=("band_power", "aperiodic", "riemann", "artifact"),
-            adv_dprime_guard_mode="backtrack"),
-        arm("DPRIME_GUARDS_FINAL_ONLY", adv_dprime_guards=("riemann",),
-            adv_dprime_guard_mode="final"),
-        arm("DPRIME_GUARD_SOFT_RIEMANN", adv_dprime_guards=("riemann",),
-            adv_dprime_guard_mode="backtrack", adv_dprime_soft_riemann=1.0),
-    ]
+The strongest result came from **TRADES Auto Instance, with R² = 0.581986**.
 
+However, most other automatically calibrated configurations performed worse than the fixed-epsilon d′ configurations.
 
-def seed_all(seed: int) -> None:
-    random.seed(seed)
-    np.random.seed(seed)
-    torch.manual_seed(seed)
-    if torch.cuda.is_available():
-        torch.cuda.manual_seed_all(seed)
-    torch.backends.cudnn.benchmark = False
-    torch.backends.cudnn.deterministic = True
+The nonstationary trial-mask variants and the physiological guards also did not improve clean validation R² in these experiments.
 
+In particular, the band-power and aperiodic guards reduced the realized mean d′ to approximately 0.29, indicating that the effective perturbations were substantially restricted.
 
-def load_fork(fork_dir: Path):
-    package = fork_dir / "cebra" / "__init__.py"
-    if not package.is_file():
-        raise FileNotFoundError(
-            f"Expected fork at {fork_dir}. Place this runner next to Acorn-dprime "
-            "or set --fork-dir PATH."
-        )
-    for key in list(sys.modules):
-        if key == "cebra" or key.startswith("cebra."):
-            del sys.modules[key]
-    sys.path.insert(0, str(fork_dir.resolve()))
-    import cebra
+These observations motivated a second experiment to isolate the effects of the training objective and epsilon adaptation.
 
-    actual = Path(cebra.__file__).resolve()
-    if not actual.is_relative_to(fork_dir.resolve()):
-        raise RuntimeError(f"Wrong CEBRA imported: {actual}")
-    params = inspect.signature(cebra.CEBRA.__init__).parameters
-    required = {
-        "training_mode", "adv_epsilon", "adv_alpha", "adv_steps", "attack_norm",
-        "adv_epsilon_mode", "adv_dprime_epsilon", "adv_dprime_layer",
-        "adv_dprime_optimizer", "adv_dprime_instance_adaptive", "adv_dprime_temporal",
-        "adv_dprime_spatial", "adv_dprime_guards", "adv_dprime_objective",
-    }
-    missing = sorted(required - set(params))
-    if missing:
-        raise RuntimeError(f"This fork lacks Acorn-dprime parameters: {missing}")
-    return cebra
+# 3. Experiment 2 — Four-Model Controlled Ablation
 
+To investigate why TRADES Auto Instance performed well, I compared four configurations:
 
-def load_data(data_path: Path):
-    if not data_path.is_file():
-        raise FileNotFoundError(f"No session file at: {data_path}")
-    with np.load(data_path, allow_pickle=False) as f:
-        x_train, x_valid, y_train, y_valid = (
-            np.asarray(f[k], dtype=np.float32)
-            for k in ("train_data", "valid_data", "train_label", "valid_label")
-        )
+1. Madry + Fixed ε=1
+2. Madry + Auto Instance ε
+3. TRADES + Fixed ε=1
+4. TRADES + Auto Instance ε
 
-    if y_train.ndim == 1:
-        y_train = y_train[:, None]
-    if y_valid.ndim == 1:
-        y_valid = y_valid[:, None]
-    for key, arr in (("train_data", x_train), ("valid_data", x_valid),
-                     ("train_label", y_train), ("valid_label", y_valid)):
-        if arr.ndim != 2 or 0 in arr.shape or not np.isfinite(arr).all():
-            raise ValueError(f"Invalid shape / nonfinite {key}: {arr.shape}")
-    if (x_train.shape[1] != x_valid.shape[1]
-            or y_train.shape[1] != y_valid.shape[1]):
-        raise ValueError("Train/valid feature or label dimensions differ")
-    if len(x_train) != len(y_train) or len(x_valid) != len(y_valid):
-        raise ValueError("Neural data and decoder labels have different lengths")
-    if min(len(x_train), len(x_valid)) < 36:
-        raise ValueError("The offset36 model needs at least 36 bins in each split")
-    for name, x in (("train_data", x_train), ("valid_data", x_valid)):
-        if np.any(x < 0) or not np.array_equal(x, np.rint(x)):
-            raise ValueError(f"{name} must be RAW nonnegative integer spike counts")
-    return tuple(np.ascontiguousarray(a) for a in (x_train, x_valid, y_train, y_valid))
+All four configurations used:
 
+- Stationary d′ geometry
+- APGD with one restart
+- Ledoit–Wolf spatial covariance
+- Welch temporal covariance
+- 10 attack steps
+- No physiological guards
+- Warmup = 0
+- Curriculum fraction = 0
+- TRADES β = 6.0, where applicable
+- Identical CEBRA and decoder settings
+- Seed = 42
 
-def encoder_config(exp: Experiment, iterations: int, batch_size: int,
-                   device: str, seed: int, pgd_eps: float) -> Dict[str, Any]:
-    overrides = dict(exp.overrides)
-    return {
-        "model_architecture": ARCH,
-        "batch_size": batch_size,
-        "temperature": TEMPERATURE,
-        "time_offsets": 1,
-        "max_iterations": iterations,
-        "output_dimension": LATENT_DIM,
-        "num_hidden_units": HIDDEN,
-        "learning_rate": 3e-4,
-        "temperature_mode": "constant",
-        "training_mode": "adversarial",
-        "adv_epsilon": pgd_eps,
-        "adv_alpha": pgd_eps / 5.0,
-        "adv_steps": ATTACK_STEPS,
-        "attack_norm": "l2",   # A placeholder ignored by d' training.
-        "adv_dprime_seed": seed,
-        "device": device,
-        "verbose": False,
-        **overrides,
-    }
+Although the curriculum fraction was set to zero, the implementation still uses one curriculum step. Consequently, epsilon starts at 0.25 for the first step and reaches its final value of 1.0 afterward.
 
+## Complete Results
 
-class TwoLayerMLP(nn.Module):
-    def __init__(self, dim: int, out: int):
-        super().__init__()
-        self.net = nn.Sequential(
-            nn.Linear(dim, MLP_HIDDEN),
-            nn.LayerNorm(MLP_HIDDEN),
-            nn.ReLU(),
-            nn.Dropout(MLP_DROP),
-            nn.Linear(MLP_HIDDEN, out),
-        )
+| Configuration | R² | ε* | ε_NN | Mean d′ |
+|---|---:|---:|---:|---:|
+| Madry Fixed1 | 0.536874 | 1.0 | 71.3689 | 0.942301 |
+| Madry Auto Instance | 0.543218 | 1.0 | 71.3416 | 0.941754 |
+| **TRADES Fixed1** | **0.600654** | **1.0** | **71.3689** | **0.991656** |
+| TRADES Auto Instance | 0.585947 | 1.0 | 71.3416 | 0.991626 |
 
-    def forward(self, x):
-        return self.net(x)
+Additional training diagnostics:
 
+| Metric | All Four Configurations |
+|---|---|
+| Final epsilon | 1.0 |
+| NN binding rate | 0.0 |
+| Warmup steps | 0 |
+| Curriculum steps | 1 |
+| Training steps | 3,000 |
+| Guard acceptance rate | 1.0 |
+| Guard backtracks | 0 |
 
-def train_decoder(z_train, y_train, seed: int, device, epochs: int):
-    seed_all(seed)
-    decoder = TwoLayerMLP(z_train.shape[1], y_train.shape[1]).to(device)
-    opt = torch.optim.Adam(decoder.parameters(), lr=MLP_LR)
-    criterion = nn.MSELoss()
-    z = torch.as_tensor(z_train, dtype=torch.float32, device=device)
-    y = torch.as_tensor(y_train, dtype=torch.float32, device=device)
-    decoder.train()
-    for epoch in range(epochs):
-        opt.zero_grad(set_to_none=True)
-        loss = criterion(decoder(z), y)
-        if not torch.isfinite(loss).item():
-            raise FloatingPointError(f"Nonfinite decoder loss at epoch {epoch + 1}")
-        loss.backward()
-        opt.step()
-    return decoder
+The fixed configurations reported `source=user`, while the automatic configurations reported `source=auto`.
 
+## Performance Differences
 
-def predict_decoder(decoder, embeddings):
-    decoder.eval()
-    device = next(decoder.parameters()).device
-    preds = []
-    with torch.inference_mode():
-        for first in range(0, len(embeddings), EVAL_BATCH_SIZE):
-            z = torch.as_tensor(embeddings[first:first + EVAL_BATCH_SIZE],
-                                dtype=torch.float32, device=device)
-            preds.append(decoder(z).cpu().numpy())
-    return np.concatenate(preds, axis=0)
+The second experiment produced an even stronger result for TRADES.
 
+**TRADES Fixed1 achieved R² = 0.600654, the highest value observed across both experimental suites.**
 
-def epsilon_summary(report: Optional[Dict[str, Any]]) -> str:
-    if not report:
-        return "no-dprime-report"
-    e = report.get("epsilon", {})
-    nn = report.get("eps_nn", {})
-    t = report.get("training", {})
-    return (f"eps_star={e.get('eps_star')} "
-            f"eps_NN={nn.get('value')} "
-            f"mean_dprime={t.get('mean_dprime')} "
-            f"NN_binding={t.get('eps_nn_binding_rate')} "
-            f"guard_accept={t.get('accept_rate')}")
+The differences were:
 
+| Comparison | Absolute R² Difference |
+|---|---:|
+| TRADES Fixed1 − Madry Fixed1 | +0.063780 |
+| TRADES Auto − Madry Auto | +0.042729 |
+| TRADES Fixed1 − TRADES Auto | +0.014707 |
+| Madry Auto − Madry Fixed1 | +0.006345 |
 
-def run_one(cebra, exp: Experiment, arrays, args) -> Tuple[float, Optional[Dict[str, Any]]]:
-    x_train, x_valid, y_train, y_valid = arrays
-    encoder = decoder = z_train = z_valid = None
-    report = None
+Compared with the original L2-PGD baseline (R² = 0.563620), TRADES Fixed1 achieved an improvement of approximately **+0.037034 R²**.
+
+This suggests that the TRADES objective may be particularly beneficial for learning useful CEBRA representations in this setting.
+
+However, the result is currently based on one session and one seed. Additionally, Madry uses separate clean and adversarial optimizer updates in the current implementation, whereas TRADES uses one update on a combined objective. This difference should also be considered when interpreting the results.
+
+# 4. Adaptive Epsilon Calibration Analysis
+
+A particularly important observation emerged from the epsilon calibration reports.
+
+The intended instance-adaptive budget is:
+
+\[
+\epsilon_i=\min(\epsilon^*,\epsilon_{NN,i})
+\]
+
+where:
+
+\[
+\epsilon^*=\min(\epsilon_{JND},\epsilon_{NN},\epsilon_{det})
+\]
+
+The automatic calibration produced:
+
+| Calibration Metric | Value |
+|---|---:|
+| ε_JND | 1.0 |
+| ε_NN (10th percentile) | 71.3416 |
+| Median nearest-neighbor distance | 73.9924 |
+| ε_det | 1.0 |
+| Final ε* | 1.0 |
+| NN binding rate | 0.0 |
+| Nearest-neighbor bank size | 2,000 |
+| Number of NN queries | 18,349 |
+
+The reports also showed:
+
+```text
+label_kind = null
+classes = null
+```
+
+This confirms that behavioral labels were not used for the nearest-neighbor calibration in these runs.
+
+The important observation is that nearest-neighbor distances are approximately 71, while the final epsilon budget is capped at 1.
+
+As a result, none of the training references had their epsilon reduced by the nearest-neighbor constraint.
+
+Therefore, **the instance-adaptive mechanism was enabled, but it did not produce different effective per-reference budgets in these experiments**.
+
+This is a significant finding because the Fixed and Auto configurations were effectively trained with the same epsilon schedule.
+
+# 5. Detector Calibration Results
+
+The automatic calibration evaluated detector performance at different d′ budgets.
+
+Selected AUC measurements were:
+
+| d′ Epsilon | Madry Auto AUC | TRADES Auto AUC |
+|---|---:|---:|
+| 0.5 | 0.5016 | 0.5026 |
+| 1.0 | 0.5119 | 0.5091 |
+| 2.0 | 0.5641 | 0.5766 |
+| 4.0 | 0.7911 | 0.8113 |
+| 8.0 | 0.9637 | 0.9740 |
+| 16.0 | 0.9991 | 0.9981 |
+
+The detector criterion was AUC ≤ 0.55.
+
+At ε=1, the detectors remained below this threshold. At ε=2, the threshold was exceeded.
+
+Therefore, the calibrated detector budget was:
+
+\[
+\epsilon_{det}=1
+\]
+
+Combined with ε_JND=1 and ε_NN≈71, this resulted in:
+
+\[
+\epsilon^*=1
+\]
+
+These detector measurements support the choice of ε=1 under the current calibration protocol, but do not independently establish physiological indistinguishability.
+
+# 6. Noise Model Diagnostics
+
+The noise-model reports were consistent across the four configurations.
+
+| Metric | Value |
+|---|---:|
+| Number of channels | 86 |
+| Number of training time bins | 18,384 |
+| Window length | 36 |
+| Spatial estimator | Ledoit–Wolf |
+| Temporal model | Welch |
+| Mean noise standard deviation | 0.6583 |
+| Median noise standard deviation | 0.6679 |
+| Spatial condition number | 54.63 |
+| Temporal lag-1 correlation | 0.1519 |
+| Kronecker model relative error | 0.7515 |
+| Nearest Kronecker approximation error | 0.5569 |
+
+One observation worth investigating is the relatively high Kronecker approximation error.
+
+The current stationary d′ model assumes a separable spatial–temporal covariance structure:
+
+\[
+\Sigma=\Sigma_{\mathrm{spatial}}\otimes\Sigma_{\mathrm{temporal}}
+\]
+
+However, the reported relative error of approximately 0.75 suggests that this approximation may not capture all dependencies in the neural recordings.
+
+This does not necessarily invalidate the stationary model, but it would be useful to evaluate how much its approximation quality affects the attack geometry.
+
+# 7. Robustness Margin Diagnostics
+
+The reports also included minimum-norm robustness diagnostics.
+
+| Configuration | Already Adversarial (Top-1) | Median Margin |
+|---|---:|---:|
+| Madry Fixed1 | 57.42% | 0 |
+| Madry Auto Instance | 58.79% | 0 |
+| TRADES Fixed1 | 52.15% | 0 |
+| TRADES Auto Instance | 49.61% | 0.00654 |
+
+These values are based on the contrastive top-1 criterion implemented in the fork.
+
+They should not be interpreted as robustness margins for the downstream behavioral decoder, since they measure a different decision criterion.
+
+# 8. Possible RNG Issue in the Implementation
+
+After inspecting `cebra/dprime/training.py` and `calibration.py`, I noticed a possible source of inconsistency between Fixed and Auto experiments.
+
+The trainer initializes a dedicated random generator:
+
+```python
+self.generator = torch.Generator().manual_seed(
+    int(solver.adv_dprime_seed)
+)
+```
+
+However, the Auto configuration calls `_calibrate()` before adversarial training.
+
+During calibration, the same generator is passed into the detector-calibration attacks:
+
+```python
+adv, info = attacks.dprime_pgd(
+    ...,
+    generator=self.generator
+)
+```
+
+The generator is also consumed by the colored-noise and L∞ attack paths used during calibration.
+
+The Fixed configuration does not execute this calibration procedure.
+
+Therefore, even when the initial seed and effective epsilon budgets are identical, the two configurations can enter adversarial training with **different random generator states**.
+
+As a result, the APGD random starts and subsequent stochastic trajectories may differ.
+
+This is one plausible explanation for the observed R² differences between Fixed and Auto despite their effectively identical epsilon budgets.
+
+The calibration procedure may also consume global CPU/CUDA RNG states through neural-network initialization and detector training.
+
+This hypothesis requires a controlled experiment before attributing the performance differences to RNG behavior.
+
+# 9. Suggested Code Modification
+
+A useful first modification would be to separate the calibration RNG from the adversarial-training RNG.
+
+For example, the current training code:
+
+```python
+if self.eps_star is None and not warm:
+    self._calibrate(batch)
+```
+
+could be modified to preserve the dedicated attack generator state:
+
+```python
+if self.eps_star is None and not warm:
+    attack_rng_state = self.generator.get_state().clone()
+
     try:
-        seed_all(args.seed)
-        encoder = cebra.CEBRA(**encoder_config(exp, args.max_iterations, args.batch_size,
-                                               args.device, args.seed, args.epsilon))
-        # TIME-ONLY training: y_train is deliberately NOT passed here.
-        encoder.fit(x_train)
-        report = getattr(encoder, "dprime_report_", None)
-        z_train = np.asarray(encoder.transform(x_train), dtype=np.float32)
-        z_valid = np.asarray(encoder.transform(x_valid), dtype=np.float32)
-        if (len(z_train) != len(x_train) or len(z_valid) != len(x_valid)
-                or not np.isfinite(z_train).all() or not np.isfinite(z_valid).all()):
-            raise ValueError(f"Bad embedding shape / alignment for {exp.name}")
-        decoder = train_decoder(z_train, y_train, args.seed + 100_000,
-                                torch.device(encoder.device_), args.mlp_epochs)
-        predictions = predict_decoder(decoder, z_valid)
-        if predictions.shape != y_valid.shape or not np.isfinite(predictions).all():
-            raise ValueError(f"Bad decoder predictions for {exp.name}")
-        value = float(np.atleast_1d(r2_score(y_valid, predictions,
-                                             multioutput="raw_values")).mean())
-        if not np.isfinite(value):
-            raise ValueError("R2 is nonfinite; check validation label variability")
-        return value, report
+        self._calibrate(batch)
     finally:
-        del encoder, decoder, z_train, z_valid
-        gc.collect()
-        if torch.cuda.is_available():
-            torch.cuda.empty_cache()
+        self.generator.set_state(attack_rng_state)
+```
 
+This would prevent detector calibration from advancing the dedicated attack generator used later in training.
 
-def build_parser() -> argparse.ArgumentParser:
-    p = argparse.ArgumentParser(description=__doc__,
-                                formatter_class=argparse.RawDescriptionHelpFormatter)
-    p.add_argument("--fork-dir", type=Path, default=DEFAULT_FORK_DIR)
-    p.add_argument("--data-dir", type=Path, default=DEFAULT_DATA_DIR)
-    p.add_argument("--session", default=DEFAULT_SESSION)
-    p.add_argument("--suite", choices=("all", "core"), default="all")
-    p.add_argument("--only", nargs="+", help="Run named arms; use --list to inspect names")
-    p.add_argument("--list", action="store_true", help="List all experiments and exit")
-    p.add_argument("--dry-run", action="store_true", help="List selected arms without fitting")
-    p.add_argument("--seed", type=int, default=SEED)
-    p.add_argument("--epsilon", type=float, default=PGD_EPS,
-                   help="Epsilon for the ORIGINAL L2/Linf PGD only (also sets alpha=epsilon/5)")
-    p.add_argument("--max-iterations", type=int, default=MAX_ITER)
-    p.add_argument("--batch-size", type=int, default=BATCH_SIZE)
-    p.add_argument("--mlp-epochs", type=int, default=MLP_EPOCHS)
-    p.add_argument("--device", default=DEVICE)
-    p.add_argument("--report-eps", action="store_true",
-                   help="Print dprime calibration diagnostics to stderr after each run")
-    p.add_argument("--gpu-workers", type=int, default=4,
-                   help="Number of independently allocated GPUs to use (default 4)")
-    p.add_argument("--cpu-threads", type=int, default=2,
-                   help="CPU threads per GPU subprocess (default 2)")
-    p.add_argument("--output-dir", type=Path, default=DEFAULT_RESULTS_DIR,
-                   help="PERSISTENT results directory. MUST reside on a shared/host volume")
-    p.add_argument("--resume", action="store_true",
-                   help="Skip successful experiment records, retry interrupted/failed runs")
-    p.add_argument("--continue-on-error", action="store_true",
-                   help="Kept for CLI compatibility; the 4-GPU suite always records each error and continues")
-    # Internal worker arguments; not intended for direct use.
-    p.add_argument("--_worker", action="store_true", help=argparse.SUPPRESS)
-    p.add_argument("--_experiment", default=None, help=argparse.SUPPRESS)
-    p.add_argument("--_gpu_slot", type=int, default=-1, help=argparse.SUPPRESS)
-    return p
+For a stricter comparison, it would also be useful to isolate the global PyTorch CPU/CUDA RNG states consumed during calibration, potentially using `torch.random.fork_rng`.
 
+After this modification, Fixed1 and Auto Instance could be rerun with matched random streams to determine whether their performance differences persist.
 
-def now_utc() -> str:
-    return datetime.now(timezone.utc).isoformat(timespec="seconds")
+An additional useful improvement would be to log the actual distribution of effective epsilon values across training references:
 
+- Minimum ε
+- 10th percentile
+- Median
+- 90th percentile
+- Maximum ε
+- Fraction of samples constrained by nearest-neighbor distance
 
-def atomic_write_text(path: Path, content: str) -> None:
-    """Commit one entire file; readers see either old or new version."""
-    path.parent.mkdir(parents=True, exist_ok=True)
-    fd, temp_path = tempfile.mkstemp(prefix=f".{path.name}.", suffix=".tmp", dir=path.parent)
-    try:
-        with os.fdopen(fd, "w", encoding="utf-8", newline="") as f:
-            f.write(content)
-            f.flush()
-            os.fsync(f.fileno())
-        os.replace(temp_path, path)
-    finally:
-        if os.path.exists(temp_path):
-            os.unlink(temp_path)
+This would directly verify whether the instance-adaptive mechanism is functioning as intended.
 
+# 10. Overall Interpretation
 
-def atomic_write_json(path: Path, payload: Dict[str, Any]) -> None:
-    atomic_write_text(path, json.dumps(payload, ensure_ascii=False, indent=2,
-                                       allow_nan=False, sort_keys=True) + "\n")
+The results suggest several conclusions.
 
+**1. Stationary d′-based adversarial training is promising.**
 
-def record_path(root: Path, name: str) -> Path:
-    if not name.replace("_", "").isalnum():
-        raise ValueError(f"Unsafe experiment name: {name!r}")
-    return root / "records" / f"{name}.json"
+The stationary d′-PGD/APGD configurations slightly outperformed standard L2-PGD under the tested settings, although their epsilon scales are not directly equivalent.
 
+**2. TRADES appears to be the most promising component so far.**
 
-def read_record(root: Path, name: str):
-    path = record_path(root, name)
-    if not path.is_file():
-        return None
-    with path.open("r", encoding="utf-8") as f:
-        obj = json.load(f)
-    if obj.get("experiment") != name:
-        raise RuntimeError(f"Mismatched record in {path}")
-    return obj
+The best observed result was:
 
+\[
+\boxed{\text{TRADES Fixed1: }R^2=0.600654}
+\]
 
-def write_snapshots(root: Path, selected: List[Experiment]) -> None:
-    """Consolidate atomic per-arm records into CSV and readable text."""
-    import io
-    rows = []
-    summaries = []
-    for exp in selected:
-        record = read_record(root, exp.name)
-        if record is None:
-            continue
-        rows.append({
-            "experiment": exp.name,
-            "status": record.get("status", "unknown"),
-            "r2": record.get("r2", ""),
-            "gpu_slot": record.get("gpu_slot", ""),
-            "cuda_visible_devices": record.get("cuda_visible_devices", ""),
-            "elapsed_seconds": record.get("elapsed_seconds", ""),
-            "finished_utc": record.get("finished_utc", ""),
-            "epsilon_summary": record.get("epsilon_summary", ""),
-            "error": record.get("error", ""),
-        })
-        if record.get("status") == "success":
-            summaries.append(f"{exp.name}: R2 = {record['r2']:.6f}"
-                             f" | GPU slot {record.get('gpu_slot')}"
-                             f" | elapsed {record.get('elapsed_seconds',0):.1f}s")
-        else:
-            summaries.append(f"{exp.name}: ERROR: {record.get('error')}")
-    stream = io.StringIO()
-    fields = ["experiment", "status", "r2", "gpu_slot", "cuda_visible_devices",
-              "elapsed_seconds", "finished_utc", "epsilon_summary", "error"]
-    writer = csv.DictWriter(stream, fieldnames=fields)
-    writer.writeheader()
-    writer.writerows(rows)
-    atomic_write_text(root / "results.csv", stream.getvalue())
-    atomic_write_text(root / "results.txt", "\n".join(summaries) + ("\n" if summaries else ""))
+Both TRADES configurations substantially outperformed their corresponding Madry configurations in the second experiment.
 
+**3. Instance-adaptive epsilon has not yet demonstrated an independent benefit.**
 
-def selected_experiments(args):
-    all_exp = experiments()
-    names = {e.name for e in all_exp}
-    if args.only:
-        unknown = sorted(set(args.only) - names)
-        if unknown:
-            raise ValueError(f"Unknown experiments: {unknown}; inspect --list")
-        return [e for e in all_exp if e.name in set(args.only)]
-    if args.suite == "core":
-        return [e for e in all_exp if e.core]
-    return all_exp
+The nearest-neighbor constraint never became active, so the automatic configurations effectively used the same epsilon schedule as the fixed configurations.
 
+**4. The Fixed-versus-Auto comparison may be influenced by RNG-state differences.**
 
-def config_manifest(args, selected: List[Experiment]) -> dict:
-    """Prevent accidentally mixing incomparable R2 values across restarts."""
-    data_path = (args.data_dir / f"{args.session}.npz").resolve()
-    return json.loads(json.dumps({
-        "runner_sha256": hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
-        "fork_dir": str(args.fork_dir.resolve()),
-        "data_path": str(data_path),
-        "session": args.session,
-        "seed": args.seed,
-        "epsilon": args.epsilon,
-        "batch_size": args.batch_size,
-        "max_iterations": args.max_iterations,
-        "mlp_epochs": args.mlp_epochs,
-        "architecture": ARCH,
-        "latent_dim": LATENT_DIM,
-        "hidden": HIDDEN,
-        "temperature": TEMPERATURE,
-        "attack_steps": ATTACK_STEPS,
-        "experiments": [{"name": exp.name, "overrides": exp.overrides}
-                        for exp in selected],
-    }, sort_keys=True))
+The detector calibration consumes randomness before training, and this may cause two nominally comparable configurations to follow different optimization trajectories.
 
+**5. The covariance approximation and spike-count-specific noise model deserve further validation.**
 
-def gpu_tokens(workers: int) -> list[str]:
-    if workers < 1:
-        raise ValueError("--gpu-workers must be at least 1")
-    if not torch.cuda.is_available():
-        raise RuntimeError("No CUDA GPU available in this RunAI container")
-    count = torch.cuda.device_count()
-    if count < workers:
-        raise RuntimeError(f"Requested {workers} GPU workers but only {count} CUDA devices visible. "
-                           "Submit RunAI job with --gpu 4 and check GPU allocation.")
-    visibility = os.environ.get("CUDA_VISIBLE_DEVICES", "").strip()
-    if visibility and visibility != "-1":
-        tokens = [s.strip() for s in visibility.split(",") if s.strip()]
-        if len(tokens) < workers:
-            raise RuntimeError(f"CUDA_VISIBLE_DEVICES={visibility!r} has fewer than {workers} entries")
-        return tokens[:workers]
-    return [str(i) for i in range(workers)]
+The Kronecker approximation error is relatively high, and the covariance estimated from the whole recording may contain behavior-related neural variability as well as stochastic noise.
 
+## Suggested Next Steps
 
-def worker_run(args, exp: Experiment) -> int:
-    """Executed INSIDE subprocess already masked to one physical GPU."""
-    start = time.monotonic()
-    if not torch.cuda.is_available() or torch.cuda.device_count() != 1:
-        raise RuntimeError("Worker must see exactly ONE GPU; check CUDA_VISIBLE_DEVICES")
-    torch.set_num_threads(args.cpu_threads)
-    root = args.output_dir.resolve()
-    base = {
-        "experiment": exp.name,
-        "status": "error",
-        "r2": None,
-        "gpu_slot": args._gpu_slot,
-        "cuda_visible_devices": os.environ.get("CUDA_VISIBLE_DEVICES", ""),
-        "started_utc": now_utc(),
-        "finished_utc": None,
-        "elapsed_seconds": None,
-        "epsilon_summary": "",
-        "error": "",
-    }
-    try:
-        cebra = load_fork(args.fork_dir)
-        arrays = load_data(args.data_dir / f"{args.session}.npz")
-        value, report = run_one(cebra, exp, arrays, args)
-        base["status"] = "success"
-        base["r2"] = float(value)
-        if exp.overrides.get("adv_epsilon_mode") == "dprime":
-            base["epsilon_summary"] = epsilon_summary(report)
-        print(f"{exp.name}: R2 = {value:.6f}", flush=True)
-        if args.report_eps:
-            print(f"{exp.name} calibration: {base['epsilon_summary']}", flush=True)
-    except BaseException as exc:
-        base["error"] = f"{type(exc).__name__}: {exc}"
-        traceback.print_exc()
-    finally:
-        base["elapsed_seconds"] = round(time.monotonic() - start, 3)
-        base["finished_utc"] = now_utc()
-        atomic_write_json(record_path(root, exp.name), base)
-    return 0 if base["status"] == "success" else 1
+I would prioritize the following:
 
+1. Isolate calibration and training RNG streams, then repeat the four-model ablation under controlled randomness.
+2. Verify and log the actual per-reference epsilon distribution.
+3. Investigate a genuinely adaptive, statistically calibrated epsilon mechanism for binned spike counts, without arbitrarily increasing the JND threshold.
+4. Repeat the strongest configurations across multiple seeds and recording sessions.
+5. Evaluate adversarial robustness separately from clean validation R².
+6. Examine whether improved residual-based noise estimation or alternative covariance structures provide a better fit to the spike-count data.
 
-def orchestrate(args, selected: List[Experiment]) -> int:
-    root = args.output_dir.resolve()
-    if root.exists() and not root.is_dir():
-        raise ValueError(f"--output-dir is not a directory: {root}")
-    root.mkdir(parents=True, exist_ok=True)
-    (root / "records").mkdir(exist_ok=True)
-    (root / "logs").mkdir(exist_ok=True)
-    manifest_path = root / "run_config.json"
-    manifest = config_manifest(args, selected)
-    if manifest_path.exists():
-        old = json.loads(manifest_path.read_text(encoding="utf-8"))
-        if old != manifest:
-            raise RuntimeError("Result directory contains DIFFERENT config; use a new "
-                               "--output-dir (or restore exact previous script/config).")
-        if not args.resume and any(record_path(root, e.name).exists() for e in selected):
-            raise RuntimeError("Completed records exist. Use --resume or a new --output-dir; "
-                               "never overwrite old experimental results unintentionally.")
-    else:
-        if any((root / "records").glob("*.json")):
-            raise RuntimeError("Records exist without config manifest; choose a new output dir")
-        atomic_write_json(manifest_path, manifest)
+Overall, **the strongest experimental signal so far is the combination of stationary d′-APGD and TRADES**, rather than the current instance-adaptive epsilon mechanism.
 
-    pending = [e for e in selected if not (args.resume and
-               (rec := read_record(root, e.name)) is not None and rec.get("status") == "success")]
-    write_snapshots(root, selected)
-    if not pending:
-        print(f"All {len(selected)} results already present in {root}", flush=True)
-        return 0
-    tokens = gpu_tokens(args.gpu_workers)
-    todo = queue.Queue()
-    for e in pending:
-        todo.put(e)
-    print(f"Starting {len(pending)} experiments on {args.gpu_workers} GPUs. "
-          f"Durable output: {root}", flush=True)
-    for e in selected:
-        if e not in pending:
-            print(f"SKIP {e.name}: previously successful", flush=True)
+The result of R²=0.600654 is encouraging, but the next important step is to separate the benefit of the TRADES objective from the effects of epsilon calibration, random-number consumption, and the training procedure.
 
-    # Only the coordinator (this process) writes consolidated CSV/text files.
-    # Every child writes its own JSON record atomically before it terminates.
-    update_lock = threading.Lock()
-    failures: list[str] = []
-
-    def gpu_loop(slot: int, cuda_token: str) -> None:
-        while True:
-            try:
-                exp = todo.get_nowait()
-            except queue.Empty:
-                return
-            filename = root / "logs" / f"{exp.name}.log"
-            cmd = [sys.executable, "-u", str(Path(__file__).resolve()),
-                   "--_worker", "--_experiment", exp.name,
-                   "--_gpu_slot", str(slot),
-                   "--fork-dir", str(args.fork_dir.resolve()),
-                   "--data-dir", str(args.data_dir.resolve()),
-                   "--session", args.session, "--seed", str(args.seed),
-                   "--epsilon", str(args.epsilon),
-                   "--max-iterations", str(args.max_iterations),
-                   "--batch-size", str(args.batch_size),
-                   "--mlp-epochs", str(args.mlp_epochs),
-                   "--device", args.device,
-                   "--cpu-threads", str(args.cpu_threads),
-                   "--output-dir", str(root)]
-            if args.report_eps:
-                cmd.append("--report-eps")
-            env = dict(os.environ)
-            env["CUDA_VISIBLE_DEVICES"] = cuda_token
-            for key in ("OMP_NUM_THREADS", "MKL_NUM_THREADS", "OPENBLAS_NUM_THREADS",
-                        "NUMEXPR_NUM_THREADS"):
-                env[key] = str(args.cpu_threads)
-            with update_lock:
-                print(f"[GPU {slot}] START {exp.name}", flush=True)
-            try:
-                with filename.open("w", encoding="utf-8") as log:
-                    completed = subprocess.run(cmd, env=env, stdout=log,
-                                               stderr=subprocess.STDOUT, check=False)
-                record = read_record(root, exp.name)
-                if record is None:
-                    # Includes unexpected termination, e.g. a killed worker.
-                    record = dict(experiment=exp.name, status="error", r2=None,
-                                  gpu_slot=slot, cuda_visible_devices=cuda_token,
-                                  started_utc="", finished_utc=now_utc(),
-                                  elapsed_seconds=None, epsilon_summary="",
-                                  error=f"Worker exited with code {completed.returncode}; see {filename}")
-                    atomic_write_json(record_path(root, exp.name), record)
-                if completed.returncode != 0 and record["status"] == "success":
-                    record["status"] = "error"
-                    record["error"] = f"Worker returned nonzero {completed.returncode}"
-                    atomic_write_json(record_path(root, exp.name), record)
-            except Exception as exc:
-                record = dict(experiment=exp.name, status="error", r2=None,
-                              gpu_slot=slot, cuda_visible_devices=cuda_token,
-                              started_utc="", finished_utc=now_utc(),
-                              elapsed_seconds=None, epsilon_summary="",
-                              error=f"Coordinator exception: {type(exc).__name__}: {exc}")
-                atomic_write_json(record_path(root, exp.name), record)
-            with update_lock:
-                write_snapshots(root, selected)
-                if record["status"] == "success":
-                    print(f"[GPU {slot}] DONE {exp.name}: R2 = {record['r2']:.6f} "
-                          f"({record.get('elapsed_seconds')}s)", flush=True)
-                else:
-                    failures.append(exp.name)
-                    print(f"[GPU {slot}] FAILED {exp.name}: {record.get('error')} "
-                          f"[log={filename}]", flush=True)
-            todo.task_done()
-
-    threads = [threading.Thread(target=gpu_loop, args=(i, tokens[i]), daemon=False)
-               for i in range(args.gpu_workers)]
-    for thread in threads:
-        thread.start()
-    for thread in threads:
-        thread.join()
-    write_snapshots(root, selected)
-    print(f"Finished: {len(selected) - len(failures)} successful/previously completed "
-          f"out of {len(selected)}; {len(failures)} failed. "
-          f"Results: {root / 'results.csv'}", flush=True)
-    return 1 if failures else 0
-
-
-def main():
-    args = build_parser().parse_args()
-    selected = selected_experiments(args)
-    if args.list:
-        for e in experiments():
-            print(f"{e.name} [{'core' if e.core else 'all'}]")
-        return 0
-    if args.dry_run:
-        for e in selected:
-            print(e.name)
-        return 0
-    if args.max_iterations < 1 or args.mlp_epochs < 1 or args.batch_size < 1:
-        raise ValueError("Iterations, MLP epochs and batch size must be >= 1")
-    if not np.isfinite(args.epsilon) or args.epsilon < 0:
-        raise ValueError("PGD epsilon must be finite and nonnegative")
-    if args.cpu_threads < 1:
-        raise ValueError("--cpu-threads must be at least 1")
-    if args.device not in ("cuda_if_available", "cuda", "cuda:0"):
-        raise ValueError("With isolated one-GPU workers, --device must be cuda_if_available, cuda, or cuda:0")
-    if args._worker:
-        candidates = [exp for exp in experiments() if exp.name == args._experiment]
-        if len(candidates) != 1:
-            raise ValueError(f"Unknown internal worker name {args._experiment!r}")
-        return worker_run(args, candidates[0])
-    return orchestrate(args, selected)
-
-
-if __name__ == "__main__":
-    raise SystemExit(main())
-
-
-result:
-
-mirzaei@haas034:~$ runai logs mm8-dprime -p upmwmathis-mirzaei -f
-Starting 24 experiments on 2 GPUs. Durable output: /home/mirzaei/sam/result/Aggregate/DPRIME_CCO12_4GPU_RESULTS
-[GPU 0] START PGD_L2_EPS3
-[GPU 1] START PGD_LINF_EPS3
-[GPU 1] DONE PGD_LINF_EPS3: R2 = 0.479345 (543.184s)
-[GPU 1] START DPRIME_STATIONARY_PGD_FIXED3
-[GPU 0] DONE PGD_L2_EPS3: R2 = 0.563620 (543.827s)
-[GPU 0] START DPRIME_STATIONARY_APGD_FIXED3
-[GPU 1] DONE DPRIME_STATIONARY_PGD_FIXED3: R2 = 0.568449 (598.589s)
-[GPU 1] START DPRIME_APGD_RESTARTS3_FIXED3
-[GPU 0] DONE DPRIME_STATIONARY_APGD_FIXED3: R2 = 0.574148 (625.949s)
-[GPU 0] START DPRIME_AUTO_GLOBAL
-[GPU 0] DONE DPRIME_AUTO_GLOBAL: R2 = 0.532016 (583.12s)
-[GPU 0] START DPRIME_AUTO_INSTANCE
-[GPU 0] DONE DPRIME_AUTO_INSTANCE: R2 = 0.541490 (590.211s)
-[GPU 0] START DPRIME_AUTO_INSTANCE_NO_CURRICULUM
-[GPU 1] DONE DPRIME_APGD_RESTARTS3_FIXED3: R2 = 0.570517 (1321.732s)
-[GPU 1] START DPRIME_TRADES_AUTO_INSTANCE
-[GPU 0] DONE DPRIME_AUTO_INSTANCE_NO_CURRICULUM: R2 = 0.549536 (584.687s)
-[GPU 0] START DPRIME_SPATIAL_OAS
-[GPU 1] DONE DPRIME_TRADES_AUTO_INSTANCE: R2 = 0.581986 (596.717s)
-[GPU 1] START DPRIME_SPATIAL_TYLER
-[GPU 0] DONE DPRIME_SPATIAL_OAS: R2 = 0.541265 (582.48s)
-[GPU 0] START DPRIME_SPATIAL_EMPIRICAL
-[GPU 1] DONE DPRIME_SPATIAL_TYLER: R2 = 0.514202 (580.789s)
-[GPU 1] START DPRIME_TEMPORAL_AR4
-[GPU 0] DONE DPRIME_SPATIAL_EMPIRICAL: R2 = 0.542682 (572.645s)
-[GPU 0] START DPRIME_TEMPORAL_WHITE
-[GPU 1] DONE DPRIME_TEMPORAL_AR4: R2 = 0.528971 (583.145s)
-[GPU 1] START DPRIME_TEMPORAL_VANROSSUM
-[GPU 0] DONE DPRIME_TEMPORAL_WHITE: R2 = 0.522753 (584.262s)
-[GPU 0] START DPRIME_TRIAL_MASK
-[GPU 1] DONE DPRIME_TEMPORAL_VANROSSUM: R2 = 0.519936 (580.524s)
-[GPU 1] START DPRIME_TRIAL_MASK_PGD
-[GPU 0] DONE DPRIME_TRIAL_MASK: R2 = 0.519225 (669.37s)
-[GPU 0] START DPRIME_GUARD_RIEMANN
-[GPU 1] DONE DPRIME_TRIAL_MASK_PGD: R2 = 0.517649 (636.205s)
-[GPU 1] START DPRIME_GUARD_ARTIFACT
-[GPU 0] DONE DPRIME_GUARD_RIEMANN: R2 = 0.522705 (642.073s)
-[GPU 0] START DPRIME_GUARD_BAND_POWER
-[GPU 1] DONE DPRIME_GUARD_ARTIFACT: R2 = 0.528019 (590.221s)
-[GPU 1] START DPRIME_GUARD_APERIODIC
-[GPU 0] DONE DPRIME_GUARD_BAND_POWER: R2 = 0.513530 (814.228s)
-[GPU 0] START DPRIME_GUARDS_ALL
-[GPU 1] DONE DPRIME_GUARD_APERIODIC: R2 = 0.517486 (776.323s)
-[GPU 1] START DPRIME_GUARDS_FINAL_ONLY
-[GPU 1] DONE DPRIME_GUARDS_FINAL_ONLY: R2 = 0.533364 (576.92s)
-[GPU 1] START DPRIME_GUARD_SOFT_RIEMANN
-[GPU 0] DONE DPRIME_GUARDS_ALL: R2 = 0.491762 (1094.326s)
-[GPU 1] DONE DPRIME_GUARD_SOFT_RIEMANN: R2 = 0.533763 (711.39s)
-Finished: 24 successful/previously completed out of 24; 0 failed. Results: /home/mirzaei/sam/result/Aggregate/DPRIME_CCO12_4GPU_RESULTS/results.csv
-mirzaei@haas034:~$ cat sam/result/Aggregate/DPRIME_CCO12_4GPU_RESULTS/results.csv 
-experiment,status,r2,gpu_slot,cuda_visible_devices,elapsed_seconds,finished_utc,epsilon_summary,error
-PGD_L2_EPS3,success,0.5636202692985535,0,0,543.827,2026-10-14T11:24:11+00:00,,
-PGD_LINF_EPS3,success,0.47934457659721375,1,1,543.184,2026-10-14T11:24:11+00:00,,
-DPRIME_STATIONARY_PGD_FIXED3,success,0.5684488415718079,1,1,598.589,2026-10-14T11:34:18+00:00,eps_star=3.0 eps_NN=71.36891098022461 mean_dprime=2.244477591022849 NN_binding=0.0 guard_accept=1.0,
-DPRIME_STATIONARY_APGD_FIXED3,success,0.5741478204727173,0,0,625.949,2026-10-14T11:34:45+00:00,eps_star=3.0 eps_NN=71.36891098022461 mean_dprime=2.2606480578829844 NN_binding=0.0 guard_accept=1.0,
-DPRIME_APGD_RESTARTS3_FIXED3,success,0.5705170035362244,1,1,1321.732,2026-10-14T11:56:24+00:00,eps_star=3.0 eps_NN=71.36891098022461 mean_dprime=2.3030331172843774 NN_binding=0.0 guard_accept=1.0,
-DPRIME_AUTO_GLOBAL,success,0.5320159792900085,0,0,583.12,2026-10-14T11:44:31+00:00,eps_star=1.0 eps_NN=71.36891098022461 mean_dprime=0.7707280606252176 NN_binding=0.0 guard_accept=1.0,
-DPRIME_AUTO_INSTANCE,success,0.5414896607398987,0,0,590.211,2026-10-14T11:54:25+00:00,eps_star=1.0 eps_NN=71.34158630371094 mean_dprime=0.7701086182947512 NN_binding=0.0 guard_accept=1.0,
-DPRIME_AUTO_INSTANCE_NO_CURRICULUM,success,0.5495356917381287,0,0,584.687,2026-10-14T12:04:14+00:00,eps_star=1.0 eps_NN=71.34158630371094 mean_dprime=0.9473595751877184 NN_binding=0.0 guard_accept=1.0,
-DPRIME_TRADES_AUTO_INSTANCE,success,0.5819855332374573,1,1,596.717,2026-10-14T12:06:25+00:00,eps_star=1.0 eps_NN=71.34158630371094 mean_dprime=0.8045436924806347 NN_binding=0.0 guard_accept=1.0,
-DPRIME_SPATIAL_OAS,success,0.5412650108337402,0,0,582.48,2026-10-14T12:14:01+00:00,eps_star=1.0 eps_NN=71.35658416748046 mean_dprime=0.7711886865231726 NN_binding=0.0 guard_accept=1.0,
-DPRIME_SPATIAL_TYLER,success,0.514201819896698,1,1,580.789,2026-10-14T12:16:10+00:00,eps_star=1.0 eps_NN=69.1230239868164 mean_dprime=0.7690981262149634 NN_binding=0.0 guard_accept=1.0,
-DPRIME_SPATIAL_EMPIRICAL,success,0.5426815748214722,0,0,572.645,2026-10-14T12:23:38+00:00,eps_star=1.0 eps_NN=71.49990692138672 mean_dprime=0.7706147722403208 NN_binding=0.0 guard_accept=1.0,
-DPRIME_TEMPORAL_AR4,success,0.5289708971977234,1,1,583.145,2026-10-14T12:25:57+00:00,eps_star=1.0 eps_NN=71.40305633544922 mean_dprime=0.770613448244554 NN_binding=0.0 guard_accept=1.0,
-DPRIME_TEMPORAL_WHITE,success,0.5227526426315308,0,0,584.262,2026-10-14T12:33:27+00:00,eps_star=1.0 eps_NN=69.75867462158203 mean_dprime=0.7645258131788837 NN_binding=0.0 guard_accept=1.0,
-DPRIME_TEMPORAL_VANROSSUM,success,0.5199360251426697,1,1,580.524,2026-10-14T12:35:42+00:00,eps_star=1.0 eps_NN=75.34001159667969 mean_dprime=0.7512873234461855 NN_binding=0.0 guard_accept=1.0,
-DPRIME_TRIAL_MASK,success,0.5192252993583679,0,0,669.37,2026-10-14T12:44:40+00:00,eps_star=1.0 eps_NN=71.34158630371094 mean_dprime=0.7740229212796247 NN_binding=0.0 guard_accept=1.0,
-DPRIME_TRIAL_MASK_PGD,success,0.5176487565040588,1,1,636.205,2026-10-14T12:46:22+00:00,eps_star=1.0 eps_NN=71.34158630371094 mean_dprime=0.7573658917623538 NN_binding=0.0 guard_accept=1.0,
-DPRIME_GUARD_RIEMANN,success,0.5227053761482239,0,0,642.073,2026-10-14T12:55:26+00:00,eps_star=1.0 eps_NN=71.34158630371094 mean_dprime=0.7702852288771559 NN_binding=0.0 guard_accept=1.0,
-DPRIME_GUARD_ARTIFACT,success,0.528018593788147,1,1,590.221,2026-10-14T12:56:16+00:00,eps_star=1.0 eps_NN=71.34158630371094 mean_dprime=0.770272423017908 NN_binding=0.0 guard_accept=1.0,
-DPRIME_GUARD_BAND_POWER,success,0.5135300159454346,0,0,814.228,2026-10-14T13:09:04+00:00,eps_star=1.0 eps_NN=71.34158630371094 mean_dprime=0.2945300585114294 NN_binding=0.0 guard_accept=1.0,
-DPRIME_GUARD_APERIODIC,success,0.5174860954284668,1,1,776.323,2026-10-14T13:09:16+00:00,eps_star=1.0 eps_NN=71.34158630371094 mean_dprime=0.2936612179544237 NN_binding=0.0 guard_accept=1.0,
-DPRIME_GUARDS_ALL,success,0.4917624294757843,0,0,1094.326,2026-10-14T13:27:23+00:00,eps_star=1.0 eps_NN=71.34158630371094 mean_dprime=0.29351553052111906 NN_binding=0.0 guard_accept=1.0,
-DPRIME_GUARDS_FINAL_ONLY,success,0.533364474773407,1,1,576.92,2026-10-14T13:18:56+00:00,eps_star=1.0 eps_NN=71.34158630371094 mean_dprime=0.7702268300840148 NN_binding=0.0 guard_accept=1.0,
-DPRIME_GUARD_SOFT_RIEMANN,success,0.5337626338005066,1,1,711.39,2026-10-14T13:30:53+00:00,eps_star=1.0 eps_NN=71.34158630371094 mean_dprime=0.7707089066395053 NN_binding=0.0 guard_accept=1.0,
-mirzaei@haas034:~$ 
+These results also identify a clear opportunity to improve the adaptive-epsilon component while preserving the main noise-aware geometry of the proposed attack.
