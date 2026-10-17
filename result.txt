@@ -1,498 +1,916 @@
-I wanted to provide a comprehensive update on the d′-PGD experiments following our previous discussion and the modifications to the Acorn-dprime fork.
-
-After the fork revision, I completed two experimental batches:
-
-1. **Exp3:** 12 configurations × 3 seeds = 36 training runs.
-2. **Matched Madry isotropic controls:** 2 configurations × 3 seeds = 6 additional runs.
-
-All **42 post-revision runs completed successfully** using four H200 GPUs, with results and diagnostics saved independently for each seed.
-
-The experiments were designed to address a specific question: can we improve the existing PGD-based CEBRA training approach by introducing a more principled, noise-informed perturbation geometry, even when epsilon remains a fixed hyperparameter?
-
-A second objective—automatic epsilon selection—remains relevant, but was not directly tested in these final 42 runs.
-
-Below are the complete results and my interpretation.
-
----
-
-## 1. Experimental motivation and fork revision
-
-Our earlier experiments suggested that some d′-based configurations improved downstream decoder R², but interpretation was complicated by the automatic epsilon calibration and potential differences in stochastic sampling.
-
-In the previous four-model diagnostic ablation (seed 42), we obtained:
-
-| Configuration | Validation R² |
-|---|---:|
-| MADRY, fixed ε=1 | 0.536874 |
-| MADRY, automatic instance ε | 0.543218 |
-| TRADES, fixed ε=1 | 0.600654 |
-| TRADES, automatic instance ε | 0.585947 |
-
-Although these results were promising for TRADES, the automatically calibrated epsilon remained at approximately 1 and the instance-specific nearest-neighbor constraint was never activated.
-
-Thus, these experiments did not establish that the automatic procedure was selecting meaningfully different perturbation budgets.
-
-Following these observations, the fork was revised to address deterministic sampling, isolate calibration randomness, correct the zero-curriculum epsilon behavior, improve epsilon-distribution logging, provide additional covariance-approximation diagnostics, and support isotropic control experiments.
-
-The subsequent 42 runs used the revised fork.
-
-## 2. Experimental setup
-
-**Neural data**
-
-- Perich session: C-CO12
-- Number of neurons: 86
-- Input window: 36 time bins
-- Three independent training seeds: 42, 43, 44
-
-**CEBRA encoder**
-
-- Architecture: `offset36-model-more-dropout`
-- Time-only contrastive training
-- Latent dimension: 64
-- Hidden dimension: 64
-- Temperature: 0.4
-- Batch size: 2,048
-- Training iterations: 3,000
-
-**Downstream evaluation**
-
-- Two-layer MLP decoder
-- Hidden dimension: 64
-- Decoder dropout: 0.4
-- Training epochs: 2,500
-- Primary metric: clean validation decoder R²
-
-CEBRA was trained on neural activity without behavioral supervision. Behavioral labels were introduced only when training and evaluating the downstream decoder.
-
-Importantly, the same dropout-containing CEBRA architecture was used for every experimental condition. No configuration was given a different encoder architecture or additional dropout.
-
-**Adversarial training**
-
-The conventional reference used raw-input L2-PGD with ε=3.
-
-The proposed d′ configurations used:
-
-- Stationary noise modeling
-- Whole-recording residuals
-- APGD optimization
-- 10 attack steps
-- One restart
-- Zero warmup and zero curriculum
-- No physiological guards
-- Fixed epsilon values
-- No instance-adaptive epsilon selection
-
-The noise-aware perturbation model used Ledoit–Wolf spatial covariance and Welch temporal spectral modeling.
-
-The isotropic controls used isotropic spatial covariance and white temporal structure.
-
-For TRADES, the coefficient was β=6. The Madry configurations did not use the TRADES KL-consistency objective.
-
-All reported R² values are measured on clean validation inputs.
-
-## 3. Exp3: complete results from 36 runs
-
-| Configuration | Seed 42 | Seed 43 | Seed 44 | Mean R² | SD |
-|---|---:|---:|---:|---:|---:|
-| CLEAN | 0.467604 | 0.462921 | 0.466485 | 0.465670 | 0.002445 |
-| Original PGD L2 | 0.575662 | 0.575416 | 0.587100 | 0.579393 | 0.006676 |
-| MADRY D0 | 0.440805 | 0.413768 | 0.438794 | 0.431122 | 0.015063 |
-| MADRY D1 | 0.540458 | 0.542134 | 0.533626 | 0.538739 | 0.004507 |
-| MADRY D3 | 0.594527 | 0.601306 | 0.611175 | 0.602336 | 0.008372 |
-| MADRY D8 | 0.602337 | 0.621144 | 0.628972 | 0.617484 | 0.013689 |
-| TRADES D0 | 0.517450 | 0.456794 | 0.476868 | 0.483704 | 0.030900 |
-| TRADES D1 | 0.590143 | 0.591219 | 0.580051 | 0.587138 | 0.006161 |
-| TRADES D3 | 0.580306 | 0.585437 | 0.609206 | 0.591650 | 0.015419 |
-| TRADES D8 | 0.528968 | 0.544257 | 0.444293 | 0.505839 | 0.053846 |
-| TRADES ISO D1 | 0.558838 | 0.560664 | 0.570633 | 0.563378 | 0.006349 |
-| TRADES ISO D3 | 0.620564 | 0.600356 | 0.615366 | 0.612095 | 0.010493 |
-
-D0 corresponds to ε=1e-6 rather than exactly zero.
-
-The strongest noise-aware Madry configuration was MADRY D8, with a mean R² of 0.617484.
-
-Compared with the original PGD baseline (0.579393), it improved mean R² by +0.038092.
-
-The paired differences were:
-
-- Seed 42: +0.026675
-- Seed 43: +0.045728
-- Seed 44: +0.041872
-
-This improvement occurred in all three seeds.
-
-### 3.1. Epsilon dependence
-
-For Madry, performance increased monotonically across the tested budgets:
-
-| Epsilon | Mean R² |
-|---|---:|
-| Approximately 0 | 0.431122 |
-| 1 | 0.538739 |
-| 3 | 0.602336 |
-| 8 | 0.617484 |
-
-TRADES exhibited a different pattern:
-
-| Epsilon | Mean R² |
-|---|---:|
-| Approximately 0 | 0.483704 |
-| 1 | 0.587138 |
-| 3 | 0.591650 |
-| 8 | 0.505839 |
-
-The high-budget TRADES model was particularly unstable, with seed 44 achieving only 0.444293.
-
-This indicates that perturbation strength interacts strongly with the adversarial training objective.
-
-### 3.2. Dropout-consistency hypothesis
-
-Since the encoder contains dropout and TRADES uses a KL consistency term, we included near-zero epsilon controls to assess whether the gains could be explained primarily by stochastic consistency regularization.
-
-However, TRADES D1 consistently outperformed TRADES D0:
-
-| Seed | TRADES D0 | TRADES D1 | Difference |
-|---|---:|---:|---:|
-| 42 | 0.517450 | 0.590143 | +0.072692 |
-| 43 | 0.456794 | 0.591219 | +0.134425 |
-| 44 | 0.476868 | 0.580051 | +0.103182 |
-
-The average improvement was +0.103433 R².
-
-Furthermore, the best noise-aware Madry configurations achieved substantial improvements without the TRADES KL objective.
-
-Therefore, the data do not support explaining all gains solely as a by-product of TRADES-induced dropout consistency.
-
-However, an explicit dropout-free architectural ablation has not been performed, so the independent contribution of ordinary encoder dropout remains unresolved.
-
-### 3.3. Initial geometry comparison within TRADES
-
-Exp3 included isotropic controls at ε=1 and ε=3.
-
-At ε=1:
-
-- Noise-aware TRADES: 0.587138
-- Isotropic TRADES: 0.563378
-- Difference: +0.023760 in favor of noise-aware geometry.
-
-At ε=3:
-
-- Noise-aware TRADES: 0.591650
-- Isotropic TRADES: 0.612095
-- Difference: −0.020446 for noise-aware geometry.
-
-Both directions were consistent across all three seeds.
-
-This motivated a more direct geometry comparison under the Madry objective, which had produced our strongest noise-aware result.
-
-## 4. Exp3 perturbation and robustness diagnostics
-
-The reported epsilon distributions were constant at the requested fixed budgets, with 192,000 epsilon observations per d′ training run.
-
-For all fixed-epsilon configurations:
-
-- The minimum, q10, median, q90, and maximum epsilon were equal to the requested epsilon.
-- The nearest-neighbor epsilon binding rate was zero.
-- No curriculum or warmup was applied.
-- The reported attack acceptance rate was 1.0.
-
-The realized d′ magnitudes were generally close to their requested budgets.
-
-For example:
-
-- MADRY D1: mean realized d′ approximately 0.94–0.95.
-- MADRY D3: approximately 2.95.
-- MADRY D8: approximately 7.95.
-- TRADES D1: approximately 0.99.
-- TRADES D3: approximately 3.00.
-- TRADES D8: approximately 7.86–7.95.
-
-### 4.1. Robustness margins
-
-The training reports included minimum-norm robustness-margin diagnostics for 512 sampled windows under the `chance` decision criterion.
-
-The following are median margins in their respective d′ metrics.
-
-| Configuration | Seed 42 | Seed 43 | Seed 44 |
-|---|---:|---:|---:|
-| MADRY D0 | N/A | N/A | N/A |
-| MADRY D1 | 5.279594 | 5.641436 | 5.168441 |
-| MADRY D3 | 6.901615 | 6.962342 | 6.971068 |
-| MADRY D8 | 10.057606 | 10.158815 | 10.235392 |
-| TRADES D0 | N/A | N/A | N/A |
-| TRADES D1 | 4.879394 | 5.091395 | 4.984321 |
-| TRADES D3 | 7.792140 | 7.792140 | 7.831248 |
-| TRADES D8 | 9.260591 | 9.295634 | 2.602805 |
-| TRADES ISO D1 | 8.817687 | 9.281776 | 9.281777 |
-| TRADES ISO D3 | 10.626794 | 10.964321 | 10.964320 |
-
-For the near-zero-epsilon controls, the margin calculation did not find a boundary crossing within its search range, so the corresponding margins were unavailable.
-
-A particularly interesting observation is TRADES D8 on seed 44. Its median robustness margin dropped to 2.602805, coinciding with a substantial decline in decoder R².
-
-These measurements are internal model diagnostics, not a complete assessment of held-out adversarial robustness.
-
-Moreover, margins computed using different covariance geometries should not be directly compared as if they were expressed in the same physical units.
-
-### 4.2. Covariance-model diagnostics
-
-The noise-model reports included the following measurements:
-
-| Diagnostic | Noise-aware | Isotropic |
-|---|---:|---:|
-| Spatial estimator | Ledoit–Wolf | Isotropic |
-| Temporal method | Welch | White |
-| Spatial condition number | 54.6304 | 1.0000 |
-| Mean noise standard deviation | 0.6583 | 0.6933 |
-| Lag-1 temporal correlation | 0.1519 | 0 |
-| Kronecker model relative error | 0.7515 | 0.9170 |
-| Kronecker excess relative error | 0.7290 | 0.8986 |
-| Sampling-floor relative error | 0.1826 | 0.1826 |
-
-The Kronecker diagnostic used eight channels and 2,039 windows.
-
-The covariance-aware model provided a better approximation of the measured covariance structure than the isotropic control under this diagnostic.
-
-However, better covariance modeling did not imply uniformly better decoder performance.
-
-## 5. Final experiment: matched Madry isotropic controls
-
-To more directly isolate perturbation geometry, I performed a second experimental batch using exactly the Madry objective rather than comparing Madry against isotropic TRADES.
-
-The additional configurations were:
-
-- MADRY_ISO_D3
-- MADRY_ISO_D8
-
-All other intended training settings were kept consistent with the corresponding noise-aware Madry configurations, including APGD, 10 attack steps, one restart, zero curriculum, no guards, the same CEBRA architecture, and the same three seeds.
-
-Only the spatial and temporal noise-model settings were changed together:
-
-- Noise-aware: Ledoit–Wolf + Welch.
-- Isotropic: Isotropic + White.
-
-All six new runs completed successfully.
-
-## 6. Final matched-objective results
-
-| Model | Seed 42 | Seed 43 | Seed 44 | Mean R² | SD |
-|---|---:|---:|---:|---:|---:|
-| Original L2-PGD | 0.575662 | 0.575416 | 0.587100 | 0.579393 | 0.006676 |
-| Noise-aware MADRY D3 | 0.594527 | 0.601306 | 0.611175 | 0.602336 | 0.008372 |
-| Isotropic MADRY D3 | 0.574080 | 0.574209 | 0.550685 | 0.566325 | 0.013545 |
-| Noise-aware MADRY D8 | 0.602337 | 0.621144 | 0.628972 | 0.617484 | 0.013689 |
-| **Isotropic MADRY D8** | **0.633331** | **0.618862** | **0.632517** | **0.628236** | **0.008129** |
-
-### 6.1. Geometry comparison at ε=3
-
-| Seed | Noise-aware − Isotropic |
-|---|---:|
-| 42 | +0.020447 |
-| 43 | +0.027098 |
-| 44 | +0.060490 |
-| **Mean** | **+0.036012** |
-
-At ε=3, noise-aware Madry clearly outperformed the isotropic control in all three seeds.
-
-Interestingly, noise-aware Madry D3 also exceeded the conventional PGD baseline in every seed, whereas isotropic Madry D3 did not.
-
-This is the strongest result supporting an advantage from the structured noise geometry at this numerical perturbation budget.
-
-### 6.2. Geometry comparison at ε=8
-
-| Seed | Noise-aware − Isotropic |
-|---|---:|
-| 42 | −0.030993 |
-| 43 | +0.002283 |
-| 44 | −0.003545 |
-| **Mean** | **−0.010752** |
-
-At ε=8, isotropic Madry achieved a higher average R², although the difference was small in two of the three seeds and seed 43 slightly favored noise-aware Madry.
-
-The highest-performing configuration across the combined study was therefore:
-
-**MADRY_ISO_D8: mean R² = 0.628236 ± 0.008129 SD**
-
-Relative to the original L2-PGD baseline, this is an absolute improvement of **+0.048844 R²**.
-
-The paired improvements over original PGD were:
-
-- Seed 42: +0.057669
-- Seed 43: +0.043446
-- Seed 44: +0.045417
-
-All three differences were positive.
-
-This establishes a reproducible improvement in clean decoding performance for the tested configuration on C-CO12, but does not establish that covariance awareness is the cause of the improvement.
-
-## 7. Complete diagnostics from the six final isotropic runs
-
-The full JSON reports from these six runs are now available, including epsilon distributions, nearest-neighbor statistics, covariance diagnostics, realized attack magnitudes, and robustness margins.
-
-### 7.1. Epsilon and realized attack magnitude
-
-| Model | Seed | Fixed ε | Mean realized d′ | NN ε, q10 |
-|---|---:|---:|---:|---:|
-| MADRY ISO D3 | 42 | 3 | 2.906969 | 65.722626 |
-| MADRY ISO D3 | 43 | 3 | 2.904859 | 65.754280 |
-| MADRY ISO D3 | 44 | 3 | 2.902795 | 65.659286 |
-| MADRY ISO D8 | 42 | 8 | 7.931443 | 65.722626 |
-| MADRY ISO D8 | 43 | 8 | 7.931976 | 65.754280 |
-| MADRY ISO D8 | 44 | 8 | 7.926432 | 65.659286 |
-
-For all six runs:
-
-- Epsilon source: user-specified fixed value.
-- Epsilon quantiles: constant at 3 or 8.
-- Number of recorded epsilon observations: 192,000.
-- Nearest-neighbor binding rate: 0.
-- Training steps: 3,000.
-- Warmup steps: 0.
-- Curriculum steps: 0.
-- Attack acceptance rate: 1.0.
-- Number of backtracks: 0.
-
-Thus, the attacks operated close to their configured d′ budgets.
-
-### 7.2. Complete robustness-margin summaries
-
-The following table contains the robustness-margin quantiles for the six final models. The margins are measured in the respective isotropic d′ metric.
-
-| Model | Seed | q10 | q25 | Median | q75 | q90 |
-|---|---:|---:|---:|---:|---:|---:|
-| ISO D3 | 42 | 8.571500 | 9.662974 | 10.855083 | 11.997725 | 13.194426 |
-| ISO D3 | 43 | 8.819426 | 9.889114 | 11.200117 | 12.309549 | 13.799073 |
-| ISO D3 | 44 | 8.655587 | 9.723420 | 10.814412 | 11.945291 | 13.257331 |
-| ISO D8 | 42 | 12.255712 | 13.327468 | 14.620158 | 15.918232 | 16.939833 |
-| ISO D8 | 43 | 12.396347 | 13.427926 | 14.730358 | 15.878440 | 16.882338 |
-| ISO D8 | 44 | 12.534956 | 13.716396 | 14.620157 | 15.799143 | 16.962828 |
-
-Each estimate used 512 sampled windows, the `chance` decision criterion, and 100 configured margin-search steps.
-
-Additional diagnostic ratios were:
-
-| Model | Seed 42 | Seed 43 | Seed 44 |
-|---|---:|---:|---:|
-| ISO D3: median margin / ε | 3.618361 | 3.733372 | 3.604804 |
-| ISO D8: median margin / ε | 1.827520 | 1.841295 | 1.827520 |
-
-For every one of the six runs:
-
-- `frac_already_adversarial = 0`
-- `frac_never_broken = 0`
-
-Therefore, the reported margin medians and quantiles are finite for the entire set of sampled windows.
-
-The mean median margin across seeds was:
-
-- MADRY ISO D3: **10.956537**
-- MADRY ISO D8: **14.656891**
-
-For reference, the corresponding median margins for noise-aware Madry were:
-
-- MADRY D3: 6.901615, 6.962342, 6.971068.
-- MADRY D8: 10.057606, 10.158815, 10.235392.
-
-The isotropic margins are numerically larger, but this should **not** be interpreted as proof of superior robustness. The noise-aware and isotropic margins are computed under different distance metrics, and a numerical comparison between them is not physically normalized.
-
-### 7.3. Detailed isotropic noise-model diagnostics
-
-The isotropic reports consistently showed:
-
-| Parameter | Value |
-|---|---:|
-| Neurons | 86 |
-| Temporal window | 36 |
-| Recording length | 18,384 time points |
-| Spatial estimator | Isotropic |
-| Temporal method | White |
-| Spatial condition number | 1.000000 |
-| Mean noise SD | 0.693264 |
-| Median noise SD | 0.693264 |
-| Temporal lag-1 correlation | 0 |
-| Covariance pool size | 1 |
-| Kronecker relative error | 0.917002 |
-| Kronecker excess relative error | 0.898631 |
-| Nearest-Kronecker relative error | 0.556913 |
-| Sampling-floor relative error | 0.182635 |
-
-The covariance diagnostic used eight selected channels and 2,039 windows.
-
-The estimated nearest-neighbor epsilon q10 values were approximately 65.66–65.75, considerably above the fixed perturbation budgets used in these experiments.
-
-Consequently, nearest-neighbor clipping would not have constrained these particular budgets.
-
-An important point is that the zero binding rate observed here is expected: automatic instance adaptation was disabled. These experiments were intentionally designed to isolate the fixed-budget geometry comparison.
-
-## 8. Interpretation
-
-I think the combined results support four findings.
-
-**1. The modified PGD-based training configurations can improve downstream decoding substantially.**
-
-Across the three seeds on C-CO12, several configurations exceeded the conventional L2-PGD baseline.
-
-The strongest overall improvement was achieved by isotropic Madry d′-APGD at ε=8.
-
-**2. The choice of perturbation budget matters considerably.**
-
-Madry improved across the tested fixed budgets, while TRADES degraded at the highest budget and showed greater seed variability.
-
-This suggests that the training objective and perturbation magnitude should be considered jointly.
-
-**3. Covariance-aware geometry has a regime-dependent benefit rather than a universal advantage.**
-
-The matched-objective experiments provide the clearest evidence:
-
-- At ε=3, the noise-aware geometry outperformed isotropic geometry in all three seeds, with a mean advantage of +0.036012 R².
-- At ε=8, isotropic geometry achieved the higher mean R² by +0.010752.
-
-The TRADES comparisons showed a similar qualitative interaction, with noise-aware geometry performing better at ε=1 and isotropic geometry performing better at ε=3.
-
-However, because we change both spatial and temporal covariance modeling and do not yet match raw-input perturbation magnitudes, the exact source of these effects remains uncertain.
-
-**4. The automatic epsilon objective remains unresolved.**
-
-The final 42 runs investigated fixed perturbation budgets.
-
-Earlier experiments did not demonstrate meaningful instance-dependent epsilon selection, and the automatic calibration chose approximately ε=1 despite better fixed-budget performance at larger values in subsequent experiments.
-
-Therefore, the current evidence supports further work on intelligent perturbation geometry more strongly than it supports a claim of successful automatic epsilon selection.
-
-## 9. Limitations and implications for a potential methodological contribution
-
-I think we should distinguish the experimentally supported result from the stronger methodological claim we would eventually like to make.
-
-We have evidence that changing the PGD-based adversarial training configuration improves clean validation R².
-
-We do not yet have sufficient evidence that the improvement is specifically caused by neural noise covariance, because:
-
-1. Equal numerical d′ budgets do not guarantee equal raw-input L2 perturbation magnitudes.
-2. The geometry control changes both spatial covariance and temporal whitening together.
-3. The original PGD baseline also differs in attack optimization and budget geometry.
-4. We have not performed independent held-out adversarial robustness evaluations.
-5. The multi-seed comparisons are currently limited to one recording session.
-6. The best configuration was identified from a set of tested alternatives, so its apparent advantage should be confirmed independently.
-
-Additionally, ε values of 3 and 8 exceed the nominal d′=1 reference used in the original ideal-observer calibration framework. Better decoder performance at these budgets does not establish that the corresponding perturbations remain physiologically subtle.
-
-The high numerical robustness margins of the isotropic models also require caution: margins expressed in different covariance metrics cannot be interpreted as directly comparable physical perturbation strengths.
-
-## 10. Proposed next step
-
-My preferred next experiment would be a matched-effective-budget comparison.
-
-Specifically, we could measure the raw-input L2 magnitude of the actual perturbations generated by noise-aware and isotropic APGD, then adjust the budgets so the methods produce comparable perturbation magnitudes while keeping the Madry objective and all other training settings fixed.
-
-This would help distinguish a genuine benefit of covariance-informed attack geometry from an effect caused primarily by perturbation scale.
-
-A subsequent factorized comparison of spatial covariance and temporal spectral modeling would also clarify which component contributes most.
-
-If the noise-aware advantage persists under these controls, we would have stronger evidence for a neural-data-specific Smart PGD contribution.
-
-If it does not, the results would still reveal useful improvements from the optimization and budget choices, but the central methodological claim would need to be adjusted.
-
-I would be very interested in your thoughts on the reversal between noise-aware and isotropic geometry as epsilon increases, and whether you think the best next direction is to isolate the covariance contribution further or revisit the automatic epsilon-selection mechanism.
-
-Best regards
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""Behavior-supervised Perich CEBRA comparison with Exp6b attack arms.
+
+This is a separate and explicitly SUPERVISED experiment: the CEBRA encoder is fit
+via ``encoder.fit(train_data, train_label)`` (not ``encoder.fit(train_data)``).
+The continuous-label sampler is CEBRA's ``time_delta`` conditional (hybrid=False).
+The decoder is subsequently fitted on TRAIN labels only and validated on VALID labels.
+
+A CLEAN supervised baseline, raw-L2 PGD6, ISO8, SP8, SPDIFF8 and SP8_POOL use
+identical training/evaluation settings within this experiment. Reference and
+isotropic robustness are evaluated using the identical *label-free whole*
+noise models from Exp5/6b, but the time-only contrastive margin is excluded
+because it would not test the supervised contrastive positive distribution.
+
+DO NOT write into DPRIME_EXP5/ or DPRIME_EXP6/. Default: DPRIME_SUPERVISED_PERICH.
+"""
+from __future__ import annotations
+
+import argparse
+import csv
+import json
+from datetime import datetime, timezone
+import hashlib
+import contextlib
+from dataclasses import dataclass, field
+import gc
+import inspect
+import os
+from pathlib import Path
+import random
+import queue
+import subprocess
+import tempfile
+import threading
+import time
+import traceback
+import sys
+from typing import Any, Dict, List, Optional, Tuple
+
+sys.dont_write_bytecode = True
+
+import numpy as np
+import torch
+from torch import nn
+from sklearn.metrics import r2_score
+
+ROOT = Path(__file__).resolve().parent
+DEFAULT_FORK_DIR = ROOT / "Acorn-dprime"
+DEFAULT_DATA_DIR = Path("/data/hossein/mm_project/perich_data_valid_final_raw/")
+DEFAULT_SESSION = "C-CO12"
+DEFAULT_RESULTS_DIR = ROOT / "DPRIME_SUPERVISED_PERICH" / DEFAULT_SESSION / "seed42"
+
+SEED = 42
+PGD_EPS = 3.0
+ATTACK_STEPS = 10
+PGD_ALPHA = PGD_EPS / 5.0
+
+LATENT_DIM = 64
+HIDDEN = 64
+BATCH_SIZE = 2048
+MAX_ITER = 3000
+TEMPERATURE = 0.4
+ARCH = "offset36-model-more-dropout"
+DEVICE = "cuda_if_available"
+
+MLP_EPOCHS = 2500
+MLP_HIDDEN = 64
+MLP_DROP = 0.4
+MLP_LR = 1e-3
+EVAL_BATCH_SIZE = 8192
+
+
+@dataclass(frozen=True)
+class Experiment:
+    name: str
+    overrides: Dict[str, Any] = field(default_factory=dict)
+    core: bool = False
+
+
+def experiments() -> List[Experiment]:
+    """Frozen six-arm supervised Perich comparison; exactly Exp6b's six selected arms."""
+    common = dict(
+        adv_epsilon_mode="dprime", adv_dprime_layer="stationary",
+        adv_dprime_residuals="whole", adv_dprime_spatial="ledoit_wolf",
+        adv_dprime_temporal="welch", adv_dprime_optimizer="apgd",
+        adv_dprime_restarts=1, adv_dprime_objective="madry",
+        adv_dprime_instance_adaptive=False, adv_dprime_guards=(),
+        adv_dprime_guard_mode="off", adv_dprime_warmup=0.0,
+        adv_dprime_curriculum=0.0,
+    )
+    iso = dict(adv_dprime_spatial="isotropic", adv_dprime_temporal="white")
+    spatial = dict(adv_dprime_temporal="white")
+
+    def arm(name: str, **kw) -> Experiment:
+        return Experiment(name, {**common, **kw}, True)
+
+    arms = [
+        Experiment("CLEAN", {"training_mode": "standard"}, True),
+        Experiment("PGD_L2_EPS6", {
+            "training_mode": "adversarial", "adv_epsilon_mode": "constant",
+            "attack_norm": "l2", "adv_epsilon": 6.0, "adv_alpha": 6.0 / 5.0,
+        }, True),
+        arm("MADRY_ISO_D8", adv_dprime_epsilon=8.0, **iso),
+        arm("MADRY_SP_D8", adv_dprime_epsilon=8.0, **spatial),
+        arm("MADRY_SPDIFF_D8", adv_dprime_epsilon=8.0,
+            adv_dprime_residuals="difference", **spatial),
+        arm("MADRY_SP_D8_POOL", adv_dprime_epsilon=8.0,
+            adv_dprime_cov_pool=("isotropic",), **spatial),
+    ]
+    assert len(arms) == len({e.name for e in arms}) == 6
+    return arms
+
+
+def seed_all(seed: int) -> None:
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    if torch.cuda.is_available():
+        torch.cuda.manual_seed_all(seed)
+    torch.backends.cudnn.benchmark = False
+    torch.backends.cudnn.deterministic = True
+
+
+def load_fork(fork_dir: Path):
+    package = fork_dir / "cebra" / "__init__.py"
+    if not package.is_file():
+        raise FileNotFoundError(
+            f"Expected fork at {fork_dir}. Place this runner next to Acorn-dprime "
+            "or set --fork-dir PATH."
+        )
+    for key in list(sys.modules):
+        if key == "cebra" or key.startswith("cebra."):
+            del sys.modules[key]
+    sys.path.insert(0, str(fork_dir.resolve()))
+    import cebra
+
+    actual = Path(cebra.__file__).resolve()
+    if not actual.is_relative_to(fork_dir.resolve()):
+        raise RuntimeError(f"Wrong CEBRA imported: {actual}")
+    params = inspect.signature(cebra.CEBRA.__init__).parameters
+    required = {
+        "training_mode", "adv_epsilon", "adv_alpha", "adv_steps", "attack_norm",
+        "adv_epsilon_mode", "adv_dprime_epsilon", "adv_dprime_layer",
+        "adv_dprime_optimizer", "adv_dprime_instance_adaptive", "adv_dprime_temporal",
+        "adv_dprime_spatial", "adv_dprime_guards", "adv_dprime_objective",
+        "adv_dprime_cov_pool",
+    }
+    missing = sorted(required - set(params))
+    if missing:
+        raise RuntimeError(f"This fork lacks Acorn-dprime parameters: {missing}")
+    from cebra.dprime.noise import SPATIAL_ESTIMATORS, RESIDUAL_MODES
+    from cebra.dprime.training import AUTO_MODES
+    if "auto_blind" not in AUTO_MODES or "difference" not in RESIDUAL_MODES:
+        raise RuntimeError("Wrong fork: Exp5 auto_blind or difference missing")
+    if "isotropic" not in SPATIAL_ESTIMATORS:
+        raise RuntimeError("Fork does not implement isotropic geometry")
+    from cebra.dprime import evaluation
+    if not callable(getattr(evaluation, "evaluate_decoding", None)):
+        raise RuntimeError("Fork lacks Exp5's evaluate_decoding")
+    if not callable(getattr(evaluation, "common_metrics", None)):
+        raise RuntimeError("Fork lacks Exp5's common_metrics")
+    return cebra
+
+
+def load_data(data_path: Path):
+    if not data_path.is_file():
+        raise FileNotFoundError(f"No session file at: {data_path}")
+    with np.load(data_path, allow_pickle=False) as f:
+        x_train, x_valid, y_train, y_valid = (
+            np.asarray(f[k], dtype=np.float32)
+            for k in ("train_data", "valid_data", "train_label", "valid_label")
+        )
+
+    if y_train.ndim == 1:
+        y_train = y_train[:, None]
+    if y_valid.ndim == 1:
+        y_valid = y_valid[:, None]
+    for key, arr in (("train_data", x_train), ("valid_data", x_valid),
+                     ("train_label", y_train), ("valid_label", y_valid)):
+        if arr.ndim != 2 or 0 in arr.shape or not np.isfinite(arr).all():
+            raise ValueError(f"Invalid shape / nonfinite {key}: {arr.shape}")
+    if (x_train.shape[1] != x_valid.shape[1]
+            or y_train.shape[1] != y_valid.shape[1]):
+        raise ValueError("Train/valid feature or label dimensions differ")
+    if len(x_train) != len(y_train) or len(x_valid) != len(y_valid):
+        raise ValueError("Neural data and decoder labels have different lengths")
+    if min(len(x_train), len(x_valid)) < 36:
+        raise ValueError("The offset36 model needs at least 36 bins in each split")
+    for name, x in (("train_data", x_train), ("valid_data", x_valid)):
+        if np.any(x < 0) or not np.array_equal(x, np.rint(x)):
+            raise ValueError(f"{name} must be RAW nonnegative integer spike counts")
+    return tuple(np.ascontiguousarray(a) for a in (x_train, x_valid, y_train, y_valid))
+
+
+def encoder_config(exp: Experiment, iterations: int, batch_size: int,
+                   device: str, seed: int, pgd_eps: float) -> Dict[str, Any]:
+    overrides = dict(exp.overrides)
+    return {
+        "model_architecture": ARCH,
+        "batch_size": batch_size,
+        "temperature": TEMPERATURE,
+        "time_offsets": 1,
+        "conditional": "time_delta",  # continuous behavioral label conditional
+        "hybrid": False,            # pure supervised CEBRA, NOT hybrid time+behavior
+        "max_iterations": iterations,
+        "output_dimension": LATENT_DIM,
+        "num_hidden_units": HIDDEN,
+        "learning_rate": 3e-4,
+        "temperature_mode": "constant",
+        "training_mode": "adversarial",
+        "adv_epsilon": pgd_eps,
+        "adv_alpha": pgd_eps / 5.0,
+        "adv_steps": ATTACK_STEPS,
+        "attack_norm": "l2",   # A placeholder ignored by d' training.
+        "adv_dprime_seed": seed,
+        "device": device,
+        "verbose": False,
+        **overrides,
+    }
+
+
+class TwoLayerMLP(nn.Module):
+    def __init__(self, dim: int, out: int):
+        super().__init__()
+        self.net = nn.Sequential(
+            nn.Linear(dim, MLP_HIDDEN),
+            nn.LayerNorm(MLP_HIDDEN),
+            nn.ReLU(),
+            nn.Dropout(MLP_DROP),
+            nn.Linear(MLP_HIDDEN, out),
+        )
+
+    def forward(self, x):
+        return self.net(x)
+
+
+def train_decoder(z_train, y_train, seed: int, device, epochs: int):
+    seed_all(seed)
+    decoder = TwoLayerMLP(z_train.shape[1], y_train.shape[1]).to(device)
+    opt = torch.optim.Adam(decoder.parameters(), lr=MLP_LR)
+    criterion = nn.MSELoss()
+    z = torch.as_tensor(z_train, dtype=torch.float32, device=device)
+    y = torch.as_tensor(y_train, dtype=torch.float32, device=device)
+    decoder.train()
+    for epoch in range(epochs):
+        opt.zero_grad(set_to_none=True)
+        loss = criterion(decoder(z), y)
+        if not torch.isfinite(loss).item():
+            raise FloatingPointError(f"Nonfinite decoder loss at epoch {epoch + 1}")
+        loss.backward()
+        opt.step()
+    return decoder
+
+
+def predict_decoder(decoder, embeddings):
+    decoder.eval()
+    device = next(decoder.parameters()).device
+    preds = []
+    with torch.inference_mode():
+        for first in range(0, len(embeddings), EVAL_BATCH_SIZE):
+            z = torch.as_tensor(embeddings[first:first + EVAL_BATCH_SIZE],
+                                dtype=torch.float32, device=device)
+            preds.append(decoder(z).cpu().numpy())
+    return np.concatenate(preds, axis=0)
+
+
+def epsilon_summary(report: Optional[Dict[str, Any]]) -> str:
+    if not report:
+        return "no-dprime-report"
+    e = report.get("epsilon", {})
+    nn = report.get("eps_nn", {})
+    t = report.get("training", {})
+    dist = t.get("epsilon_per_reference", {}) or {}
+    return (f"eps_dist={dist} "
+            f"eps_star={e.get('eps_star')} "
+            f"source={e.get('source')} "
+            f"eps_NN={nn.get('value')} "
+            f"NN_binding={t.get('eps_nn_binding_rate')} "
+            f"mean_dprime={t.get('mean_dprime')} "
+            f"final_epsilon={t.get('final_epsilon')} "
+            f"warmup_steps={t.get('warmup_steps')} "
+            f"curriculum_steps={t.get('curriculum_steps')}")
+
+
+def _atomic_model_save(encoder, path: Path) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    fd, tmp = tempfile.mkstemp(prefix="." + path.name + ".", suffix=".pt", dir=path.parent)
+    os.close(fd)
+    try:
+        encoder.save(tmp, backend="sklearn")
+        if not Path(tmp).is_file() or Path(tmp).stat().st_size == 0:
+            raise RuntimeError("CEBRA.save produced an empty checkpoint")
+        os.replace(tmp, path)
+    finally:
+        if os.path.exists(tmp):
+            os.unlink(tmp)
+
+
+def _atomic_decoder_save(decoder, path: Path) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    fd, tmp = tempfile.mkstemp(prefix="." + path.name + ".", suffix=".pt", dir=path.parent)
+    os.close(fd)
+    try:
+        torch.save(decoder.state_dict(), tmp)
+        os.replace(tmp, path)
+    finally:
+        if os.path.exists(tmp):
+            os.unlink(tmp)
+
+
+def _checkpoint_paths(root: Path, name: str) -> Tuple[Path, Path, Path]:
+    return (root / "models" / f"{name}_encoder.pt",
+            root / "models" / f"{name}_decoder.pt",
+            root / "training" / f"{name}.json")
+
+
+def _score(encoder, decoder, x_valid, y_valid) -> float:
+    z = np.asarray(encoder.transform(x_valid), dtype=np.float32)
+    if len(z) != len(x_valid) or not np.isfinite(z).all():
+        raise ValueError("Invalid encoder validation embedding/alignment")
+    predictions = predict_decoder(decoder, z)
+    if predictions.shape != y_valid.shape or not np.isfinite(predictions).all():
+        raise ValueError("Invalid decoder validation predictions")
+    result = float(np.atleast_1d(r2_score(y_valid, predictions,
+                                           multioutput="raw_values")).mean())
+    if not np.isfinite(result):
+        raise ValueError("Non-finite clean R2")
+    return result
+
+
+def _validate_training_report(exp: Experiment, report: Optional[Dict[str, Any]]) -> None:
+    if exp.overrides.get("adv_epsilon_mode") != "dprime":
+        return
+    realized = (report or {}).get("training", {}).get("realized")
+    if not isinstance(realized, dict) or any(k not in realized for k in
+        ("raw_l2", "dprime_reference", "dprime_isotropic", "loss_gain")):
+        raise RuntimeError("Missing required new-fork training.realized diagnostics")
+    if exp.name == "MADRY_SP_AUTOBLIND":
+        eps = (report or {}).get("epsilon", {})
+        if eps.get("binding") not in ("blind_det", "nn"):
+            raise RuntimeError(f"Expected auto_blind calibration binding, got {eps!r}")
+
+
+def _new_train(cebra, exp: Experiment, arrays, args, root: Path):
+    x_train, x_valid, y_train, y_valid = arrays
+    seed_all(args.seed)
+    encoder = cebra.CEBRA(**encoder_config(exp, args.max_iterations, args.batch_size,
+                                           args.device, args.seed, args.epsilon))
+    # SUPERVISED encoder: the only functional training-mode change from Exp6b.
+    # The VALIDATION labels are NEVER passed to fit().
+    print(f"SUPERVISED CEBRA.fit(X_train={x_train.shape}, "
+          f"y_train={y_train.shape}; conditional=time_delta, hybrid=False)", flush=True)
+    encoder.fit(x_train, y_train)
+    if len(getattr(encoder, "label_types_", [])) != 1:
+        raise RuntimeError("Encoder did not register exactly one continuous behavior label")
+    report = getattr(encoder, "dprime_report_", None)
+    _validate_training_report(exp, report)
+    z_train = np.asarray(encoder.transform(x_train), dtype=np.float32)
+    if len(z_train) != len(x_train) or not np.isfinite(z_train).all():
+        raise ValueError("Invalid encoder training embedding/alignment")
+    decoder = train_decoder(z_train, y_train, args.seed + 100_000,
+                            torch.device(encoder.device_), args.mlp_epochs)
+    value = _score(encoder, decoder, x_valid, y_valid)
+
+    ep, dp, mp = _checkpoint_paths(root, exp.name)
+    _atomic_model_save(encoder, ep)
+    _atomic_decoder_save(decoder, dp)
+    # Save reports first; metadata acts as the final transaction commit.
+    if report is not None:
+        atomic_write_json(root / "reports" / f"{exp.name}.json", report)
+    meta = {
+        "experiment": exp.name, "session": args.session, "seed": args.seed,
+        "encoder_supervision": "behavior_continuous",
+        "fit_call": "CEBRA.fit(x_train,y_train)",
+        "conditional": "time_delta", "hybrid": False,
+        "train_label_shape": list(y_train.shape),
+        "clean_r2": value, "epsilon_summary": epsilon_summary(report),
+        "encoder_path": str(ep), "decoder_path": str(dp),
+        "encoder_sha256": file_sha256(ep), "decoder_sha256": file_sha256(dp),
+        "finished_utc": now_utc(), "stage": "trained",
+    }
+    atomic_write_json(mp, meta)
+    print(f"CHECKPOINT {exp.name}: clean R2={value:.6f} at {ep}", flush=True)
+    return encoder, decoder, meta, report
+
+
+def _restore_train(cebra, exp: Experiment, arrays, args, root: Path):
+    _, x_valid, _, y_valid = arrays
+    ep, dp, mp = _checkpoint_paths(root, exp.name)
+    meta = json.loads(mp.read_text(encoding="utf-8"))
+    if (meta.get("experiment") != exp.name or meta.get("session") != args.session
+            or meta.get("seed") != args.seed
+            or meta.get("encoder_supervision") != "behavior_continuous"):
+        raise RuntimeError(f"Supervised checkpoint metadata mismatch for {exp.name}")
+    if file_sha256(ep) != meta["encoder_sha256"] or file_sha256(dp) != meta["decoder_sha256"]:
+        raise RuntimeError(f"Checkpoint hash mismatch for {exp.name}; refusing corrupted files")
+    # This checkpoint is produced by our trusted local fork, not an untrusted download.
+    encoder = cebra.CEBRA.load(str(ep), backend="sklearn", weights_only=False)
+    decoder = TwoLayerMLP(LATENT_DIM, y_valid.shape[1]).to(torch.device(encoder.device_))
+    try:
+        state = torch.load(dp, map_location=encoder.device_, weights_only=True)
+    except TypeError:
+        state = torch.load(dp, map_location=encoder.device_)
+    decoder.load_state_dict(state)
+    value = _score(encoder, decoder, x_valid, y_valid)
+    if abs(value - float(meta["clean_r2"])) > 0.0005:
+        raise RuntimeError(f"Restored checkpoint changed R2: {value} vs {meta['clean_r2']}")
+    report_path = root / "reports" / f"{exp.name}.json"
+    report = json.loads(report_path.read_text(encoding="utf-8")) if report_path.is_file() else getattr(encoder, "dprime_report_", None)
+    _validate_training_report(exp, report)
+    if report is not None and not report_path.is_file():
+        atomic_write_json(report_path, report)
+    return encoder, decoder, meta, report
+
+
+def run_one(cebra, exp: Experiment, arrays, args, root: Path):
+    encoder = decoder = None
+    try:
+        ep, dp, mp = _checkpoint_paths(root, exp.name)
+        if mp.is_file() and ep.is_file() and dp.is_file():
+            print(f"REUSE {exp.name}: loading saved encoder and decoder", flush=True)
+            encoder, decoder, meta, report = _restore_train(cebra, exp, arrays, args, root)
+        elif args.eval_only:
+            raise FileNotFoundError(f"Cannot --eval-only: no complete checkpoint for {exp.name} ({mp})")
+        else:
+            print(f"TRAIN {exp.name}: seed={args.seed}, session={args.session}", flush=True)
+            encoder, decoder, meta, report = _new_train(cebra, exp, arrays, args, root)
+
+        x_train, x_valid, _, y_valid = arrays
+        from cebra.dprime.evaluation import evaluate_decoding
+        # The reference and ISO metrics use the SAME 'whole' residual definition
+        # for every model, including difference-residual TRAINING controls.
+        robust = evaluate_decoding(
+            encoder, decoder, x_train, x_valid, y_valid,
+            epsilons=args.eval_epsilons, metrics=("reference", "isotropic"),
+            steps=args.eval_steps, batch_size=args.eval_batch_size,
+            margin_windows=args.eval_margin_windows,
+            margin_steps=args.eval_margin_steps,
+            shift_threshold=args.eval_shift_threshold,
+            contrastive=False,  # do not compute TIME-only contrastive margin for supervised CEBRA
+            residuals="whole", labels_train=None,  # identical label-free eval geometry to Exp6b
+            seed=args.seed + 200_000,
+        )
+        if abs(float(robust["clean_r2"]) - float(meta["clean_r2"])) > 0.0005:
+            raise RuntimeError(f"Clean R2 mismatch: training={meta['clean_r2']:.6f}, "
+                               f"evaluator={robust['clean_r2']:.6f}; alignment mismatch")
+        return float(meta["clean_r2"]), report, robust, meta
+    finally:
+        del encoder, decoder
+        gc.collect()
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()
+
+
+def build_parser() -> argparse.ArgumentParser:
+    p = argparse.ArgumentParser(description=__doc__,
+                                formatter_class=argparse.RawDescriptionHelpFormatter)
+    p.add_argument("--fork-dir", type=Path, default=DEFAULT_FORK_DIR)
+    p.add_argument("--data-dir", type=Path, default=DEFAULT_DATA_DIR)
+    p.add_argument("--session", default=DEFAULT_SESSION)
+    p.add_argument("--suite", choices=("all", "core"), default="all")
+    p.add_argument("--only", nargs="+", help="Run named arms; use --list to inspect names")
+    p.add_argument("--list", action="store_true", help="List all experiments and exit")
+    p.add_argument("--dry-run", action="store_true", help="List selected arms without fitting")
+    p.add_argument("--check-labels", action="store_true",
+                   help="Validate train_label, valid_label and shapes for the session, then exit")
+    p.add_argument("--seed", type=int, default=SEED)
+    p.add_argument("--epsilon", type=float, default=PGD_EPS,
+                   help="Original input-space PGD L2 baseline epsilon (default 3)")
+    p.add_argument("--max-iterations", type=int, default=MAX_ITER)
+    p.add_argument("--batch-size", type=int, default=BATCH_SIZE)
+    p.add_argument("--mlp-epochs", type=int, default=MLP_EPOCHS)
+    p.add_argument("--device", default=DEVICE)
+    p.add_argument("--eval-epsilons", nargs="+", type=float,
+                   default=[0.5, 1.0, 2.0, 4.0, 8.0, 16.0],
+                   help="Common dprime budgets for held-out robustness curves")
+    p.add_argument("--eval-steps", type=int, default=20)
+    p.add_argument("--eval-batch-size", type=int, default=512)
+    p.add_argument("--eval-margin-windows", type=int, default=1024)
+    p.add_argument("--eval-margin-steps", type=int, default=100)
+    p.add_argument("--eval-shift-threshold", type=float, default=0.5)
+    p.add_argument("--no-contrastive-margin", action="store_true",
+                   help="Disable slow contrastive DDN only if explicitly requested")
+    p.add_argument("--report-eps", action="store_true",
+                   help="Print dprime calibration diagnostics to stderr after each run")
+    p.add_argument("--gpu-workers", type=int, default=2,
+                   help="Number of independently allocated GPUs to use (default 2)")
+    p.add_argument("--cpu-threads", type=int, default=2,
+                   help="CPU threads per GPU subprocess (default 2)")
+    p.add_argument("--output-dir", type=Path, default=DEFAULT_RESULTS_DIR,
+                   help="PERSISTENT results directory. MUST reside on a shared/host volume")
+    p.add_argument("--eval-only", action="store_true",
+                   help="Require existing checkpoints; reevaluate without retraining")
+    p.add_argument("--eval-tag", default="v1",
+                   help="Distinct tag for an evaluator version; use v2 if evaluation code changes")
+    p.add_argument("--resume", action="store_true",
+                   help="Skip successful experiment records, retry interrupted/failed runs")
+    p.add_argument("--continue-on-error", action="store_true",
+                   help="Kept for CLI compatibility; workers always record each error and continue")
+    # Internal worker arguments; not intended for direct use.
+    p.add_argument("--_worker", action="store_true", help=argparse.SUPPRESS)
+    p.add_argument("--_experiment", default=None, help=argparse.SUPPRESS)
+    p.add_argument("--_gpu_slot", type=int, default=-1, help=argparse.SUPPRESS)
+    return p
+
+
+def now_utc() -> str:
+    return datetime.now(timezone.utc).isoformat(timespec="seconds")
+
+
+def atomic_write_text(path: Path, content: str) -> None:
+    """Commit one entire file; readers see either old or new version."""
+    path.parent.mkdir(parents=True, exist_ok=True)
+    fd, temp_path = tempfile.mkstemp(prefix=f".{path.name}.", suffix=".tmp", dir=path.parent)
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8", newline="") as f:
+            f.write(content)
+            f.flush()
+            os.fsync(f.fileno())
+        os.replace(temp_path, path)
+    finally:
+        if os.path.exists(temp_path):
+            os.unlink(temp_path)
+
+
+def atomic_write_json(path: Path, payload: Dict[str, Any]) -> None:
+    atomic_write_text(path, json.dumps(payload, ensure_ascii=False, indent=2,
+                                       allow_nan=False, sort_keys=True) + "\n")
+
+
+def record_path(root: Path, name: str) -> Path:
+    if not name.replace("_", "").isalnum():
+        raise ValueError(f"Unsafe experiment name: {name!r}")
+    return root / "records" / f"{name}.json"
+
+
+def read_record(root: Path, name: str):
+    path = record_path(root, name)
+    if not path.is_file():
+        return None
+    with path.open("r", encoding="utf-8") as f:
+        obj = json.load(f)
+    if obj.get("experiment") != name:
+        raise RuntimeError(f"Mismatched record in {path}")
+    return obj
+
+
+def evaluation_dir(root: Path, area: str, tag: str) -> Path:
+    return root / (area if tag == "v1" else f"{area}_{tag}")
+
+
+def write_snapshots(root: Path, selected: List[Experiment], tag: str) -> None:
+    """Consolidate per-arm records into CSV and readable text, without extra files."""
+    import io
+    rows, summaries = [], []
+    record_dir = evaluation_dir(root, "records", tag)
+    for exp in selected:
+        record = read_record(record_dir, exp.name)
+        if record is None:
+            continue
+        rows.append({
+            "experiment": exp.name, "status": record.get("status", "unknown"),
+            "r2": record.get("r2", ""), "gpu_slot": record.get("gpu_slot", ""),
+            "elapsed_seconds": record.get("elapsed_seconds", ""),
+            "epsilon_summary": record.get("epsilon_summary", ""),
+            "raw_l2_median": record.get("raw_l2_median", ""),
+            "dprime_reference_median": record.get("dprime_reference_median", ""),
+            "robust_eval_path": record.get("robust_eval_path", ""),
+            "encoder_path": record.get("encoder_path", ""),
+            "decoder_path": record.get("decoder_path", ""),
+            "error": record.get("error", ""),
+        })
+        if record.get("status") == "success":
+            summaries.append(f"{exp.name}: R2 = {record['r2']:.6f} "
+                             f"| GPU slot {record.get('gpu_slot')} "
+                             f"| elapsed {record.get('elapsed_seconds')}s")
+        else:
+            summaries.append(f"{exp.name}: ERROR: {record.get('error')}")
+    stream = io.StringIO()
+    fields = ["experiment", "status", "r2", "gpu_slot", "elapsed_seconds",
+              "epsilon_summary", "raw_l2_median", "dprime_reference_median",
+              "robust_eval_path", "encoder_path", "decoder_path", "error"]
+    writer = csv.DictWriter(stream, fieldnames=fields)
+    writer.writeheader()
+    writer.writerows(rows)
+    suffix = "" if tag == "v1" else f"_{tag}"
+    atomic_write_text(root / f"results{suffix}.csv", stream.getvalue())
+    atomic_write_text(root / f"results{suffix}.txt", "\n".join(summaries) + ("\n" if summaries else ""))
+
+
+def selected_experiments(args):
+    all_exp = experiments()
+    names = {e.name for e in all_exp}
+    if args.only:
+        unknown = sorted(set(args.only) - names)
+        if unknown:
+            raise ValueError(f"Unknown experiments: {unknown}; inspect --list")
+        return [e for e in all_exp if e.name in set(args.only)]
+    if args.suite == "core":
+        return [e for e in all_exp if e.core]
+    return all_exp
+
+
+def file_sha256(path: Path) -> str:
+    h = hashlib.sha256()
+    with path.open("rb") as stream:
+        for block in iter(lambda: stream.read(1024 * 1024), b""):
+            h.update(block)
+    return h.hexdigest()
+
+
+# Training fingerprints are separate from evaluator fingerprints, permitting
+# --eval-only with changed evaluator code while preserving trained checkpoints.
+FORK_TRAIN_FILES = (
+    "cebra/distributions/base.py", "cebra/dprime/training.py",
+    "cebra/dprime/noise.py", "cebra/dprime/attacks.py",
+    "cebra/dprime/calibration.py", "cebra/integrations/sklearn/cebra.py",
+    "cebra/solver/base.py",
+)
+FORK_EVAL_FILES = FORK_TRAIN_FILES + ("cebra/dprime/evaluation.py",)
+
+
+def _fingerprints(fork_dir: Path, paths: Tuple[str, ...]) -> dict:
+    return {rel: file_sha256(fork_dir / rel) for rel in paths}
+
+
+def config_manifest(args) -> dict:
+    """Training settings only; evaluation revisions do not force retraining."""
+    data_path = (args.data_dir / f"{args.session}.npz").resolve()
+    return json.loads(json.dumps({
+        "schema": "perich-behavior-supervised-v1",
+        "encoder_supervision": "behavior_continuous",
+        "fit_call": "cebra.CEBRA.fit(train_data, train_label)",
+        "conditional": "time_delta", "hybrid": False,
+        "labels_used_for_fit": "train_label only",
+        "fork_dir": str(args.fork_dir.resolve()),
+        "fork_fingerprints": _fingerprints(args.fork_dir, FORK_TRAIN_FILES),
+        "data_path": str(data_path), "data_sha256": file_sha256(data_path),
+        "session": args.session, "seed": args.seed, "epsilon": args.epsilon,
+        "batch_size": args.batch_size, "max_iterations": args.max_iterations,
+        "mlp_epochs": args.mlp_epochs, "architecture": ARCH,
+        "latent_dim": LATENT_DIM, "hidden": HIDDEN,
+        "temperature": TEMPERATURE, "attack_steps": ATTACK_STEPS,
+        "experiments": [{"name": e.name, "overrides": e.overrides}
+                        for e in experiments()],
+    }, sort_keys=True))
+
+
+def eval_manifest(args) -> dict:
+    return json.loads(json.dumps({
+        "schema": "perich-behavior-supervised-eval-v1", "eval_tag": args.eval_tag,
+        "fork_dir": str(args.fork_dir.resolve()),
+        "fork_fingerprints": _fingerprints(args.fork_dir, FORK_EVAL_FILES),
+        "evaluation": {
+            "epsilons": args.eval_epsilons, "steps": args.eval_steps,
+            "batch_size": args.eval_batch_size,
+            "margin_windows": args.eval_margin_windows,
+            "margin_steps": args.eval_margin_steps,
+            "shift_threshold": args.eval_shift_threshold,
+            "contrastive": False, "contrastive_note": "time-only proxy not valid for supervised fits",
+            "residuals": "whole", "labels_train": None,
+            "evaluation_seed_offset": 200_000,
+        },
+    }, sort_keys=True))
+
+
+def gpu_tokens(workers: int) -> list[str]:
+    if workers < 1:
+        raise ValueError("--gpu-workers must be at least 1")
+    if not torch.cuda.is_available():
+        raise RuntimeError("No CUDA GPU available in this RunAI container")
+    count = torch.cuda.device_count()
+    if count < workers:
+        raise RuntimeError(f"Requested {workers} GPU workers but only {count} CUDA devices visible. "
+                           f"Submit with at least --gpu {workers} and check GPU allocation.")
+    visibility = os.environ.get("CUDA_VISIBLE_DEVICES", "").strip()
+    if visibility and visibility != "-1":
+        tokens = [s.strip() for s in visibility.split(",") if s.strip()]
+        if len(tokens) < workers:
+            raise RuntimeError(f"CUDA_VISIBLE_DEVICES={visibility!r} has fewer than {workers} entries")
+        return tokens[:workers]
+    return [str(i) for i in range(workers)]
+
+
+def worker_run(args, exp: Experiment) -> int:
+    """Exactly one physical GPU visible to this process."""
+    begin = time.monotonic()
+    if not torch.cuda.is_available() or torch.cuda.device_count() != 1:
+        raise RuntimeError("Worker must see exactly one CUDA GPU")
+    torch.set_num_threads(args.cpu_threads)
+    root = args.output_dir.resolve()
+    rdir = evaluation_dir(root, "records", args.eval_tag)
+    ed = evaluation_dir(root, "robust_eval", args.eval_tag)
+    base = {
+        "experiment": exp.name, "status": "error", "r2": None,
+        "gpu_slot": args._gpu_slot,
+        "cuda_visible_devices": os.environ.get("CUDA_VISIBLE_DEVICES", ""),
+        "started_utc": now_utc(), "error": "",
+    }
+    try:
+        cebra = load_fork(args.fork_dir)
+        arrays = load_data(args.data_dir / f"{args.session}.npz")
+        value, report, robust, meta = run_one(cebra, exp, arrays, args, root)
+        rpath = ed / f"{exp.name}.json"
+        atomic_write_json(rpath, robust)
+        base.update(r2=float(value), robust_eval_path=str(rpath),
+                    robust_eval_clean_r2=float(robust["clean_r2"]),
+                    encoder_path=meta["encoder_path"], decoder_path=meta["decoder_path"],
+                    epsilon_summary=meta.get("epsilon_summary", ""))
+        if exp.overrides.get("adv_epsilon_mode") == "dprime":
+            realized = report["training"]["realized"]
+            base["raw_l2_median"] = realized["raw_l2"]["median"]
+            base["dprime_reference_median"] = realized["dprime_reference"]["median"]
+        base["status"] = "success"
+        print(f"{exp.name}: R2={value:.6f} | checkpoint saved | evaluator={args.eval_tag}", flush=True)
+        if args.report_eps:
+            print(f"{exp.name} calibration: {base['epsilon_summary']}", flush=True)
+    except BaseException as exc:
+        base["status"] = "error"
+        base["error"] = f"{type(exc).__name__}: {exc}"
+        traceback.print_exc()
+    finally:
+        base["elapsed_seconds"] = round(time.monotonic() - begin, 3)
+        base["finished_utc"] = now_utc()
+        atomic_write_json(record_path(rdir, exp.name), base)
+    return 0 if base["status"] == "success" else 1
+
+
+def orchestrate(args, selected: List[Experiment]) -> int:
+    root = args.output_dir.resolve()
+    root.mkdir(parents=True, exist_ok=True)
+    (root / "models").mkdir(exist_ok=True)
+    (root / "training").mkdir(exist_ok=True)
+    (root / "reports").mkdir(exist_ok=True)
+    rdir = evaluation_dir(root, "records", args.eval_tag)
+    ldir = evaluation_dir(root, "logs", args.eval_tag)
+    ed = evaluation_dir(root, "robust_eval", args.eval_tag)
+    for p in (rdir, ldir, ed):
+        p.mkdir(exist_ok=True)
+
+    train_manifest_path = root / "run_config.json"
+    manifest = config_manifest(args)
+    if train_manifest_path.exists():
+        old = json.loads(train_manifest_path.read_text(encoding="utf-8"))
+        if old != manifest:
+            if not args.eval_only:
+                raise RuntimeError("Training configuration or fork changed in this output "
+                                   "directory. Use a NEW output directory for training. "
+                                   "For saved-model reevaluation use --eval-only --eval-tag v2.")
+            print("WARNING: train fork/config differs from the saved-model manifest; "
+                  "--eval-only will load original checkpoints without retraining.", flush=True)
+    else:
+        if args.eval_only:
+            raise RuntimeError("--eval-only requires existing run_config.json and checkpoints")
+        if any((root / "models").glob("*.pt")):
+            raise RuntimeError("Unmanifested model checkpoints found; use a new directory")
+        atomic_write_json(train_manifest_path, manifest)
+
+    eval_manifest_path = root / f"evaluation_config_{args.eval_tag}.json"
+    e_manifest = eval_manifest(args)
+    if eval_manifest_path.exists():
+        if json.loads(eval_manifest_path.read_text(encoding="utf-8")) != e_manifest:
+            raise RuntimeError(f"Evaluation configuration changed for tag {args.eval_tag!r}. "
+                               "Choose a NEW --eval-tag rather than overwrite the old results.")
+    else:
+        if any(rdir.glob("*.json")):
+            raise RuntimeError("Evaluation records without config; use a new --eval-tag")
+        atomic_write_json(eval_manifest_path, e_manifest)
+
+    pending = [e for e in selected if not (
+        args.resume and (r := read_record(rdir, e.name)) is not None and r.get("status") == "success")]
+    if not args.resume and any(read_record(rdir, e.name) for e in selected):
+        raise RuntimeError("Records already exist; add --resume or use a fresh --eval-tag")
+    write_snapshots(root, selected, args.eval_tag)
+    if not pending:
+        print(f"All {len(selected)} selected results already successful for tag={args.eval_tag}", flush=True)
+        return 0
+    tokens = gpu_tokens(args.gpu_workers)
+    todo = queue.Queue()
+    for e in pending:
+        todo.put(e)
+    print(f"[SUPERVISED PERICH] Loaded runner {Path(__file__).resolve()} | fork={args.fork_dir.resolve()} ", flush=True)
+    print(f"Starting {len(pending)} supervised experiments on {args.gpu_workers} GPUs; "
+          f"session={args.session}; eval_tag={args.eval_tag}; eval_only={args.eval_only}; "
+          f"output={root}", flush=True)
+    update_lock = threading.Lock()
+    failures: list[str] = []
+
+    def gpu_loop(slot: int, token: str):
+        while True:
+            try:
+                exp = todo.get_nowait()
+            except queue.Empty:
+                return
+            filename = ldir / f"{exp.name}.log"
+            cmd = [sys.executable, "-u", str(Path(__file__).resolve()),
+                   "--_worker", "--_experiment", exp.name,
+                   "--_gpu_slot", str(slot),
+                   "--fork-dir", str(args.fork_dir.resolve()),
+                   "--data-dir", str(args.data_dir.resolve()),
+                   "--session", args.session, "--seed", str(args.seed),
+                   "--epsilon", str(args.epsilon),
+                   "--max-iterations", str(args.max_iterations),
+                   "--batch-size", str(args.batch_size),
+                   "--mlp-epochs", str(args.mlp_epochs),
+                   "--device", args.device,
+                   "--cpu-threads", str(args.cpu_threads),
+                   "--eval-steps", str(args.eval_steps),
+                   "--eval-batch-size", str(args.eval_batch_size),
+                   "--eval-margin-windows", str(args.eval_margin_windows),
+                   "--eval-margin-steps", str(args.eval_margin_steps),
+                   "--eval-shift-threshold", str(args.eval_shift_threshold),
+                   "--eval-epsilons", *[str(v) for v in args.eval_epsilons],
+                   "--eval-tag", args.eval_tag, "--output-dir", str(root)]
+            if args.eval_only:
+                cmd.append("--eval-only")
+            if args.no_contrastive_margin:
+                cmd.append("--no-contrastive-margin")
+            if args.report_eps:
+                cmd.append("--report-eps")
+            env = dict(os.environ)
+            env["CUDA_VISIBLE_DEVICES"] = token
+            for key in ("OMP_NUM_THREADS", "MKL_NUM_THREADS", "OPENBLAS_NUM_THREADS",
+                        "NUMEXPR_THREADS"):
+                env[key] = str(args.cpu_threads)
+            with update_lock:
+                print(f"[GPU {slot}] START {exp.name}", flush=True)
+            try:
+                with filename.open("w", encoding="utf-8") as f:
+                    result = subprocess.run(cmd, env=env, stdout=f,
+                                            stderr=subprocess.STDOUT, check=False)
+                record = read_record(rdir, exp.name)
+                if record is None:
+                    record = dict(experiment=exp.name, status="error", r2=None,
+                                  error=f"Worker exited {result.returncode}; see {filename}")
+                    atomic_write_json(record_path(rdir, exp.name), record)
+                if result.returncode != 0 and record["status"] == "success":
+                    record["status"] = "error"
+                    record["error"] = f"Worker exited {result.returncode}"
+                    atomic_write_json(record_path(rdir, exp.name), record)
+            except Exception as exc:
+                record = dict(experiment=exp.name, status="error", r2=None,
+                              error=f"Coordinator {type(exc).__name__}: {exc}")
+                atomic_write_json(record_path(rdir, exp.name), record)
+            with update_lock:
+                write_snapshots(root, selected, args.eval_tag)
+                if record["status"] == "success":
+                    print(f"[GPU {slot}] DONE {exp.name}: R2={record['r2']:.6f} "
+                          f"({record.get('elapsed_seconds')}s)", flush=True)
+                else:
+                    failures.append(exp.name)
+                    print(f"[GPU {slot}] FAILED {exp.name}: {record.get('error')} "
+                          f"[log={filename}]", flush=True)
+            todo.task_done()
+
+    threads = [threading.Thread(target=gpu_loop, args=(i, tokens[i]))
+               for i in range(args.gpu_workers)]
+    for t in threads:
+        t.start()
+    for t in threads:
+        t.join()
+    write_snapshots(root, selected, args.eval_tag)
+    ok = sum(1 for e in selected if (r := read_record(rdir, e.name)) is not None
+             and r.get("status") == "success")
+    print(f"Finished: {ok}/{len(selected)} selected successful; "
+          f"{len(failures)} failed; results={root / ('results.csv' if args.eval_tag == 'v1' else 'results_' + args.eval_tag + '.csv')}", flush=True)
+    return 1 if failures else 0
+
+
+def main():
+    args = build_parser().parse_args()
+    selected = selected_experiments(args)
+    if args.list:
+        for e in experiments():
+            print(f"{e.name} [{'core' if e.core else 'all'}]")
+        return 0
+    if args.dry_run:
+        for e in selected:
+            print(e.name)
+        return 0
+    if args.check_labels:
+        x_train, x_valid, y_train, y_valid = load_data(args.data_dir / f"{args.session}.npz")
+        print(f"LABEL CHECK OK {args.session}: train_data={x_train.shape} "
+              f"train_label={y_train.shape} valid_data={x_valid.shape} "
+              f"valid_label={y_valid.shape}; label-dtype={y_train.dtype}", flush=True)
+        return 0
+    if args.max_iterations < 1 or args.mlp_epochs < 1 or args.batch_size < 1:
+        raise ValueError("Iterations, MLP epochs and batch size must be >= 1")
+    if (args.eval_steps < 1 or args.eval_batch_size < 1 or
+            args.eval_margin_windows < 1 or args.eval_margin_steps < 1):
+        raise ValueError("Evaluation steps, batch size and margin controls must be positive")
+    if (not args.eval_epsilons or any(not np.isfinite(e) or e < 0 for e in args.eval_epsilons)
+            or len(set(args.eval_epsilons)) != len(args.eval_epsilons)
+            or args.eval_epsilons != sorted(args.eval_epsilons)):
+        raise ValueError("--eval-epsilons must be unique sorted nonnegative numbers")
+    if not np.isfinite(args.eval_shift_threshold) or args.eval_shift_threshold <= 0:
+        raise ValueError("--eval-shift-threshold must be finite and > 0")
+    if not np.isfinite(args.epsilon) or args.epsilon < 0:
+        raise ValueError("PGD epsilon must be finite and nonnegative")
+    if args.cpu_threads < 1:
+        raise ValueError("--cpu-threads must be at least 1")
+    if args.device not in ("cuda_if_available", "cuda", "cuda:0"):
+        raise ValueError("With isolated one-GPU workers, --device must be cuda_if_available, cuda, or cuda:0")
+    if not args.eval_tag.replace("_", "").replace("-", "").isalnum() or len(args.eval_tag) > 48:
+        raise ValueError("--eval-tag must be a short alphanumeric/-/_ label")
+    if args._worker:
+        candidates = [exp for exp in experiments() if exp.name == args._experiment]
+        if len(candidates) != 1:
+            raise ValueError(f"Unknown internal worker name {args._experiment!r}")
+        return worker_run(args, candidates[0])
+    return orchestrate(args, selected)
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
