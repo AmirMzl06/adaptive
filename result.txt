@@ -1,210 +1,253 @@
-I have no name!@sam-0-0:~/sam/result/Aggregate$ cd ~/sam/result/Aggregate
+# Experiment 9 — Investigating the Failure of Spatial d′-Adversarial Training in Behavior-Supervised CEBRA
 
-python -u signal_budget_tests.py \
-  --fork-dir ./Acorn-dprime \
-  --data-dir /data/hossein/mm_project/perich_data_valid_final_raw \
-  --results-dir "$PWD" \
-  --out-dir ./SIGNAL_BUDGET_TESTS
-C-CO12: C=86 n=18384  ε_sig sp 22.29  diff 34.11  iso 36.61  ref 17.77  raw 25.38  (2D)^¼ 8.87
-C-CO13: C=72 n=17861  ε_sig sp 22.96  diff 34.68  iso 33.87  ref 18.04  raw 24.89  (2D)^¼ 8.49
-C-RT13: C=75 n=35938  ε_sig sp 23.15  diff 32.27  iso 32.66  ref 17.90  raw 24.14  (2D)^¼ 8.57
-C-RT6: C=63 n=8389  ε_sig sp 24.15  diff 35.64  iso 35.18  ref 18.96  raw 17.64  (2D)^¼ 8.21
-M-CO9: C=145 n=13604  ε_sig sp 31.65  diff 46.32  iso 56.23  ref 25.62  raw 27.55  (2D)^¼ 10.11
-M-RT3: C=116 n=9174  ε_sig sp 34.35  diff 47.27  iso 51.67  ref 26.52  raw 26.05  (2D)^¼ 9.56
-T-RT1: C=64 n=11458  ε_sig sp 22.83  diff 30.18  iso 34.00  ref 18.32  raw 18.34  (2D)^¼ 8.24
-T-RT4: C=53 n=10360  ε_sig sp 19.92  diff 26.09  iso 29.98  ref 16.32  raw 16.95  (2D)^¼ 7.86
-J-CO0: C=38 n=3816  ε_sig sp 15.46  diff 24.62  iso 36.89  ref 12.03  raw 24.92  (2D)^¼ 7.23
-441 evaluated models; 288 with training sizes
-SIGNAL-REFERENCED TRAINING BUDGET — RETROSPECTIVE TESTS (no training)
+**Research Progress Report — E1, E2, and E2b**
 
-How to read (the hypothesis is supported if):
-  A   x_signal_* has a higher LOSO R² than x_nominal and x_blind (the a-priori baselines), and the
-      within-arm ρ of x_signal is positive: at one nominal ε, sessions with a smaller ε_sig get a
-      larger loss gain. Fewer channels alone already predict a larger gain (x_blind does exactly
-      that), so the partial ρ given the channel count shows whether ε_sig adds information.
-      x_ref_size / x_raw_size are realised sizes, known only after training: a reference, not a
-      competitor for an a-priori rule.
-  B-i the sessions where AUTO saturated (loss gain ≥ 2) have the largest ε_blind / ε_sig.
-  B-ii supervised SP8 / REG8 are brittle where x = 8 / ε_sig is large (positive ρ, AUC > 0.5),
-      and DIFF8 / POOL stay below that range of x.
-  B-iii one threshold c* on x_signal separates failed from safe runs, stably across sessions
-      (LOSO accuracy, narrow c* range); in supervised CEBRA ε½ is also clipped for weak models
-      in hard sessions (e.g. PGD6 in T-RT1), which this test cannot separate from over-budget.
-  C   positive ρ: decoders reach a larger ε½ where the signal separation is larger.
+## 1. Motivation
 
-Stage 1: signal separation ε_sig (lag-1, d′ in each training metric; raw in counts); eps_nn_note_sp: the note's ε_NN (noise-dominated), sqrt_2D: its noise floor
-         n_ch  sqrt_2D  eps_nn_note_sp  eps_blind_theory  eps_sig_sp_lag1  eps_sig_diff_lag1  eps_sig_reg_lag1  eps_sig_iso_lag1  eps_sig_ref_lag1  eps_sig_raw_lag1  eps_sig_diff_pairs  psi_sum  n_modes_window_detectable  kappa_whole
-session                                                                                                                                                                                                                                  
-C-CO12     86    78.69           69.77              8.87            22.29              34.11             26.27             36.61             17.77             25.38               34.00    16.16                         41        54.63
-C-CO13     72    72.00           63.42              8.49            22.96              34.68             25.71             33.87             18.04             24.89               34.59    16.71                         36        21.98
-C-RT13     75    73.48           64.36              8.57            23.15              32.27             25.03             32.66             17.90             24.14               32.07    14.47                         38        43.32
-C-RT6      63    67.35           51.37              8.21            24.15              35.64             25.57             35.18             18.96             17.64               36.01    17.64                         39       545.59
-M-CO9     145   102.18           85.57             10.11            31.65              46.32             35.54             56.23             25.62             27.55               46.52    29.80                         84      1201.53
-M-RT3     116    91.39           73.88              9.56            34.35              47.27             36.04             51.67             26.52             26.05               47.22    31.04                         79      2271.57
-T-RT1      64    67.88           57.57              8.24            22.83              30.18             23.57             34.00             18.32             18.34               30.15    12.65                         38       484.21
-T-RT4      53    61.77           50.85              7.86            19.92              26.09             20.83             29.98             16.32             16.95               26.33     9.45                         31      1493.49
-J-CO0      38    52.31           39.12              7.23            15.46              24.62             17.01             36.89             12.03             24.92               24.07     8.42                         19      4905.43
+Our previous experiments established that noise-aware adversarial training can substantially improve the robustness of CEBRA representations against noise-shaped perturbations. However, Experiment 8 revealed an important limitation: while difference-residual adversarial training (DIFF8) remained robust in behavior-supervised CEBRA, the whole-covariance spatial method (SP8) became highly vulnerable in several recording sessions.
 
-Test A: training loss gain against each budget normalisation (LOSO isotonic R²)
-      mode      predictor  n_runs  n_sessions  r2_insample  r2_loso
- time_only      x_nominal     126           9        0.714    0.635
- time_only        x_blind     126           9        0.764    0.678
- time_only     x_ref_size     126           9        0.807    0.578
- time_only     x_raw_size     126           9        0.917    0.858
- time_only  x_signal_lag1     126           9        0.861    0.686
- time_only  x_signal_lag2     126           9        0.863    0.699
- time_only  x_signal_lag3     126           9        0.849    0.666
- time_only x_signal_pairs     117           9        0.859    0.675
-supervised      x_nominal     108           9        0.000   -0.193
-supervised        x_blind     108           9        0.400   -0.475
-supervised     x_ref_size     108           9        0.236   -0.058
-supervised     x_raw_size     108           9        0.303   -0.179
-supervised  x_signal_lag1     108           9        0.478   -0.121
-supervised  x_signal_lag2     108           9        0.502   -0.089
-supervised  x_signal_lag3     108           9        0.496   -0.066
-supervised x_signal_pairs     108           9        0.482   -0.081
+One possible explanation was **robust overfitting**: because the number of training iterations was fixed at 3,000, shorter recordings were exposed to substantially more training epochs. This could potentially cause the model to overfit adversarial perturbations or learn an unstable representation.
 
-Per-session LOSO error: sessions where x_signal_lag1 predicts better than the baseline
-      mode   baseline  sessions_signal_better  n_sessions  wilcoxon_p
- time_only  x_nominal                       6           9      0.4961
- time_only    x_blind                       6           9      0.6523
- time_only x_ref_size                       4           9      1.0000
- time_only x_raw_size                       3           9      0.5703
-supervised  x_nominal                       6           9      0.4961
-supervised    x_blind                       7           9      0.0977
-supervised x_ref_size                       5           9      1.0000
-supervised x_raw_size                       6           9      0.3594
+Experiment 9 was designed to investigate this explanation before proceeding with the proposed automatic training-budget method, AUTO_SIG.
 
-Test A (within arm, over sessions): Spearman ρ of the seed-mean loss gain with each session-level predictor; last column: partial ρ of ε_train/ε_sig given the channel count
-      mode   arm  n_sessions  rho_x_signal_lag1  rho_x_signal_lag2  rho_x_blind  rho_kappa_whole  rho_low_noise_sd  rho_few_channels  partial_rho_x_signal_lag1_given_n_ch
- time_only  AUTO           9              0.250              0.300        0.733            0.667             0.333             0.433                                -0.126
- time_only DIFF8           9              0.450              0.550        0.767            0.250             0.017             0.767                                -0.334
- time_only ISO16           9              0.950              0.950        0.533           -0.450            -0.633             0.533                                 0.935
- time_only  ISO8           9              0.833              0.833        0.650           -0.200            -0.433             0.650                                 0.780
- time_only   NA4           9              0.317              0.367        0.633            0.083            -0.183             0.633                                -0.162
- time_only  POOL           9              0.650              0.717        0.800            0.317            -0.017             0.800                                 0.063
- time_only  SP16           9             -0.433             -0.683       -0.583            0.000            -0.150            -0.583                                -0.027
- time_only   SP4           9              0.350              0.500        0.800            0.317            -0.017             0.800                                -0.534
- time_only   SP8           9              0.533              0.600        0.817            0.067            -0.283             0.817                                -0.129
-supervised DIFF8           9              0.350              0.417        0.467           -0.017            -0.267             0.467                                -0.014
-supervised  ISO8           9              0.700              0.700        0.467           -0.017            -0.267             0.467                                 0.613
-supervised  POOL           9              0.450              0.450        0.300            0.083            -0.300             0.300                                 0.363
-supervised  REG8           9              0.800              0.767        0.700            0.167            -0.267             0.700                                 0.546
-supervised   SP8           9             -0.067             -0.150        0.200            0.267            -0.200             0.200                                -0.307
+We conducted three controlled experiments, E1, E2, and E2b, comprising **42 new training runs**.
 
-Test B-i: AUTO (time-only); failures should have the largest ε_blind / ε_sig
-         seed  eps_train  eps_sig_sp_lag1  x_signal_lag1  loss_gain  failed_train  failed_decoder  clean_r2  d_clean_vs_pgd6  ref_half  rank_x
-session                                                                                                                                       
-C-CO12     42      8.738           22.293          0.392      0.740           0.0           False     0.626           -0.010     2.594       5
-C-CO13     42      9.032           22.965          0.393      0.823           0.0           False     0.727            0.023     2.511       4
-C-RT13     42      8.297           23.148          0.358      1.082           0.0           False     0.434            0.016     1.342       8
-C-RT6      42      8.847           24.145          0.366      1.187           0.0           False     0.530           -0.008     1.310       7
-M-CO9      42     10.787           31.651          0.341      0.797           0.0           False     0.712            0.025     3.136       9
-M-RT3      42     12.723           34.346          0.370      2.310           1.0            True     0.428           -0.069     0.500       6
-T-RT1      42      9.485           22.832          0.415      0.984           0.0           False     0.378            0.075     1.071       3
-T-RT4      42      9.241           19.922          0.464      1.117           0.0           False     0.186            0.005     1.008       2
-J-CO0      42      9.731           15.458          0.630      2.167           1.0           False     0.510           -0.035     0.581       1
-AUC (loss-gain saturation) per predictor: x_signal_lag1 0.71, eps_blind (budget) 0.93, kappa_whole 1.00, noise_sd_median 0.71, n_ch 0.57, eps_blind_theory 0.57
-failing sessions are the top-k of ε_blind/ε_sig: False (chance 0.028)
+## 2. Experimental Design
 
-Test B-ii: supervised brittleness (ε½ clipped at 0.5) per arm across sessions
-     arm  sessions_brittle_majority  spearman_x_vs_brittle     p  auc_x  x_min  x_max  spearman_kappa_whole  spearman_noise_sd_median  spearman_n_ch  spearman_eps_blind_theory
-     SP8                          5                  0.173 0.656  0.600  0.233  0.518                 0.693                     0.433          0.606                      0.606
-    REG8                          4                  0.779 0.013  0.950  0.222  0.470                 0.433                     0.260          0.866                      0.866
-   DIFF8                          0                    NaN   NaN    NaN  0.169  0.325                   NaN                       NaN            NaN                        NaN
-    POOL                          0                  0.548 0.127    NaN  0.190  0.335                 0.548                     0.137          0.548                      0.548
-    ISO8                          0                    NaN   NaN    NaN  0.142  0.267                   NaN                       NaN            NaN                        NaN
-    PGD6                          1                  0.274 0.476  0.750  0.218  0.354                -0.137                    -0.137          0.137                      0.137
-    PGD3                          0                    NaN   NaN    NaN  0.109  0.177                   NaN                       NaN            NaN                        NaN
-SP8+REG8                          9                  0.482 0.043  0.778    NaN    NaN                   NaN                       NaN            NaN                        NaN
+All experiments used behavior-supervised CEBRA, with the encoder trained using both neural spike counts and behavioral labels:
 
-Test B-iii: all runs pooled (AUC of each predictor; c*: fail when x ≥ c*)
-      mode        outcome      predictor  n_runs  n_failed   auc  c_star  youden_j  loso_accuracy  loso_c_min  loso_c_max
- time_only   failed_train  x_signal_lag1     153        13 0.986   0.368     0.893          0.882       0.365       0.481
- time_only   failed_train  x_signal_lag2     153        13 0.985   0.520     0.887          0.882       0.405       0.549
- time_only   failed_train  x_signal_lag3     153        13 0.987   0.506     0.900          0.895       0.504       0.657
- time_only   failed_train x_signal_pairs     144        13 0.985     NaN       NaN            NaN         NaN         NaN
- time_only   failed_train      x_nominal     153        13 0.971   9.607     0.943          0.935       9.483      11.715
- time_only   failed_train        x_blind     153        13 0.973     NaN       NaN            NaN         NaN         NaN
- time_only   failed_train     x_ref_size     153        13 0.985     NaN       NaN            NaN         NaN         NaN
- time_only   failed_train     x_raw_size     153        13 0.994     NaN       NaN            NaN         NaN         NaN
- time_only failed_decoder  x_signal_lag1     198        10 0.962   0.368     0.856          0.843       0.365       0.642
- time_only failed_decoder  x_signal_lag2     198        10 0.965   0.412     0.851          0.843       0.406       0.737
- time_only failed_decoder  x_signal_lag3     198        10 0.966   0.507     0.862          0.854       0.506       0.864
- time_only failed_decoder x_signal_pairs     189        10 0.960     NaN       NaN            NaN         NaN         NaN
- time_only failed_decoder      x_nominal     198        10 0.958  12.482     0.904          0.904      12.338      13.997
- time_only failed_decoder        x_blind     198        10 0.967     NaN       NaN            NaN         NaN         NaN
- time_only failed_decoder     x_ref_size     153         6 0.950     NaN       NaN            NaN         NaN         NaN
- time_only failed_decoder     x_raw_size     198        10 0.972     NaN       NaN            NaN         NaN         NaN
-supervised   failed_train  x_signal_lag1     135         0   NaN     NaN       NaN            NaN         NaN         NaN
-supervised   failed_train  x_signal_lag2     135         0   NaN     NaN       NaN            NaN         NaN         NaN
-supervised   failed_train  x_signal_lag3     135         0   NaN     NaN       NaN            NaN         NaN         NaN
-supervised   failed_train x_signal_pairs     135         0   NaN     NaN       NaN            NaN         NaN         NaN
-supervised   failed_train      x_nominal     135         0   NaN     NaN       NaN            NaN         NaN         NaN
-supervised   failed_train        x_blind     135         0   NaN     NaN       NaN            NaN         NaN         NaN
-supervised   failed_train     x_ref_size     135         0   NaN     NaN       NaN            NaN         NaN         NaN
-supervised   failed_train     x_raw_size     135         0   NaN     NaN       NaN            NaN         NaN         NaN
-supervised failed_decoder  x_signal_lag1     189        31 0.893   0.312     0.739          0.815       0.310       0.326
-supervised failed_decoder  x_signal_lag2     189        31 0.912   0.365     0.796          0.862       0.365       0.370
-supervised failed_decoder  x_signal_lag3     189        31 0.909   0.405     0.739          0.847       0.403       0.441
-supervised failed_decoder x_signal_pairs     189        31 0.893     NaN       NaN            NaN         NaN         NaN
-supervised failed_decoder      x_nominal     189        31 0.551   6.999     0.171          0.307       6.918       6.999
-supervised failed_decoder        x_blind     189        31 0.760     NaN       NaN            NaN         NaN         NaN
-supervised failed_decoder     x_ref_size     135        28 0.715     NaN       NaN            NaN         NaN         NaN
-supervised failed_decoder     x_raw_size     189        31 0.810     NaN       NaN            NaN         NaN         NaN
+`encoder.fit(train_data, train_label)`
 
-Test C: reference ε½ (seed mean per session) against the signal separation
-      mode   arm  n_sessions  spearman_ref_vs_eps_sig_ref  p_ref  spearman_iso_vs_eps_sig_iso  p_iso  efficiency_ref_median  efficiency_iso_median  spearman_ref_vs_n_ch  spearman_ref_vs_noise_sd_median  spearman_ref_vs_kappa_whole  spearman_ref_vs_eps_blind_theory  spearman_ref_vs_psi_sum
- time_only CLEAN           9                       -0.091  0.815                        0.009  0.982                  0.031                  0.015                 0.475                            0.584                       -0.785                             0.475                    0.201
- time_only  PGD3           9                        0.150  0.700                        0.617  0.077                  0.055                  0.068                 0.683                            0.250                       -0.550                             0.683                    0.533
- time_only  PGD6           9                        0.167  0.668                        0.617  0.077                  0.068                  0.076                 0.633                            0.250                       -0.550                             0.633                    0.533
- time_only  ISO8           9                        0.167  0.668                        0.667  0.050                  0.067                  0.075                 0.633                            0.250                       -0.550                             0.633                    0.533
- time_only   SP8           9                        0.450  0.224                        0.150  0.700                  0.074                  0.031                 0.867                           -0.033                       -0.400                             0.867                    0.733
- time_only DIFF8           9                        0.383  0.308                        0.250  0.516                  0.077                  0.043                 0.767                           -0.067                       -0.317                             0.767                    0.700
- time_only  POOL           9                        0.350  0.356                        0.500  0.170                  0.074                  0.059                 0.800                           -0.083                       -0.283                             0.800                    0.683
-supervised CLEAN           9                        0.000  1.000                        0.067  0.865                  0.049                  0.024                 0.433                            0.250                       -0.583                             0.433                    0.367
-supervised  PGD3           9                        0.150  0.700                        0.350  0.356                  0.062                  0.069                 0.567                            0.250                       -0.633                             0.567                    0.517
-supervised  PGD6           9                        0.150  0.700                        0.367  0.332                  0.068                  0.069                 0.683                            0.250                       -0.550                             0.683                    0.533
-supervised  ISO8           9                        0.117  0.765                        0.333  0.381                  0.067                  0.074                 0.600                            0.233                       -0.600                             0.600                    0.500
-supervised   SP8           9                        0.128  0.743                        0.000  1.000                  0.042                  0.017                 0.639                            0.201                       -0.566                             0.639                    0.365
-supervised DIFF8           9                        0.283  0.460                        0.100  0.798                  0.088                  0.046                 0.667                            0.033                       -0.500                             0.667                    0.600
-supervised  POOL           9                        0.250  0.516                        0.333  0.381                  0.075                  0.072                 0.700                            0.017                       -0.467                             0.700                    0.583
-supervised  REG8           9                        0.296  0.439                        0.131  0.738                  0.049                  0.023                 0.801                            0.148                       -0.479                             0.801                    0.548
+We compared two training methods:
 
-Preview — budget at the fitted failure boundary, c*·ε_sig(M), per session
-time_only, failed_train: c* = 0.368
-            sp   diff    reg    iso  eps_blind_theory
-session                                              
-C-CO12    8.21  12.56   9.68  13.49              8.87
-C-CO13    8.46  12.78   9.47  12.48              8.49
-C-RT13    8.53  11.89   9.22  12.03              8.57
-C-RT6     8.90  13.13   9.42  12.96              8.21
-M-CO9    11.66  17.07  13.09  20.72             10.11
-M-RT3    12.65  17.42  13.28  19.04              9.56
-T-RT1     8.41  11.12   8.68  12.52              8.24
-T-RT4     7.34   9.61   7.67  11.05              7.86
-J-CO0     5.69   9.07   6.27  13.59              7.23
-time_only, failed_decoder: c* = 0.368
-            sp   diff    reg    iso  eps_blind_theory
-session                                              
-C-CO12    8.21  12.56   9.68  13.49              8.87
-C-CO13    8.46  12.78   9.47  12.48              8.49
-C-RT13    8.53  11.89   9.22  12.03              8.57
-C-RT6     8.90  13.13   9.42  12.96              8.21
-M-CO9    11.66  17.07  13.09  20.72             10.11
-M-RT3    12.65  17.42  13.28  19.04              9.56
-T-RT1     8.41  11.12   8.68  12.52              8.24
-T-RT4     7.34   9.61   7.67  11.05              7.86
-J-CO0     5.69   9.07   6.27  13.59              7.23
-supervised, failed_decoder: c* = 0.312
-            sp   diff    reg    iso  eps_blind_theory
-session                                              
-C-CO12    6.95  10.64   8.20  11.42              8.87
-C-CO13    7.16  10.82   8.02  10.57              8.49
-C-RT13    7.22  10.07   7.81  10.19              8.57
-C-RT6     7.53  11.12   7.98  10.98              8.21
-M-CO9     9.87  14.45  11.09  17.54             10.11
-M-RT3    10.72  14.75  11.24  16.12              9.56
-T-RT1     7.12   9.42   7.35  10.61              8.24
-T-RT4     6.22   8.14   6.50   9.35              7.86
-J-CO0     4.82   7.68   5.31  11.51              7.23
+- **PGD6:** Conventional adversarial training with a fixed raw-L2 perturbation budget of ε = 6.
+- **SP8:** Noise-aware adversarial training with d′ = 8, using the whole-residual Ledoit–Wolf spatial covariance.
+
+Every configuration was evaluated using the same reference (noise-shaped) and isotropic robustness metrics as in Experiment 8.
+
+Three random seeds (42, 43, and 44) were used for each configuration.
+
+| Experiment | Configuration | Sessions | Runs |
+|---|---|---:|---:|
+| E1 | Reduce training to approximately 340 epochs in five previously brittle sessions | 5 | 30 |
+| E2 | Reduce C-CO12 training data to 9,174 bins while keeping 3,000 iterations | 1 | 6 |
+| E2b | Keep the full C-CO12 recording and increase training to 6,000 iterations | 1 | 6 |
+| **Total** | | | **42** |
+
+All **42/42 runs completed successfully**, with no reported failures.
+
+## 3. Experiment E1 — Does Reducing the Number of Epochs Restore Robustness?
+
+### 3.1 Setup
+
+We selected five sessions in which SP8 had previously exhibited severe robustness degradation:
+
+C-RT6, M-RT3, T-RT1, T-RT4, and J-CO0.
+
+Instead of using 3,000 iterations regardless of recording length, we set training to approximately 340 effective epochs.
+
+This resulted in 634–1,902 iterations, depending on the number of training bins in each session.
+
+Both SP8 and PGD6 were retrained with the same reduced epoch budget for three seeds.
+
+### 3.2 Results
+
+**Reducing the number of epochs did not restore SP8 robustness.**
+
+In all 15 SP8 runs, the reference half-damage threshold remained at the smallest tested perturbation budget, d′ = 0.5.
+
+A threshold reported as 0.5 is lower-grid clipped: the true half-damage threshold may be below 0.5.
+
+By comparison, PGD6 reached this floor in only 3 of the 15 runs.
+
+| Session | Mean reference ε½, SP8 | Mean reference ε½, PGD6 | SP8 improvement? |
+|---|---:|---:|---|
+| C-RT6 | ≤0.500 | 0.906 | No |
+| J-CO0 | ≤0.500 | 0.858 | No |
+| M-RT3 | ≤0.500 | 1.120 | No |
+| T-RT1 | ≤0.500 | ≤0.500 | Both clipped |
+| T-RT4 | ≤0.500 | 0.690 | No |
+
+Across all 15 paired runs:
+
+| Metric | SP8 relative to PGD6 |
+|---|---:|
+| Mean difference in clean validation R² | −0.0233 |
+| Mean difference in reference ε½ | −0.3147 |
+| Mean difference in isotropic ε½ | −1.1227 |
+| Strict reference robustness wins | **0/15** |
+| SP8 runs clipped at reference ε½ = 0.5 | **15/15** |
+
+These outcomes closely reproduce the failure pattern observed in the original Experiment 8, despite the shorter training duration.
+
+Importantly, the SP8 training loss gains ranged from approximately 0.63 to 1.29. Thus, the brittleness cannot simply be attributed to the extreme loss-gain saturation previously observed in the most aggressive training configurations.
+
+### 3.3 Interpretation
+
+The results provide evidence **against the hypothesis that excessive training epochs alone explain SP8's failure**.
+
+Even when the number of epochs was substantially reduced, SP8 remained vulnerable in every tested seed of the five brittle sessions.
+
+The fact that PGD6 did not exhibit the same degree of failure under the matched training schedule further suggests that the problem is associated with the interaction between the noise-shaped training perturbations, the training objective, and session-specific signal structure.
+
+However, these results do not completely exclude other forms of robust overfitting or training instability. They specifically show that simply reducing the number of training epochs is insufficient to resolve the observed brittleness.
+
+## 4. Experiment E2 — Does Reducing the Amount of Training Data Cause the Failure?
+
+### 4.1 Setup
+
+We selected C-CO12, a recording where SP8 had previously remained robust.
+
+The training set was reduced from 18,384 to 9,174 bins, while retaining 3,000 optimization iterations.
+
+This increased the effective number of training epochs to approximately 670.
+
+Both SP8 and PGD6 were trained using three random seeds.
+
+### 4.2 Results
+
+SP8 remained robust despite the reduction in training data.
+
+| Seed | SP8 clean R² | PGD6 clean R² | SP8 reference ε½ | PGD6 reference ε½ |
+|---|---:|---:|---:|---:|
+| 42 | 0.6904 | 0.6850 | 2.3818 | 2.2124 |
+| 43 | 0.6792 | 0.6649 | 2.5194 | 2.2723 |
+| 44 | 0.6820 | 0.6779 | 2.2707 | 2.2050 |
+
+Summary:
+
+- SP8 reference robustness wins: **3/3**
+- Mean clean R² difference: **+0.0079**
+- Mean reference half-damage threshold difference: **+0.1608**
+- Mean isotropic half-damage threshold difference: **−2.0631**
+- No SP8 run was clipped at the smallest reference budget.
+
+### 4.3 Interpretation
+
+Reducing the amount of training data did not reproduce the SP8 failure in this otherwise stable session.
+
+SP8 retained a consistent advantage against the reference threat model while maintaining slightly higher clean decoding performance than PGD6.
+
+The isotropic robustness trade-off remained present.
+
+This suggests that reducing data availability alone is not sufficient to explain the catastrophic brittleness observed in the five difficult sessions. However, this intervention was performed on one previously stable session, so it cannot establish that data quantity is unimportant in every recording.
+
+## 5. Experiment E2b — Does Increasing the Number of Iterations Cause the Failure?
+
+### 5.1 Setup
+
+As a complementary control, we kept the complete C-CO12 recording (18,384 bins) but increased training to 6,000 iterations.
+
+This produced approximately 668 effective epochs, closely matching E2's epoch count while using twice as much training data.
+
+### 5.2 Results
+
+SP8 remained robust after the longer training schedule.
+
+| Seed | SP8 clean R² | PGD6 clean R² | SP8 reference ε½ | PGD6 reference ε½ |
+|---|---:|---:|---:|---:|
+| 42 | 0.6913 | 0.6736 | 2.6297 | 2.4229 |
+| 43 | 0.6897 | 0.6849 | 3.3755 | 2.4510 |
+| 44 | 0.6868 | 0.6835 | 2.7591 | 2.4184 |
+
+Summary:
+
+- SP8 reference robustness wins: **3/3**
+- Mean clean R² difference: **+0.0086**
+- Mean reference half-damage threshold difference: **+0.4907**
+- Mean isotropic half-damage threshold difference: **−2.1932**
+- No SP8 run was clipped at the smallest reference budget.
+
+The reference robustness advantage of SP8 was larger in E2b than in E2, although this observation comes from only three seeds of one session.
+
+### 5.3 Interpretation
+
+Increasing the total number of optimization iterations to 6,000 did not cause SP8 to collapse in C-CO12.
+
+Taken together, E2 and E2b indicate that neither reducing the available training data nor substantially increasing the number of training iterations is sufficient, by itself, to reproduce the failure in a session where SP8 is normally stable.
+
+This supports the interpretation that **session-specific signal and noise structure is a major factor in SP8 robustness**.
+
+## 6. Comparison Across E1, E2, and E2b
+
+| Result | E1: Five brittle sessions | E2: C-CO12, reduced data | E2b: C-CO12, longer training |
+|---|---:|---:|---:|
+| New training runs | 30 | 6 | 6 |
+| SP8 reference wins over PGD6 | 0/15 | 3/3 | 3/3 |
+| Mean Δ clean R² | −0.0233 | +0.0079 | +0.0086 |
+| Mean Δ reference ε½ | −0.3147 | +0.1608 | +0.4907 |
+| SP8 runs with clipped reference ε½ | 15/15 | 0/3 | 0/3 |
+
+The contrast between the brittle and stable sessions is striking.
+
+The five difficult sessions remained vulnerable despite shorter training, whereas the stable C-CO12 session preserved SP8's reference robustness advantage under both reduced-data and extended-training conditions.
+
+Together, these results weaken an explanation based solely on training duration or the effective number of epochs.
+
+They are more consistent with the hypothesis that **whole-residual covariance can permit training perturbations that interfere with behaviorally relevant neural structure**, depending on the recording.
+
+This interpretation is also consistent with the broader findings from Experiment 8: difference-residual training (DIFF8) remained substantially more robust across behavior-supervised sessions than whole-residual SP8.
+
+Nevertheless, E1/E2/E2b do not directly prove the signal-contamination mechanism. That mechanism remains a hypothesis requiring further validation.
+
+## 7. Implications for Automatic Epsilon Selection
+
+These results strengthen the motivation for a training-budget rule that accounts for the relationship between perturbation magnitude and natural signal separation, rather than using detectability alone.
+
+Our proposed AUTO_SIG rule is:
+
+\[
+\varepsilon_{\mathrm{train}}
+=
+\min\left(
+(2D)^{1/4},
+\;0.24\,\varepsilon_{\mathrm{sig}}(M)
+\right)
+\]
+
+where \(\varepsilon_{\mathrm{sig}}(M)\) estimates the separation between natural signal states under the corresponding training metric.
+
+The conceptual motivation is that an adversarial perturbation should not become so large, relative to natural signal changes, that the encoder is encouraged to discard behaviorally meaningful information.
+
+The earlier retrospective analysis showed that the normalized ratio
+
+\[
+\frac{\varepsilon_{\mathrm{train}}}
+{\varepsilon_{\mathrm{sig}}(M)}
+\]
+
+was associated with decoder brittleness in supervised CEBRA.
+
+The new E1/E2/E2b results make this direction more relevant because reducing training duration did not solve the SP8 failure.
+
+However, **AUTO_SIG has not yet been trained or prospectively validated**. The retrospective association and the epoch-control experiments do not establish that the proposed automatic budget will improve decoder robustness.
+
+The coefficient 0.24 is also informed by our existing Perich analyses; external validation will be necessary before claiming general dataset-independent calibration.
+
+## 8. Conclusions and Recommended Next Step
+
+The 42 completed runs support three conclusions:
+
+**First**, SP8's catastrophic reference-geometry brittleness in behavior-supervised CEBRA persists after substantially reducing the number of training epochs.
+
+**Second**, an otherwise robust session remains robust when the amount of training data is reduced or the number of optimization iterations is doubled.
+
+**Third**, the results favor further investigation of session-dependent perturbation geometry and signal preservation over a simple training-duration explanation.
+
+I therefore suggest proceeding with the planned AUTO_SIG experiments as a separate, controlled extension, rather than modifying the established DIFF8 and POOL baselines.
+
+The prepared Experiment 9 runner includes the following proposed follow-up suites:
+
+| Follow-up suite | Mode | Configurations | Planned runs |
+|---|---|---|---:|
+| AUTO_SIG supervised | Behavior-supervised | SPDIFF_AUTO, SP_AUTO, SPREG_AUTO, SP_POOL_AUTO | 108 |
+| AUTO_SIG time-only | Time-only | SPDIFF_AUTO, SP_AUTO, SP_POOL_AUTO | 81 |
+| **Total** | | | **189** |
+
+The main evaluation should compare these automatic-budget methods against the already completed fixed-budget models on matched sessions and seeds, with **fixed raw-L2 PGD6 as the primary baseline**.
+
+The key success criterion should be improved reference-geometry robustness while preserving clean decoding performance, especially in sessions where the original whole-covariance spatial method was brittle.
+
+We should also track the frequency of clipped half-damage thresholds and performance under the isotropic threat model, to ensure that improvements do not simply move the failure to another attack geometry.
+
+**Overall conclusion:** Experiment 9 provides evidence that the supervised SP8 failure is not resolved by controlling the number of epochs alone. It motivates, but does not yet validate, a signal-aware automatic training-budget mechanism. The next step is to determine whether AUTO_SIG can prevent this brittleness while retaining the reference-geometry robustness gains observed with fixed-budget DIFF8 and POOL.
