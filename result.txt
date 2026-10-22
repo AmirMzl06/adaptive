@@ -1,253 +1,973 @@
-# Experiment 9 — Investigating the Failure of Spatial d′-Adversarial Training in Behavior-Supervised CEBRA
+# Experiment 9 — Signal-Referenced Automatic Epsilon Calibration and Signal-Subspace Projection for Robust CEBRA
 
-**Research Progress Report — E1, E2, and E2b**
+**Complete Experimental Report — 216 New Training Runs**
 
-## 1. Motivation
+**Dataset:** Perich motor-cortex recordings, nine sessions from four monkeys  
+**Model:** CEBRA neural encoder with downstream behavioral decoding  
+**Training modes:** Behavior-supervised and time-only CEBRA  
+**Random seeds:** 42, 43, 44  
+**Reference baselines:** Experiments 5, 6b, and 8  
+**Execution status:** 216/216 successful
 
-Our previous experiments established that noise-aware adversarial training can substantially improve the robustness of CEBRA representations against noise-shaped perturbations. However, Experiment 8 revealed an important limitation: while difference-residual adversarial training (DIFF8) remained robust in behavior-supervised CEBRA, the whole-covariance spatial method (SP8) became highly vulnerable in several recording sessions.
+---
 
-One possible explanation was **robust overfitting**: because the number of training iterations was fixed at 3,000, shorter recordings were exposed to substantially more training epochs. This could potentially cause the model to overfit adversarial perturbations or learn an unstable representation.
+## 1. Executive Summary
 
-Experiment 9 was designed to investigate this explanation before proceeding with the proposed automatic training-budget method, AUTO_SIG.
+Experiment 9 investigated whether adversarial training budgets can be calibrated automatically from the relationship between neural signal structure and recording noise, without selecting the perturbation budget through behavioral validation performance.
 
-We conducted three controlled experiments, E1, E2, and E2b, comprising **42 new training runs**.
+The experiment also included a mechanistic control that restricted adversarial perturbations to estimated nuisance directions while preserving a fixed \(d'=8\) training budget.
 
-## 2. Experimental Design
+The evaluation comprised **216 new CEBRA training runs**, covering nine recording sessions, three random seeds, and two training modes.
 
-All experiments used behavior-supervised CEBRA, with the encoder trained using both neural spike counts and behavioral labels:
+The principal findings are:
 
-`encoder.fit(train_data, train_label)`
+1. **Signal-referenced automatic epsilon calibration was operationally successful.** All 189 AUTO_SIG training runs completed with finite, session-specific training budgets calculated from the training recordings. No behavioral validation sweep was required to select those budgets.
 
-We compared two training methods:
+2. **The supervised AUTO_SIG methods substantially outperformed conventional PGD6 under the reference noise-shaped threat model.** DIFF_AUTO, REG_AUTO, and POOL_AUTO each achieved a higher reference half-damage threshold than PGD6 in all 27 matched runs. SP_AUTO achieved a higher threshold in 23/27 runs.
 
-- **PGD6:** Conventional adversarial training with a fixed raw-L2 perturbation budget of ε = 6.
-- **SP8:** Noise-aware adversarial training with d′ = 8, using the whole-residual Ledoit–Wolf spatial covariance.
+3. **AUTO_SIG did not universally outperform its fixed-budget counterpart.** The improvements over fixed DIFF8 were modest, particularly in time-only CEBRA. POOL_AUTO improved upon fixed POOL8 in supervised CEBRA but slightly underperformed it in time-only reference robustness.
 
-Every configuration was evaluated using the same reference (noise-shaped) and isotropic robustness metrics as in Experiment 8.
+4. **Whole-covariance SP_AUTO remained vulnerable in M-RT3.** Its supervised reference half-damage threshold was clipped at 0.5 in all three seeds, despite automatic calibration. Thus, automatic budget selection alone did not eliminate every failure of the whole-covariance spatial metric.
 
-Three random seeds (42, 43, and 44) were used for each configuration.
+5. **POOL_AUTO offered the strongest overall supervised clean-performance compromise.** Its mean clean \(R^2\) was 0.6109, compared with 0.5970 for PGD6, while its mean reference half-damage threshold increased from 1.4310 to 1.7902. It exhibited no lower-grid-clipped runs.
 
-| Experiment | Configuration | Sessions | Runs |
-|---|---|---:|---:|
-| E1 | Reduce training to approximately 340 epochs in five previously brittle sessions | 5 | 30 |
-| E2 | Reduce C-CO12 training data to 9,174 bins while keeping 3,000 iterations | 1 | 6 |
-| E2b | Keep the full C-CO12 recording and increase training to 6,000 iterations | 1 | 6 |
-| **Total** | | | **42** |
+6. **DIFF_AUTO remained a strong, stable alternative.** Its mean supervised reference half-damage threshold was 1.8366, with no clipped runs, although its clean and robustness improvements over fixed DIFF8 were small.
 
-All **42/42 runs completed successfully**, with no reported failures.
+7. **The signal-projection control did not provide the expected general rescue.** SP8_SIGPROJ never exceeded PGD6 in reference half-damage threshold across the 27 supervised runs, although it improved upon the original SP8 in several previously brittle recordings.
 
-## 3. Experiment E1 — Does Reducing the Number of Epochs Restore Robustness?
+Overall, the results support **signal-referenced epsilon calibration as a useful automatic training procedure**, but not as a universally superior replacement for fixed \(d'=8\). The most convincing contribution is a training-data-derived calibration rule that remains competitive with strong manually specified budgets while offering important improvements for selected geometries and difficult sessions.
 
-### 3.1 Setup
+---
 
-We selected five sessions in which SP8 had previously exhibited severe robustness degradation:
+## 2. Research Motivation
 
-C-RT6, M-RT3, T-RT1, T-RT4, and J-CO0.
+### 2.1 Background
 
-Instead of using 3,000 iterations regardless of recording length, we set training to approximately 340 effective epochs.
+Earlier experiments established that the geometry of adversarial perturbations matters for neural representation learning.
 
-This resulted in 634–1,902 iterations, depending on the number of training bins in each session.
+Conventional PGD operates in the raw spike-count \(L_2\) metric. Our noise-aware methods instead measure perturbations in recording-specific \(d'\) units.
 
-Both SP8 and PGD6 were retrained with the same reduced epoch budget for three seeds.
+The distinction is important because different neural channels exhibit different covariance and noise characteristics. An isotropic raw-space perturbation need not correspond to equal statistical detectability across recordings.
 
-### 3.2 Results
+Experiments 5 and 6 demonstrated robust benefits from appropriately chosen noise-aware training geometries.
 
-**Reducing the number of epochs did not restore SP8 robustness.**
+Experiment 8 then extended the evaluation to behavior-supervised CEBRA and revealed a failure mode: whole-covariance SP8 became catastrophically vulnerable in several sessions, while difference-residual DIFF8 remained substantially more stable.
 
-In all 15 SP8 runs, the reference half-damage threshold remained at the smallest tested perturbation budget, d′ = 0.5.
+Experiment 9 was designed to determine whether two complementary interventions could address these issues:
 
-A threshold reported as 0.5 is lower-grid clipped: the true half-damage threshold may be below 0.5.
+- Calibrate the magnitude of training perturbations automatically from the estimated separation between natural neural signal states.
+- Restrict training perturbations to estimated nuisance directions rather than allowing attacks to move through the entire spatial representation.
 
-By comparison, PGD6 reached this floor in only 3 of the 15 runs.
+### 2.2 Connection to the earlier epoch-control experiments
 
-| Session | Mean reference ε½, SP8 | Mean reference ε½, PGD6 | SP8 improvement? |
-|---|---:|---:|---|
-| C-RT6 | ≤0.500 | 0.906 | No |
-| J-CO0 | ≤0.500 | 0.858 | No |
-| M-RT3 | ≤0.500 | 1.120 | No |
-| T-RT1 | ≤0.500 | ≤0.500 | Both clipped |
-| T-RT4 | ≤0.500 | 0.690 | No |
+Before the AUTO_SIG runs, Experiment 9 completed 42 additional training runs across E1, E2, and E2b.
 
-Across all 15 paired runs:
+Those tests examined whether SP8 brittleness could be explained solely by the effective number of training epochs.
 
-| Metric | SP8 relative to PGD6 |
-|---|---:|
-| Mean difference in clean validation R² | −0.0233 |
-| Mean difference in reference ε½ | −0.3147 |
-| Mean difference in isotropic ε½ | −1.1227 |
-| Strict reference robustness wins | **0/15** |
-| SP8 runs clipped at reference ε½ = 0.5 | **15/15** |
+The principal observations were:
 
-These outcomes closely reproduce the failure pattern observed in the original Experiment 8, despite the shorter training duration.
+| Control | Observation |
+|---|---|
+| E1: Reduce training to approximately 340 epochs in five brittle sessions | SP8 remained lower-grid clipped in 15/15 runs |
+| E2: Halve the training data in previously stable C-CO12 | SP8 retained a reference advantage over PGD6 in 3/3 runs |
+| E2b: Double iterations on the complete C-CO12 recording | SP8 retained a reference advantage in 3/3 runs |
 
-Importantly, the SP8 training loss gains ranged from approximately 0.63 to 1.29. Thus, the brittleness cannot simply be attributed to the extreme loss-gain saturation previously observed in the most aggressive training configurations.
+These findings did not support an explanation based solely on excessive training epochs.
 
-### 3.3 Interpretation
+They motivated investigation of the perturbation budget and attack geometry directly.
 
-The results provide evidence **against the hypothesis that excessive training epochs alone explain SP8's failure**.
+The 216 AUTO_SIG/SIGPROJ runs reported here are additional to those 42 control runs.
 
-Even when the number of epochs was substantially reduced, SP8 remained vulnerable in every tested seed of the five brittle sessions.
+---
 
-The fact that PGD6 did not exhibit the same degree of failure under the matched training schedule further suggests that the problem is associated with the interaction between the noise-shaped training perturbations, the training objective, and session-specific signal structure.
+## 3. Methods
 
-However, these results do not completely exclude other forms of robust overfitting or training instability. They specifically show that simply reducing the number of training epochs is insufficient to resolve the observed brittleness.
+### 3.1 Dataset and training protocol
 
-## 4. Experiment E2 — Does Reducing the Amount of Training Data Cause the Failure?
+We used nine Perich neural recording sessions:
 
-### 4.1 Setup
+C-CO12, C-CO13, C-RT13, C-RT6, M-CO9, M-RT3, T-RT1, T-RT4, and J-CO0.
 
-We selected C-CO12, a recording where SP8 had previously remained robust.
+The sessions represent four animals, denoted C, M, T, and J.
 
-The training set was reduced from 18,384 to 9,174 bins, while retaining 3,000 optimization iterations.
+Neural inputs were raw, nonnegative spike-count recordings. Each recording was divided into the same training and held-out evaluation splits used in the previous experiments.
 
-This increased the effective number of training epochs to approximately 670.
+The CEBRA encoder architecture and training configuration were retained from the corresponding earlier protocols, including the 36-bin receptive field and 3,000 optimization iterations.
 
-Both SP8 and PGD6 were trained using three random seeds.
+For time-only CEBRA, the encoder was fitted to neural data without behavioral labels. A separate downstream behavioral decoder was subsequently trained using the training labels.
 
-### 4.2 Results
+For supervised CEBRA, behavioral labels were supplied during encoder training.
 
-SP8 remained robust despite the reduction in training data.
+All models were evaluated using held-out behavioral decoding performance and the established adversarial robustness evaluation pipeline.
 
-| Seed | SP8 clean R² | PGD6 clean R² | SP8 reference ε½ | PGD6 reference ε½ |
-|---|---:|---:|---:|---:|
-| 42 | 0.6904 | 0.6850 | 2.3818 | 2.2124 |
-| 43 | 0.6792 | 0.6649 | 2.5194 | 2.2723 |
-| 44 | 0.6820 | 0.6779 | 2.2707 | 2.2050 |
+### 3.2 Definition of automatic training epsilon
 
-Summary:
-
-- SP8 reference robustness wins: **3/3**
-- Mean clean R² difference: **+0.0079**
-- Mean reference half-damage threshold difference: **+0.1608**
-- Mean isotropic half-damage threshold difference: **−2.0631**
-- No SP8 run was clipped at the smallest reference budget.
-
-### 4.3 Interpretation
-
-Reducing the amount of training data did not reproduce the SP8 failure in this otherwise stable session.
-
-SP8 retained a consistent advantage against the reference threat model while maintaining slightly higher clean decoding performance than PGD6.
-
-The isotropic robustness trade-off remained present.
-
-This suggests that reducing data availability alone is not sufficient to explain the catastrophic brittleness observed in the five difficult sessions. However, this intervention was performed on one previously stable session, so it cannot establish that data quantity is unimportant in every recording.
-
-## 5. Experiment E2b — Does Increasing the Number of Iterations Cause the Failure?
-
-### 5.1 Setup
-
-As a complementary control, we kept the complete C-CO12 recording (18,384 bins) but increased training to 6,000 iterations.
-
-This produced approximately 668 effective epochs, closely matching E2's epoch count while using twice as much training data.
-
-### 5.2 Results
-
-SP8 remained robust after the longer training schedule.
-
-| Seed | SP8 clean R² | PGD6 clean R² | SP8 reference ε½ | PGD6 reference ε½ |
-|---|---:|---:|---:|---:|
-| 42 | 0.6913 | 0.6736 | 2.6297 | 2.4229 |
-| 43 | 0.6897 | 0.6849 | 3.3755 | 2.4510 |
-| 44 | 0.6868 | 0.6835 | 2.7591 | 2.4184 |
-
-Summary:
-
-- SP8 reference robustness wins: **3/3**
-- Mean clean R² difference: **+0.0086**
-- Mean reference half-damage threshold difference: **+0.4907**
-- Mean isotropic half-damage threshold difference: **−2.1932**
-- No SP8 run was clipped at the smallest reference budget.
-
-The reference robustness advantage of SP8 was larger in E2b than in E2, although this observation comes from only three seeds of one session.
-
-### 5.3 Interpretation
-
-Increasing the total number of optimization iterations to 6,000 did not cause SP8 to collapse in C-CO12.
-
-Taken together, E2 and E2b indicate that neither reducing the available training data nor substantially increasing the number of training iterations is sufficient, by itself, to reproduce the failure in a session where SP8 is normally stable.
-
-This supports the interpretation that **session-specific signal and noise structure is a major factor in SP8 robustness**.
-
-## 6. Comparison Across E1, E2, and E2b
-
-| Result | E1: Five brittle sessions | E2: C-CO12, reduced data | E2b: C-CO12, longer training |
-|---|---:|---:|---:|
-| New training runs | 30 | 6 | 6 |
-| SP8 reference wins over PGD6 | 0/15 | 3/3 | 3/3 |
-| Mean Δ clean R² | −0.0233 | +0.0079 | +0.0086 |
-| Mean Δ reference ε½ | −0.3147 | +0.1608 | +0.4907 |
-| SP8 runs with clipped reference ε½ | 15/15 | 0/3 | 0/3 |
-
-The contrast between the brittle and stable sessions is striking.
-
-The five difficult sessions remained vulnerable despite shorter training, whereas the stable C-CO12 session preserved SP8's reference robustness advantage under both reduced-data and extended-training conditions.
-
-Together, these results weaken an explanation based solely on training duration or the effective number of epochs.
-
-They are more consistent with the hypothesis that **whole-residual covariance can permit training perturbations that interfere with behaviorally relevant neural structure**, depending on the recording.
-
-This interpretation is also consistent with the broader findings from Experiment 8: difference-residual training (DIFF8) remained substantially more robust across behavior-supervised sessions than whole-residual SP8.
-
-Nevertheless, E1/E2/E2b do not directly prove the signal-contamination mechanism. That mechanism remains a hypothesis requiring further validation.
-
-## 7. Implications for Automatic Epsilon Selection
-
-These results strengthen the motivation for a training-budget rule that accounts for the relationship between perturbation magnitude and natural signal separation, rather than using detectability alone.
-
-Our proposed AUTO_SIG rule is:
+The new training-budget rule was:
 
 \[
-\varepsilon_{\mathrm{train}}
+\boxed{
+\varepsilon_{\mathrm{train}}(M)
 =
-\min\left(
-(2D)^{1/4},
-\;0.24\,\varepsilon_{\mathrm{sig}}(M)
-\right)
+\min\left[(2D)^{1/4},\;0.24\varepsilon_{\mathrm{sig}}(M)\right]
+}
 \]
 
-where \(\varepsilon_{\mathrm{sig}}(M)\) estimates the separation between natural signal states under the corresponding training metric.
+Here:
 
-The conceptual motivation is that an adversarial perturbation should not become so large, relative to natural signal changes, that the encoder is encouraged to discard behaviorally meaningful information.
+- \(D=CT\) is the total dimensionality of the neural input window, with \(C\) neural channels and \(T=36\) time bins.
+- \(M\) is the covariance-based training metric.
+- \(\varepsilon_{\mathrm{sig}}(M)\) is the estimated typical separation between natural signal states measured in that metric.
+- \(0.24\) is the common signal-relative training fraction.
 
-The earlier retrospective analysis showed that the normalized ratio
+The signal-separation estimator uses the temporal covariance of the training recording to approximate the slowly varying neural signal component.
+
+In the white-temporal case, the corresponding expression is:
 
 \[
-\frac{\varepsilon_{\mathrm{train}}}
-{\varepsilon_{\mathrm{sig}}(M)}
+\varepsilon_{\mathrm{sig}}^2(M)
+=
+2T\operatorname{tr}\left(
+\Sigma_s^{-1}\operatorname{sym}\Gamma_1
+\right),
 \]
 
-was associated with decoder brittleness in supervised CEBRA.
+where \(\Gamma_1\) is the lag-one covariance of the neural recording.
 
-The new E1/E2/E2b results make this direction more relevant because reducing training duration did not solve the SP8 failure.
+The more general implementation accounts for the temporal factor of the training metric.
 
-However, **AUTO_SIG has not yet been trained or prospectively validated**. The retrospective association and the epoch-control experiments do not establish that the proposed automatic budget will improve decoder robustness.
+This rule is distinct from the previously proposed **threat budget**:
 
-The coefficient 0.24 is also informed by our existing Perich analyses; external validation will be necessary before claiming general dataset-independent calibration.
+\[
+\varepsilon_{\mathrm{threat}}
+=
+\min(1,\varepsilon_{\mathrm{NN}},\varepsilon_{\mathrm{det}}).
+\]
 
-## 8. Conclusions and Recommended Next Step
+The threat budget defines the statistical scale of the evaluation threat. AUTO_SIG selects the perturbation magnitude used during adversarial training.
 
-The 42 completed runs support three conclusions:
+The cap \((2D)^{1/4}\) is a theoretical blind-observer energy-detectability scale, not a demonstrated guarantee of biological imperceptibility or low CNN-detector AUC.
 
-**First**, SP8's catastrophic reference-geometry brittleness in behavior-supervised CEBRA persists after substantially reducing the number of training epochs.
+The coefficient 0.24 was informed by the earlier Perich retrospective analyses. Thus, the calibration is automatic *within a recording*, but fully dataset-independent transfer of this coefficient has not yet been established.
 
-**Second**, an otherwise robust session remains robust when the amount of training data is reduced or the number of optimization iterations is doubled.
+### 3.3 Experimental arms
 
-**Third**, the results favor further investigation of session-dependent perturbation geometry and signal preservation over a simple training-duration explanation.
+The experiment evaluated five new methods.
 
-I therefore suggest proceeding with the planned AUTO_SIG experiments as a separate, controlled extension, rather than modifying the established DIFF8 and POOL baselines.
+| Arm | Training perturbation | Calibration | Mode |
+|---|---|---|---|
+| DIFF_AUTO | Difference-residual spatial covariance | AUTO_SIG | Both |
+| SP_AUTO | Whole-residual spatial covariance | AUTO_SIG | Both |
+| REG_AUTO | Regression-residual spatial covariance | AUTO_SIG | Supervised |
+| POOL_AUTO | Whole-covariance and isotropic mixture | AUTO_SIG, separately per pool member | Both |
+| SP8_SIGPROJ | Whole-residual spatial covariance, projected attack | Fixed \(d'=8\) | Supervised |
 
-The prepared Experiment 9 runner includes the following proposed follow-up suites:
+REG_AUTO uses behavioral labels from the training split to estimate regression residuals. Therefore, it should not be described as a completely label-free noise-model estimator, even though its epsilon is not tuned using behavioral validation results.
 
-| Follow-up suite | Mode | Configurations | Planned runs |
-|---|---|---|---:|
-| AUTO_SIG supervised | Behavior-supervised | SPDIFF_AUTO, SP_AUTO, SPREG_AUTO, SP_POOL_AUTO | 108 |
-| AUTO_SIG time-only | Time-only | SPDIFF_AUTO, SP_AUTO, SP_POOL_AUTO | 81 |
-| **Total** | | | **189** |
+POOL_AUTO independently calibrates the budget of each covariance-pool component. The primary epsilon recorded in the run summary corresponds to the first, whole-covariance component; it does not fully describe the isotropic member's internal budget.
 
-The main evaluation should compare these automatic-budget methods against the already completed fixed-budget models on matched sessions and seeds, with **fixed raw-L2 PGD6 as the primary baseline**.
+SP8_SIGPROJ retains the spatial noise model and nominal \(d'=8\) budget while projecting the attack into estimated nuisance directions. Signal modes are estimated from lag-one covariance and difference-residual noise; the `"jnd"` rule removes modes considered detectable over the input window.
 
-The key success criterion should be improved reference-geometry robustness while preserving clean decoding performance, especially in sessions where the original whole-covariance spatial method was brittle.
+### 3.4 Number of runs
 
-We should also track the frequency of clipped half-damage thresholds and performance under the isotropic threat model, to ensure that improvements do not simply move the failure to another attack geometry.
+| Mode | Arms | Sessions | Seeds | Runs |
+|---|---:|---:|---:|---:|
+| Supervised | 5 | 9 | 3 | 135 |
+| Time-only | 3 | 9 | 3 | 81 |
+| **Total** | | | | **216** |
 
-**Overall conclusion:** Experiment 9 provides evidence that the supervised SP8 failure is not resolved by controlling the number of epochs alone. It motivates, but does not yet validate, a signal-aware automatic training-budget mechanism. The next step is to determine whether AUTO_SIG can prevent this brittleness while retaining the reference-geometry robustness gains observed with fixed-budget DIFF8 and POOL.
+All **216/216 runs completed successfully**.
+
+### 3.5 Evaluation metrics
+
+The principal metric was the reference half-damage threshold, \(\varepsilon_{1/2,\mathrm{ref}}\), defined by the evaluated robustness curve's crossing of half the clean decoding \(R^2\).
+
+We additionally report the isotropic half-damage threshold, \(\varepsilon_{1/2,\mathrm{iso}}\), the clean validation \(R^2\), and robust \(R^2\) at selected evaluation budgets.
+
+Both reference and isotropic threats were evaluated using the same standardized protocol as the earlier experiments.
+
+Importantly, a reported half-damage threshold of 0.5000 is **left-censored** by the evaluation grid. It indicates the model was already sufficiently damaged at the smallest evaluated budget; it is not necessarily the true crossing point.
+
+All primary comparisons below use the same session and random seed.
+
+The main baseline remains raw-\(L_2\) PGD6, a fixed, preselected conventional adversarial-training baseline.
+
+Fixed DIFF8, SP8, REG8, and POOL8 are used as corresponding method-specific comparisons.
+
+---
+
+## 4. Automatic Epsilon Values Across Sessions
+
+The first important result is that the budget varied meaningfully by recording and training geometry.
+
+The resulting epsilon values are given below.
+
+| Session | DIFF_AUTO ε | SP_AUTO ε | REG_AUTO ε | POOL_AUTO primary ε |
+|---|---:|---:|---:|---:|
+| C-CO12 | 8.185 | 5.350 | 6.305 | 5.350 |
+| C-CO13 | 8.324 | 5.512 | 6.171 | 5.512 |
+| C-RT13 | 7.746 | 5.556 | 6.007 | 5.556 |
+| C-RT6 | 8.207 | 5.795 | 6.138 | 5.795 |
+| M-CO9 | 10.108 | 7.596 | 8.530 | 7.596 |
+| M-RT3 | 9.560 | 8.243 | 8.650 | 8.243 |
+| T-RT1 | 7.243 | 5.480 | 5.658 | 5.480 |
+| T-RT4 | 6.261 | 4.781 | 5.000 | 4.781 |
+| J-CO0 | 5.909 | 3.710 | 4.083 | 3.710 |
+
+These values were identical across seeds within a session and mode because they were computed from the same training recording before stochastic model training.
+
+For SP_AUTO, the budgets ranged from approximately 3.71 to 8.24. For DIFF_AUTO, they ranged from approximately 5.91 to 10.11.
+
+This confirms that AUTO_SIG did not simply assign a common perturbation budget across recordings.
+
+However, a notable failure case emerged in M-RT3:
+
+\[
+\varepsilon_{\mathrm{SP,AUTO}}=8.243,
+\]
+
+which is slightly larger than the original fixed SP8 budget.
+
+This observation is important for interpreting the continued SP_AUTO failure in that session.
+
+In most arms, the signal-relative budget was active and the realized normalized fraction was approximately 0.24.
+
+For DIFF_AUTO, the blind cap was active in C-RT6, M-CO9, and M-RT3, yielding normalized fractions of approximately 0.230, 0.218, and 0.202, respectively.
+
+Thus, the method uses both components of the minimum rule; it is not purely a fixed multiplier of signal separation in every session.
+
+---
+
+## 5. Supervised CEBRA — Aggregate Results
+
+### 5.1 Mean clean and adversarial performance
+
+All values in this section are means across nine sessions and three seeds, corresponding to 27 matched observations per arm.
+
+| Method | Clean R² | Reference ε½ | Isotropic ε½ |
+|---|---:|---:|---:|
+| PGD6 baseline | 0.5970 | 1.4310 | 3.0142 |
+| Fixed SP8 | 0.5955 | 1.4274 | 1.4106 |
+| Fixed DIFF8 | 0.6075 | 1.7908 | 2.2263 |
+| Fixed REG8 | 0.5969 | 1.5508 | 1.7802 |
+| Fixed POOL8 | 0.6076 | 1.7250 | 2.7348 |
+| **DIFF_AUTO** | **0.6062** | **1.8366** | 2.2951 |
+| **REG_AUTO** | 0.6023 | **1.8361** | 1.9723 |
+| **SP_AUTO** | 0.5930 | 1.8070 | 1.7160 |
+| **POOL_AUTO** | **0.6109** | 1.7902 | **2.9151** |
+| **SP8_SIGPROJ** | 0.6021 | 0.9208 | 1.2582 |
+
+The highest mean reference threshold among the new methods was obtained by DIFF_AUTO, closely followed by REG_AUTO.
+
+POOL_AUTO obtained the highest mean clean \(R^2\) and isotropic threshold among the new supervised methods.
+
+The projected fixed-budget control performed substantially worse in reference robustness.
+
+### 5.2 Paired improvements over PGD6
+
+| Method | Δ Clean R² | Δ Reference ε½ | Reference wins | Clipped runs |
+|---|---:|---:|---:|---:|
+| DIFF_AUTO | +0.0092 | +0.4056 | 27/27 | 0 |
+| REG_AUTO | +0.0053 | +0.4051 | 27/27 | 0 |
+| SP_AUTO | −0.0040 | +0.3761 | 23/27 | 3 |
+| POOL_AUTO | +0.0139 | +0.3593 | 27/27 | 0 |
+| SP8_SIGPROJ | +0.0051 | −0.5102 | 0/27 | 6 |
+
+The geometric-mean multiplicative reference-threshold ratios relative to PGD6 were approximately:
+
+| Method | Reference ε½ ratio vs PGD6 |
+|---|---:|
+| DIFF_AUTO | 1.332× |
+| REG_AUTO | 1.315× |
+| SP_AUTO | 1.192× |
+| POOL_AUTO | 1.291× |
+| SP8_SIGPROJ | 0.678× |
+
+The geometric ratios and arithmetic mean differences summarize different aspects of performance, especially when a baseline is left-censored at the evaluation-grid minimum.
+
+### 5.3 Clean-performance constraint
+
+A proposed criterion for selecting training budgets was to maximize reference robustness while maintaining:
+
+\[
+R^2_{\mathrm{clean,new}}
+\geq
+R^2_{\mathrm{clean,PGD6}}-0.01.
+\]
+
+Evaluated on matched session-seed pairs:
+
+| Method | Pairs satisfying clean constraint | Pairs improving Reference and satisfying clean constraint |
+|---|---:|---:|
+| DIFF_AUTO | 22/27 | 22/27 |
+| REG_AUTO | 20/27 | 20/27 |
+| SP_AUTO | 17/27 | 17/27 |
+| POOL_AUTO | **24/27** | **24/27** |
+| SP8_SIGPROJ | 18/27 | 0/27 |
+
+POOL_AUTO was the strongest supervised AUTO_SIG method under this joint criterion.
+
+It provided a reference improvement in every paired run and remained within the allowed clean-performance margin in 24 of the 27 runs.
+
+DIFF_AUTO also performed well, but it violated the clean constraint in five pairs.
+
+SP_AUTO had a less favorable clean-performance profile, particularly in J-CO0 and M-RT3.
+
+### 5.4 Robustness at evaluation epsilon = 4
+
+The half-damage threshold is the principal reported robustness metric, but it is also useful to examine the actual decoding \(R^2\) under a common perturbation budget.
+
+The following are mean absolute decoding \(R^2\) values at evaluation ε = 4. Negative values are possible because these are ordinary \(R^2\) scores, not probabilities.
+
+| Method | Reference robust R² at ε=4 | Isotropic robust R² at ε=4 |
+|---|---:|---:|
+| PGD6 | −2.6919 | −0.6198 |
+| Fixed DIFF8 | −1.0086 | −1.1302 |
+| Fixed POOL8 | −1.1959 | −0.1652 |
+| DIFF_AUTO | −1.0655 | −1.2183 |
+| REG_AUTO | −0.9490 | −1.5478 |
+| SP_AUTO | −1.1590 | −2.0065 |
+| POOL_AUTO | −1.1509 | −0.0795 |
+| SP8_SIGPROJ | −2.7168 | −1.7551 |
+
+At this specific evaluation budget, REG_AUTO achieved the highest mean reference robust \(R^2\) among the new methods, while POOL_AUTO produced the strongest mean isotropic robust \(R^2\).
+
+However, all mean reference values at ε=4 were negative, indicating substantial decoding degradation at that attack magnitude.
+
+This reinforces the importance of reporting full curves and half-damage thresholds rather than a single large-budget value.
+
+---
+
+## 6. Supervised CEBRA — Complete Session-Level Results
+
+Each entry below contains:
+
+**Clean R² / Reference ε½ / Isotropic ε½**
+
+All entries are means over seeds 42, 43, and 44.
+
+| Session | DIFF_AUTO | SP_AUTO | REG_AUTO | POOL_AUTO | SP8_SIGPROJ |
+|---|---|---|---|---|---|
+| C-CO12 | 0.681 / 2.727 / 4.343 | 0.670 / 3.003 / 3.508 | 0.668 / 2.685 / 3.984 | 0.667 / 2.759 / 4.766 | 0.683 / 1.401 / 2.293 |
+| C-CO13 | 0.784 / 2.784 / 4.246 | 0.778 / 2.959 / 3.610 | 0.769 / 2.944 / 4.064 | 0.778 / 2.766 / 4.416 | 0.786 / 1.544 / 2.271 |
+| C-RT13 | 0.547 / 1.987 / 2.529 | 0.553 / 2.042 / 2.293 | 0.553 / 1.981 / 2.326 | 0.547 / 1.909 / 2.697 | 0.529 / 1.091 / 1.514 |
+| C-RT6 | 0.665 / 1.662 / 1.619 | 0.646 / 1.564 / 1.203 | 0.664 / 1.660 / 1.349 | 0.660 / 1.530 / 2.496 | 0.634 / 0.804 / 0.893 |
+| J-CO0 | 0.669 / 1.029 / 0.837 | 0.621 / 0.853 / 0.527 | 0.642 / 0.921 / 0.567 | 0.710 / 1.068 / 2.174 | 0.697 / 0.622 / 0.869 |
+| M-CO9 | 0.789 / 3.126 / 3.934 | 0.780 / 3.495 / 2.368 | 0.792 / 3.161 / 2.791 | 0.789 / 3.002 / 5.062 | 0.790 / 1.241 / 1.675 |
+| M-RT3 | 0.592 / 1.252 / 1.372 | 0.563 / 0.500 / 0.500 | 0.591 / 1.314 / 1.187 | 0.606 / 1.285 / 2.093 | 0.579 / 0.584 / 0.799 |
+| T-RT1 | 0.449 / 0.816 / 0.715 | 0.456 / 0.753 / 0.580 | 0.469 / 0.774 / 0.601 | 0.470 / 0.730 / 1.053 | 0.485 / 0.500 / 0.500 |
+| T-RT4 | 0.278 / 1.147 / 1.060 | 0.270 / 1.093 / 0.856 | 0.273 / 1.085 / 0.883 | 0.270 / 1.064 / 1.479 | 0.236 / 0.500 / 0.510 |
+
+### 6.1 C-CO12 and C-CO13
+
+In the two C-CO sessions, SP_AUTO achieved the highest mean reference robustness among the new methods.
+
+For C-CO12, SP_AUTO reached a reference threshold of 3.003, compared with 2.409 for PGD6 and 2.567 for fixed SP8.
+
+For C-CO13, SP_AUTO reached 2.959, compared with 2.358 for PGD6 and 2.756 for fixed SP8.
+
+These examples demonstrate that signal-referenced calibration can improve whole-covariance training when the session supports that geometry.
+
+However, its isotropic performance was lower than that of POOL_AUTO and, in general, lower than conventional PGD6.
+
+### 6.2 C-RT13
+
+In C-RT13, all four AUTO_SIG methods achieved reference thresholds near 1.9–2.0.
+
+SP_AUTO reached 2.042, compared with 1.728 for PGD6 and 1.496 for fixed SP8.
+
+Thus, automatic calibration improved the fixed SP8 method substantially in this session.
+
+SIGPROJ reached only 1.091, despite the same nominal training budget as SP8.
+
+### 6.3 C-RT6 — Rescue of a previously brittle session
+
+C-RT6 was one of the most important failure cases in Experiment 8.
+
+Previously, fixed SP8 was clipped at the minimum reference evaluation budget in all three seeds.
+
+The new results were:
+
+| Method | Mean Reference ε½ |
+|---|---:|
+| PGD6 | 0.862 |
+| Fixed SP8 | ≤0.500 |
+| Fixed DIFF8 | 1.662 |
+| DIFF_AUTO | 1.662 |
+| SP_AUTO | 1.564 |
+| REG_AUTO | 1.660 |
+| POOL_AUTO | 1.530 |
+| SP8_SIGPROJ | 0.804 |
+
+SP_AUTO eliminated the lower-grid clipping of fixed SP8 in all three seeds.
+
+However, DIFF_AUTO essentially reproduced the strong fixed-DIFF8 performance rather than providing a large additional improvement.
+
+SIGPROJ improved over fixed SP8 but still fell slightly below PGD6.
+
+These results support the view that reducing the whole-covariance training budget can help in this session, but projection alone was not competitive with the best automatic methods.
+
+### 6.4 J-CO0 — A critical clean-performance case
+
+J-CO0 demonstrates why reference robustness alone is insufficient for method selection.
+
+The mean PGD6 clean \(R^2\) was approximately 0.701.
+
+SP_AUTO achieved a reference threshold of 0.853, slightly above PGD6's 0.813, but its mean clean \(R^2\) fell to 0.621.
+
+This represents a clean-performance decrease of approximately 0.080.
+
+REG_AUTO similarly sacrificed substantial clean performance.
+
+DIFF_AUTO performed better in reference robustness but still reduced clean decoding performance relative to PGD6.
+
+POOL_AUTO was notably more favorable:
+
+\[
+R^2_{\mathrm{clean}}=0.710,
+\qquad
+\varepsilon_{1/2,\mathrm{ref}}=1.068,
+\qquad
+\varepsilon_{1/2,\mathrm{iso}}=2.174.
+\]
+
+Thus, POOL_AUTO was the most attractive of the tested automatic methods for J-CO0 when both clean performance and the reference threat model are considered.
+
+This session illustrates that automatic calibration of the perturbation radius does not by itself guarantee signal preservation.
+
+### 6.5 M-CO9
+
+M-CO9 provided some of the largest robustness improvements.
+
+SP_AUTO achieved a reference threshold of 3.495, compared with 2.288 for PGD6.
+
+This corresponds to an average improvement of approximately 1.207 reference \(d'\) units.
+
+However, the fixed SP8 model reached approximately 3.527 in this recording, slightly exceeding SP_AUTO.
+
+POOL_AUTO produced the strongest isotropic half-damage threshold among the new methods, approximately 5.062, and mean clean \(R^2\) of 0.789.
+
+The result demonstrates that a fixed strong spatial budget can remain competitive, and automatic calibration is not always superior in recordings where the original geometry already performs well.
+
+### 6.6 M-RT3 — Persistent failure of SP_AUTO
+
+M-RT3 is the most important negative result for the proposed universal automatic-budget rule.
+
+| Method | Mean Reference ε½ | Mean Clean R² |
+|---|---:|---:|
+| PGD6 | 1.094 | 0.602 |
+| Fixed SP8 | ≤0.500 | — |
+| DIFF_AUTO | 1.252 | 0.592 |
+| REG_AUTO | 1.314 | 0.591 |
+| SP_AUTO | ≤0.500 | 0.563 |
+| POOL_AUTO | 1.285 | 0.606 |
+| SP8_SIGPROJ | 0.584 | 0.579 |
+
+SP_AUTO remained clipped at the smallest evaluation budget in all three random seeds.
+
+Its automatically selected budget was:
+
+\[
+\varepsilon_{\mathrm{SP,AUTO}}=8.243.
+\]
+
+Consequently, this specific calibration did not reduce the training radius below the earlier fixed SP8 value of 8.
+
+This is a concrete failure of the hypothesis that \(0.24\varepsilon_{\mathrm{sig}}\), capped by the blind threshold, is always sufficiently conservative for whole-covariance training.
+
+By contrast, DIFF_AUTO, REG_AUTO, and POOL_AUTO avoided clipping.
+
+POOL_AUTO also maintained slightly higher mean clean \(R^2\) than PGD6.
+
+This result is especially relevant because it distinguishes automatic scalar calibration from changes in the covariance geometry. A scalar budget adjustment does not necessarily correct a problematic training metric.
+
+### 6.7 T-RT1
+
+T-RT1 was difficult even for PGD6, whose reference threshold was left-censored at 0.5.
+
+All four AUTO_SIG methods obtained an above-grid reference threshold.
+
+DIFF_AUTO achieved the highest mean reference threshold, 0.816, while POOL_AUTO and REG_AUTO provided favorable clean decoding performance.
+
+SIGPROJ remained clipped at 0.5.
+
+These results support the ability of signal-referenced training to improve robustness in a particularly challenging recording, while also illustrating the importance of distinguishing lower-grid clipping from an exact threshold measurement.
+
+### 6.8 T-RT4
+
+Fixed SP8 and SIGPROJ both remained clipped at 0.5 in T-RT4.
+
+All AUTO_SIG methods avoided clipping.
+
+DIFF_AUTO reached the highest mean reference threshold, 1.147, followed by SP_AUTO at 1.093, REG_AUTO at 1.085, and POOL_AUTO at 1.064.
+
+The improvements occurred without sacrificing mean clean \(R^2\) relative to PGD6.
+
+This provides another example in which recalibrating the training radius was more effective than the tested signal-projection mechanism.
+
+---
+
+## 7. Supervised AUTO_SIG Versus the Corresponding Fixed-Budget Method
+
+Comparisons with PGD6 establish the value of noise-aware methods relative to conventional adversarial training.
+
+However, they do not isolate the additional contribution of automatic epsilon calibration.
+
+For that purpose, each AUTO_SIG method must be compared with the fixed-budget version using the same noise geometry.
+
+### 7.1 Reference robustness
+
+| Automatic method | Fixed counterpart | Mean Δ Reference ε½ | Paired wins |
+|---|---|---:|---:|
+| DIFF_AUTO | DIFF8 | +0.0458 | 15/27 |
+| REG_AUTO | REG8 | +0.2853 | 20/27 |
+| SP_AUTO | SP8 | +0.3796 | 21/27 |
+| POOL_AUTO | POOL8 | +0.0652 | 21/27 |
+| SP8_SIGPROJ | SP8 | −0.5066 | 10/27 |
+
+The strongest improvements relative to fixed counterparts occurred for SP_AUTO and REG_AUTO.
+
+DIFF_AUTO had a much smaller mean effect because fixed DIFF8 was already strong.
+
+POOL_AUTO produced a modest positive average improvement in supervised reference robustness, but the effect varied by session.
+
+SIGPROJ was worse on average than the original fixed SP8 method.
+
+### 7.2 Isotropic robustness relative to the fixed counterpart
+
+| Automatic method | Mean Δ Isotropic ε½ vs fixed |
+|---|---:|
+| DIFF_AUTO | +0.0688 |
+| REG_AUTO | +0.1921 |
+| SP_AUTO | +0.3054 |
+| POOL_AUTO | +0.1802 |
+| SP8_SIGPROJ | −0.1524 |
+
+All four AUTO_SIG variants improved mean isotropic half-damage thresholds relative to their corresponding fixed-budget versions.
+
+However, these improvements do not imply superiority to conventional PGD6 in isotropic robustness.
+
+For instance, mean isotropic thresholds remained below PGD6 for all four supervised AUTO_SIG methods, although POOL_AUTO was relatively close.
+
+### 7.3 Interpretation
+
+The evidence supports the value of automatic calibration most strongly for previously unstable training geometries, particularly SP and REG.
+
+For difference-residual training, the automatic rule is primarily competitive with the well-performing fixed \(d'=8\) setting rather than demonstrating a large additional robustness advantage.
+
+The distinction is scientifically important: the contribution of AUTO_SIG is not simply that it makes all models more robust, but that it replaces a manually selected budget with a signal-referenced rule while preserving or improving performance in many cases.
+
+---
+
+## 8. Time-Only CEBRA — Aggregate Results
+
+The time-only experiments comprised 81 runs: three AUTO_SIG arms across nine sessions and three seeds.
+
+### 8.1 Mean results
+
+| Method | Clean R² | Reference ε½ | Isotropic ε½ |
+|---|---:|---:|---:|
+| PGD6 | 0.5069 | 1.3766 | 3.4117 |
+| Fixed DIFF8 | 0.5170 | 1.6238 | 2.3326 |
+| Fixed SP8 | 0.5048 | 1.7255 | 1.7583 |
+| Fixed POOL8 | 0.5292 | 1.6331 | 2.7415 |
+| **DIFF_AUTO** | 0.5178 | 1.6409 | 2.3548 |
+| **SP_AUTO** | 0.5100 | **1.7623** | 1.9550 |
+| **POOL_AUTO** | **0.5252** | 1.5893 | **2.9647** |
+
+SP_AUTO achieved the highest mean reference half-damage threshold among the new time-only methods.
+
+POOL_AUTO achieved the highest clean \(R^2\) and isotropic robustness among the three automatic methods.
+
+Fixed POOL8 nevertheless retained a small advantage in both clean performance and reference robustness over POOL_AUTO.
+
+### 8.2 Paired comparison with PGD6
+
+| Method | Δ Clean R² | Δ Reference ε½ | Reference wins | Clipped runs |
+|---|---:|---:|---:|---:|
+| DIFF_AUTO | +0.0109 | +0.2643 | 25/27 | 0 |
+| SP_AUTO | +0.0032 | +0.3856 | 27/27 | 0 |
+| POOL_AUTO | +0.0183 | +0.2127 | 27/27 | 0 |
+
+The geometric-mean reference ratios relative to PGD6 were:
+
+- DIFF_AUTO: 1.263×
+- SP_AUTO: 1.333×
+- POOL_AUTO: 1.182×
+
+SP_AUTO therefore provided the strongest reference robustness gain relative to PGD6 in time-only CEBRA.
+
+However, its isotropic performance remained substantially lower than that of conventional PGD6.
+
+### 8.3 Comparison with fixed-budget methods
+
+| Automatic method | Fixed counterpart | Mean Δ Reference ε½ | Paired wins |
+|---|---|---:|---:|
+| DIFF_AUTO | DIFF8 | +0.0171 | 14/27 |
+| SP_AUTO | SP8 | +0.0367 | 16/27 |
+| POOL_AUTO | POOL8 | −0.0438 | 8/27 |
+
+These differences are generally small.
+
+In particular, DIFF_AUTO and SP_AUTO were close to their fixed counterparts.
+
+POOL_AUTO underperformed fixed POOL8 in mean reference robustness, despite a higher mean isotropic half-damage threshold.
+
+This is a meaningful negative result for any claim that automatic epsilon calibration universally improves upon fixed training budgets.
+
+### 8.4 Clean-performance constraint
+
+The numbers of matched runs satisfying the clean \(R^2\) tolerance of PGD6 minus 0.01 were:
+
+| Method | Runs satisfying clean constraint |
+|---|---:|
+| DIFF_AUTO | 21/27 |
+| SP_AUTO | 19/27 |
+| POOL_AUTO | **27/27** |
+
+POOL_AUTO was the most reliable of the automatic time-only variants under the clean-performance constraint, although fixed POOL8 remained very competitive overall.
+
+---
+
+## 9. Time-Only CEBRA — Complete Session-Level Results
+
+Each entry reports:
+
+**Clean R² / Reference ε½ / Isotropic ε½**
+
+All values are averaged over the three seeds.
+
+| Session | DIFF_AUTO | SP_AUTO | POOL_AUTO |
+|---|---|---|---|
+| C-CO12 | 0.617 / 2.294 / 4.218 | 0.615 / 2.615 / 4.050 | 0.631 / 2.449 / 4.639 |
+| C-CO13 | 0.690 / 2.336 / 4.036 | 0.684 / 2.587 / 3.510 | 0.714 / 2.411 / 4.278 |
+| C-RT13 | 0.431 / 1.376 / 2.173 | 0.427 / 1.440 / 2.061 | 0.434 / 1.387 / 2.335 |
+| C-RT6 | 0.547 / 1.318 / 1.419 | 0.540 / 1.340 / 1.235 | 0.550 / 1.150 / 2.236 |
+| J-CO0 | 0.577 / 1.085 / 1.100 | 0.548 / 1.047 / 0.746 | 0.617 / 1.084 / 2.610 |
+| M-CO9 | 0.698 / 2.534 / 3.642 | 0.696 / 2.907 / 2.307 | 0.711 / 2.621 / 4.911 |
+| M-RT3 | 0.532 / 1.684 / 2.217 | 0.514 / 1.686 / 1.517 | 0.535 / 1.518 / 2.752 |
+| T-RT1 | 0.374 / 1.072 / 1.272 | 0.367 / 1.128 / 1.125 | 0.338 / 0.812 / 1.393 |
+| T-RT4 | 0.194 / 1.069 / 1.115 | 0.200 / 1.110 / 1.046 | 0.197 / 0.873 / 1.529 |
+
+### 9.1 Notable session-level findings
+
+C-CO12 and C-CO13 retained the strong reference robustness of whole-covariance training. SP_AUTO was favorable under the reference metric, while POOL_AUTO was preferable for clean performance and isotropic robustness.
+
+In C-RT6, DIFF_AUTO and SP_AUTO both improved reference robustness relative to PGD6. POOL_AUTO preserved more isotropic robustness than SP_AUTO.
+
+In J-CO0, POOL_AUTO substantially improved clean decoding performance relative to the other automatic methods, reaching a mean clean \(R^2\) of 0.617.
+
+In M-CO9, SP_AUTO achieved a reference threshold of 2.907, compared with 2.141 for PGD6. POOL_AUTO instead favored isotropic robustness, reaching 4.911.
+
+In M-RT3, all three automatic methods were robust above the evaluation-grid minimum, unlike the supervised whole-covariance failure. This reinforces the importance of considering the interaction between the supervised objective and the attack geometry.
+
+In T-RT1 and T-RT4, SP_AUTO again produced strong reference robustness, but POOL_AUTO was not consistently the best method for that metric.
+
+### 9.2 Interpretation
+
+Time-only CEBRA did not reproduce the widespread whole-covariance collapse seen in behavior-supervised CEBRA.
+
+This is consistent with the earlier finding that whole-covariance spatial training is more fragile when the supervised objective directly incorporates behavioral information.
+
+Nevertheless, the current results do not establish a single causal mechanism. The supervised and time-only training objectives differ, and their representations may respond differently to perturbations even under identical nominal training budgets.
+
+The time-only results primarily establish that AUTO_SIG can preserve competitive reference robustness while assigning the perturbation budget automatically.
+
+---
+
+## 10. Signal Projection Mechanism Test
+
+### 10.1 Hypothesis
+
+The signal-projection experiment tested whether the catastrophic supervised SP8 failures arose primarily because whole-covariance adversarial perturbations could move along behaviorally meaningful neural signal directions.
+
+The proposed intervention was to remove estimated signal modes from the attack space while retaining \(d'=8\).
+
+If the main failure were caused by the attack moving in behaviorally relevant directions, the projected attack might be expected to reduce that interference and restore robust decoding.
+
+### 10.2 Projection characteristics
+
+The number of removed estimated signal modes varied by session:
+
+| Session | Projected-out modes |
+|---|---:|
+| C-CO12 | 22 |
+| C-CO13 | 22 |
+| C-RT13 | 27 |
+| C-RT6 | 24 |
+| M-CO9 | 36 |
+| M-RT3 | 42 |
+| T-RT1 | 23 |
+| T-RT4 | 17 |
+| J-CO0 | 8 |
+
+The projection is therefore session dependent rather than a constant-dimensional operation.
+
+### 10.3 Results
+
+Across the 27 supervised SIGPROJ runs:
+
+| Metric | SP8_SIGPROJ |
+|---|---:|
+| Mean clean R² | 0.6021 |
+| Mean reference ε½ | 0.9208 |
+| Mean isotropic ε½ | 1.2582 |
+| Reference wins over PGD6 | **0/27** |
+| Reference wins over fixed SP8 | 10/27 |
+| Lower-grid-clipped runs | 6/27 |
+| Mean training loss gain | 0.2138 |
+
+Relative to PGD6, the mean reference threshold decreased by approximately 0.510.
+
+Relative to fixed SP8, the mean reference threshold decreased by approximately 0.507.
+
+The projection control therefore did not rescue whole-covariance training as a general method.
+
+### 10.4 Interpretation of partially rescued sessions
+
+SIGPROJ did improve upon the original clipped SP8 result in several difficult recordings:
+
+- C-RT6: reference threshold increased from the 0.5 floor to approximately 0.804.
+- J-CO0: increased from the 0.5 floor to approximately 0.622.
+- M-RT3: increased from the 0.5 floor to approximately 0.584.
+
+However, these values were still below PGD6 and below most AUTO_SIG methods.
+
+In T-RT1 and T-RT4, SIGPROJ remained clipped.
+
+Furthermore, SIGPROJ substantially degraded robustness in recordings where unprojected SP8 was previously effective, such as C-CO12, C-CO13, and M-CO9.
+
+This suggests a possible trade-off: restricting the adversary to estimated nuisance directions can reduce harmful interference with signal directions, but may also weaken adversarial training or remove useful robustness-inducing perturbations.
+
+The low observed training loss gain is compatible with a weaker or more constrained effective adversary.
+
+These findings do **not** disprove the broader signal-subspace hypothesis. They show that this particular projection estimator, threshold, and fixed-budget implementation did not deliver a general improvement.
+
+A causal conclusion about the importance of attack direction would require additional controls that account for differences in the effective strength of the projected attack.
+
+---
+
+## 11. What Do the Results Establish About Automatic Epsilon Calibration?
+
+### 11.1 What is supported
+
+The experiments establish that the proposed calibration rule can:
+
+- Produce finite and different training budgets across sessions and covariance geometries without a validation-budget sweep.
+- Train successfully across both supervised and time-only CEBRA.
+- Preserve strong reference robustness relative to conventional PGD6 for most methods and virtually all session-seed pairs.
+- Avoid lower-grid clipping for DIFF_AUTO, REG_AUTO, and POOL_AUTO throughout the supervised experiment.
+- Improve some previously unstable whole-covariance sessions by reducing their training radius.
+- Remain competitive with fixed DIFF8 and POOL8, particularly in the supervised setting.
+
+### 11.2 What is not supported
+
+The results do not support the stronger claim that AUTO_SIG:
+
+- Always outperforms a well-chosen fixed \(d'=8\) budget.
+- Prevents every catastrophic failure of whole-covariance spatial training.
+- Automatically preserves clean decoding performance within a prescribed margin in every session.
+- Eliminates the reference-versus-isotropic robustness trade-off.
+- Has been validated without any prior dataset-level calibration of its common fraction.
+- Guarantees low attack detectability against separately trained discriminative detectors.
+
+The experiment also does not establish that a higher ε½ under the reference metric implies robustness to all biologically meaningful perturbations.
+
+### 11.3 The fixed-budget comparison is essential
+
+For supervised DIFF_AUTO:
+
+\[
+\Delta\varepsilon_{1/2,\mathrm{ref}}
+=
++0.0458
+\]
+
+relative to fixed DIFF8.
+
+For time-only DIFF_AUTO:
+
+\[
+\Delta\varepsilon_{1/2,\mathrm{ref}}
+=
++0.0171.
+\]
+
+These small improvements mean that the principal contribution cannot be described simply as a large increase in robustness over fixed DIFF8.
+
+Instead, the contribution is that a recording-dependent epsilon calibration was able to recover approximately the same strong performance without selecting one shared hand-specified training epsilon for every recording.
+
+For POOL_AUTO, the evidence is somewhat stronger in supervised CEBRA but mixed in time-only CEBRA.
+
+The distinction should remain explicit in any future manuscript.
+
+---
+
+## 12. Statistical Interpretation
+
+The dataset comprises nine sessions from four monkeys, with three seeds for each session.
+
+The 27 seed-level results per arm are matched observations, but they are not 27 independent biological datasets.
+
+The strongest evidence is therefore the repeated direction of performance differences across sessions, supported by matched-seed consistency.
+
+For example:
+
+- Supervised DIFF_AUTO improved reference robustness over PGD6 in 9/9 session means.
+- Supervised REG_AUTO improved reference robustness over PGD6 in 9/9 session means.
+- Supervised POOL_AUTO improved reference robustness over PGD6 in 9/9 session means.
+- Supervised SP_AUTO improved reference robustness over PGD6 in 8/9 session means.
+- Time-only DIFF_AUTO, SP_AUTO, and POOL_AUTO each improved reference robustness over PGD6 in 9/9 session means.
+
+As an exploratory descriptive check, a two-sided paired Wilcoxon signed-rank test on the nine session-mean reference differences gives \(p=0.0039\) for comparisons in which all nine session differences are positive.
+
+However, these are exploratory tests, and the nine sessions are themselves nested within four animals. The p-values should not be treated as independent-animal confirmation or interpreted without accounting for the multiple method comparisons.
+
+Crucially, performance gains relative to the fixed-budget counterparts are less consistent.
+
+For example:
+
+| Supervised comparison | Session-mean wins | Exploratory Wilcoxon p |
+|---|---:|---:|
+| DIFF_AUTO vs DIFF8 | 5/9 | 0.359 |
+| REG_AUTO vs REG8 | 8/9 | 0.039 |
+| SP_AUTO vs SP8 | 7/9 | 0.016 |
+| POOL_AUTO vs POOL8 | 7/9 | 0.164 |
+
+These exploratory unadjusted results suggest that improvements over fixed-budget methods are more convincing for the previously unstable SP and REG geometries than for DIFF8 or POOL8.
+
+They do not by themselves establish generalization to unseen animals or datasets.
+
+Animal-level comparisons and an independent-dataset test remain important.
+
+---
+
+## 13. Limitations
+
+Several limitations should be acknowledged.
+
+**First, the signal-separation estimate relies on assumptions about temporal noise and slowly varying signal.** Lag-one covariance is a practical signal proxy, not direct measurement of behaviorally sufficient neural information.
+
+**Second, the coefficient 0.24 was informed by Perich retrospective results.** Although no behavioral validation sweep was used to choose epsilon for each new recording, the global coefficient is not yet independently validated.
+
+**Third, the training geometries themselves influence the meaning of epsilon.** Equal nominal \(d'\) budgets are not necessarily equivalent in their ability to perturb behaviorally important structure.
+
+**Fourth, the half-damage threshold is left-censored at 0.5.** Apparent equalities at this boundary should not be interpreted as true equalities of robustness.
+
+**Fifth, the isotropic and reference threat models reveal different rankings.** Optimizing one geometry can sacrifice robustness under another.
+
+**Sixth, the experiment used the established attack evaluation configuration.** Additional multi-restart or stronger-step-budget testing would be useful to exclude weaknesses in attack optimization.
+
+**Seventh, the current evidence is limited to nine sessions from four monkeys.** External recordings with different neural modalities, noise structure, and behavioral tasks are needed to demonstrate broader calibration transfer.
+
+**Finally, Experiment 9 did not establish the detectability of the new trained models' perturbations against an independent supervised CNN detector.** A theoretical detectability cap should not be presented as equivalent to empirical adversarial stealth.
+
+---
+
+## 14. Recommended Method Selection
+
+The results suggest that a single method should not be selected based only on mean reference robustness.
+
+Under the proposed joint criterion of reference robustness and preservation of clean performance, the following distinctions are useful.
+
+| Objective | Most promising method | Reason |
+|---|---|---|
+| Strong, stable reference robustness in supervised CEBRA | DIFF_AUTO | Highest mean reference threshold among new methods; no clipped runs |
+| Supervised balance of clean performance and reference robustness | POOL_AUTO | Highest mean clean R²; 27/27 reference wins over PGD6; 24/27 satisfy clean constraint |
+| Supervised improvement over previously unstable fixed spatial training | SP_AUTO, with caveats | Large gains in multiple sessions, but persistent M-RT3 failure |
+| Supervised regression-based alternative | REG_AUTO | Strong reference gains and no clipping, but uses training behavioral labels |
+| Highest mean time-only reference robustness among automatic arms | SP_AUTO | Mean reference threshold 1.7623 |
+| Time-only clean performance and isotropic balance | POOL_AUTO | Strong clean performance and isotropic robustness, although fixed POOL8 remains competitive |
+| Fixed-budget projection alternative | Not recommended as tested | Weak reference performance relative to PGD6 and the AUTO_SIG arms |
+
+For a conservative label-free noise-estimation method that must operate in both supervised and time-only CEBRA, DIFF_AUTO remains an attractive candidate.
+
+For an application in which clean behavioral decoding performance and robustness across attack geometries are considered jointly, POOL_AUTO merits further evaluation.
+
+However, if the objective is strictly the best reference-geometry performance on these Perich sessions, the fixed-budget methods must remain part of the comparison.
+
+---
+
+## 15. Proposed Next Experiments
+
+### 15.1 Independent calibration transfer
+
+Evaluate the same AUTO_SIG rule on a dataset not used to motivate the coefficient 0.24.
+
+Keep the fraction fixed.
+
+The primary question would be whether the method can preserve robust performance without new dataset-specific epsilon selection.
+
+### 15.2 Failure analysis of M-RT3
+
+The persistent supervised SP_AUTO failure is particularly informative.
+
+A focused budget comparison around its automatically selected value of 8.243 could determine whether reducing the training radius further resolves the failure or whether the whole-covariance geometry remains problematic even at substantially smaller budgets.
+
+This should be treated as a diagnostic experiment, not as a replacement for the existing automatic rule.
+
+### 15.3 Stronger adversarial evaluation
+
+Evaluate selected models under more extensive APGD optimization, including multiple restarts and a larger attack-step budget.
+
+Compare reference and isotropic geometries under exactly matched evaluation conditions.
+
+### 15.4 Detectability controls
+
+Repeat discriminative and blind detectability analyses for representative AUTO_SIG methods.
+
+This would help determine whether the automatically selected training budgets correspond to genuinely difficult-to-detect perturbations under the learned detector models, rather than relying exclusively on the theoretical cap.
+
+### 15.5 More informative projection controls
+
+For SIGPROJ, compare the effect of removing different numbers of estimated signal modes and examine the realized attack strength.
+
+The current results suggest that the projection substantially changes the effective adversary. A matched-strength control would be needed before concluding that nuisance-only perturbations are intrinsically less useful for robust training.
+
+---
+
+## 16. Final Conclusions
+
+Experiment 9 provides the first full prospective evaluation of signal-referenced automatic epsilon calibration in both time-only and behavior-supervised CEBRA across the nine Perich recordings.
+
+The computational result was complete: **216 successful new training runs**, comprising 189 AUTO_SIG models and 27 signal-projection controls.
+
+The principal scientific result is that AUTO_SIG can produce competitive, often strongly robust neural representations without selecting epsilon separately through behavioral validation sweeps.
+
+In supervised CEBRA, all four automatic methods improved reference robustness over conventional PGD6 on average, with DIFF_AUTO, REG_AUTO, and POOL_AUTO winning all 27 matched comparisons.
+
+The strongest clean-performance compromise was obtained by POOL_AUTO, while DIFF_AUTO provided particularly stable reference robustness.
+
+However, automatic epsilon calibration did not universally improve upon the corresponding fixed \(d'=8\) methods, and SP_AUTO retained a catastrophic failure in M-RT3.
+
+The SIGPROJ experiment provided partial improvements in certain previously brittle sessions but failed to deliver a broadly competitive alternative.
+
+The overall evidence therefore supports a nuanced conclusion:
+
+**Signal-referenced automatic epsilon calibration is a viable and useful method for selecting recording-specific adversarial-training budgets. Its principal contribution is automatic, interpretable calibration with competitive robustness—not universal dominance over strong fixed-budget adversarial training.**
+
+Further evaluation on independent recordings is necessary to establish whether this calibration generalizes beyond the Perich sessions and whether its common signal-relative fraction can be transferred without retuning.
+
+---
+
+## Reproducibility and Source Results
+
+**Experiment 9 output directories**
+
+- `DPRIME_EXP9_AUTOSIG_SUPERVISED` — 135 supervised runs.
+- `DPRIME_EXP9_AUTOSIG_TIMEONLY` — 81 time-only runs.
+
+**Earlier paired baselines**
+
+- `DPRIME_EXP5`
+- `DPRIME_EXP6`
+- `DPRIME_SUPERVISED_PERICH_EXP8`
+
+**Implementation**
+
+- `Exp9_autosig_bundle_v2.zip`
+- `dprime_exp9.py`
+- Modified `Acorn-dprime` fork with `auto_sig` calibration and signal-subspace projection.
+
+All reported aggregate statistics were reconstructed from the completed 216-run terminal results and matched with the original Exp5/6/8 numerical evaluation records by session, seed, and method.
+
+All results should be interpreted as performance on the evaluated Perich recordings under the specified threat models and training configurations, rather than as universal properties of adversarial training.
