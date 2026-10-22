@@ -1,832 +1,114 @@
-mirzaei@haas034:~/sam/result/Aggregate$ runai logs sam-dprime -p upmwmathis-mirzaei -f
-========== EXP10 STRONG EVALUATION ==========
-100 APGD steps | 3 restarts | 4 H200 GPUs
-No model training
-Thu Oct 22 14:38:27 2026       
-+-----------------------------------------------------------------------------------------+
-| NVIDIA-SMI 580.159.04             Driver Version: 580.159.04     CUDA Version: 13.0     |
-+-----------------------------------------+------------------------+----------------------+
-| GPU  Name                 Persistence-M | Bus-Id          Disp.A | Volatile Uncorr. ECC |
-| Fan  Temp   Perf          Pwr:Usage/Cap |           Memory-Usage | GPU-Util  Compute M. |
-|                                         |                        |               MIG M. |
-|=========================================+========================+======================|
-|   0  NVIDIA H200                    On  |   00000000:03:00.0 Off |                    0 |
-| N/A   38C    P0             76W /  700W |       4MiB / 143771MiB |      0%      Default |
-|                                         |                        |             Disabled |
-+-----------------------------------------+------------------------+----------------------+
-|   1  NVIDIA H200                    On  |   00000000:63:00.0 Off |                    0 |
-| N/A   29C    P0             75W /  700W |       4MiB / 143771MiB |      0%      Default |
-|                                         |                        |             Disabled |
-+-----------------------------------------+------------------------+----------------------+
-|   2  NVIDIA H200                    On  |   00000000:83:00.0 Off |                    0 |
-| N/A   30C    P0             75W /  700W |       4MiB / 143771MiB |      0%      Default |
-|                                         |                        |             Disabled |
-+-----------------------------------------+------------------------+----------------------+
-|   3  NVIDIA H200                    On  |   00000000:A3:00.0 Off |                    0 |
-| N/A   30C    P0             73W /  700W |       4MiB / 143771MiB |      0%      Default |
-|                                         |                        |             Disabled |
-+-----------------------------------------+------------------------+----------------------+
-
-+-----------------------------------------------------------------------------------------+
-| Processes:                                                                              |
-|  GPU   GI   CI              PID   Type   Process name                        GPU Memory |
-|        ID   ID                                                               Usage      |
-|=========================================================================================|
-|  No running processes found                                                             |
-+-----------------------------------------------------------------------------------------+
-========== VERIFY SAVED MODELS ==========
-DPRIME_EXP5                      MADRY_SPDIFF_D8            9 models
-DPRIME_EXP5                      MADRY_SP_D8                9 models
-DPRIME_EXP5                      PGD_L2_EPS6                9 models
-DPRIME_EXP6                      MADRY_SPDIFF_D8           18 models
-DPRIME_EXP6                      MADRY_SP_D8               18 models
-DPRIME_EXP6                      MADRY_SP_D8_POOL          27 models
-DPRIME_EXP6                      PGD_L2_EPS6               18 models
-DPRIME_EXP9_AUTOSIG_SUPERVISED   MADRY_SPDIFF_AUTOSIG      27 models
-DPRIME_EXP9_AUTOSIG_SUPERVISED   MADRY_SPREG_AUTOSIG       27 models
-DPRIME_EXP9_AUTOSIG_SUPERVISED   MADRY_SP_AUTOSIG          27 models
-DPRIME_EXP9_AUTOSIG_SUPERVISED   MADRY_SP_AUTOSIG_POOL     27 models
-DPRIME_EXP9_AUTOSIG_TIMEONLY     MADRY_SPDIFF_AUTOSIG      27 models
-DPRIME_EXP9_AUTOSIG_TIMEONLY     MADRY_SP_AUTOSIG          27 models
-DPRIME_EXP9_AUTOSIG_TIMEONLY     MADRY_SP_AUTOSIG_POOL     27 models
-DPRIME_SUPERVISED_PERICH_EXP8    MADRY_SPDIFF_D8           27 models
-DPRIME_SUPERVISED_PERICH_EXP8    MADRY_SPREG_D8            27 models
-DPRIME_SUPERVISED_PERICH_EXP8    MADRY_SP_D8               27 models
-DPRIME_SUPERVISED_PERICH_EXP8    MADRY_SP_D8_POOL          27 models
-DPRIME_SUPERVISED_PERICH_EXP8    PGD_L2_EPS6               27 models
-432 models, 0 already evaluated with tag 'strong'
-432 models, 0 already evaluated with tag 'strong'
-========== START STRONG EVALUATION ==========
-432 saved models found, 432 to evaluate (steps=100, restarts=3, tag=strong)
-[GPU 0] shard 0 started, log=STRONG_EVAL_strong/worker0.out
-[GPU 1] shard 1 started, log=STRONG_EVAL_strong/worker1.out
-[GPU 2] shard 2 started, log=STRONG_EVAL_strong/worker2.out
-[GPU 3] shard 3 started, log=STRONG_EVAL_strong/worker3.out
-shard log STRONG_EVAL_strong/worker0.out: exit 0
-shard log STRONG_EVAL_strong/worker1.out: exit 0
-shard log STRONG_EVAL_strong/worker2.out: exit 0
-shard log STRONG_EVAL_strong/worker3.out: exit 0
-STRONGER-ATTACK CHECK (steps=100, restarts=3) - 432 models with both evaluations
-
-How to read: the half-damage thresholds drop under the stronger attack (it can only
-be stronger). Gradient masking would show as a larger drop for the noise-aware
-models than for PGD6, i.e. a paired ratio to PGD6 that shrinks from v1 to strong.
-
-Per arm: mean half-damage thresholds and median ratio strong / v1
-      mode       arm  models  ref_half_v1  ref_half_strong  ref_drop_median  iso_half_v1  iso_half_strong  iso_drop_median  clipped_v1  clipped_strong
-supervised     DIFF8      27        1.791            1.759            0.998        2.226            2.198            0.996           0               0
-supervised DIFF_AUTO      27        1.837            1.804            0.997        2.295            2.270            0.995           0               0
-supervised      PGD6      27        1.431            1.408            0.994        3.014            2.964            0.994           3               3
-supervised     POOL8      27        1.725            1.702            0.996        2.735            2.708            0.995           1               1
-supervised POOL_AUTO      27        1.790            1.764            0.996        2.915            2.886            0.996           0               0
-supervised      REG8      27        1.551            1.525            0.998        1.780            1.754            0.999          12              12
-supervised  REG_AUTO      27        1.836            1.805            0.996        1.972            1.951            0.997           0               0
-supervised       SP8      27        1.427            1.385            1.000        1.411            1.362            1.000          15              15
-supervised   SP_AUTO      27        1.807            1.772            0.996        1.716            1.675            0.997           3               3
- time_only     DIFF8      27        1.624            1.614            0.998        2.333            2.320            0.996           0               0
- time_only DIFF_AUTO      27        1.641            1.632            0.998        2.355            2.343            0.997           0               0
- time_only      PGD6      27        1.377            1.366            0.998        3.412            3.387            0.997           0               0
- time_only     POOL8      27        1.633            1.625            0.998        2.742            2.733            0.999           0               0
- time_only POOL_AUTO      27        1.589            1.581            0.998        2.965            2.952            0.998           0               0
- time_only       SP8      27        1.726            1.717            0.998        1.758            1.746            0.997           0               0
- time_only   SP_AUTO      27        1.762            1.752            0.998        1.955            1.945            0.997           0               0
-
-Paired with PGD6 (same mode, session, seed): geometric-mean ratio of the half-damage thresholds over sessions, and sessions won, under the original (v1) and the strong attack
-      mode       arm  pairs  ref_ratio_v1 ref_sessions_won_v1  ref_ratio_strong ref_sessions_won_strong  iso_ratio_v1 iso_sessions_won_v1  iso_ratio_strong iso_sessions_won_strong
-supervised     DIFF8     27         1.317                 9/9             1.315                     9/9         0.823                 2/9             0.826                     2/9
-supervised DIFF_AUTO     27         1.331                 9/9             1.330                     9/9         0.837                 2/9             0.841                     2/9
-supervised     POOL8     27         1.200                 8/9             1.203                     8/9         1.083                 2/9             1.083                     2/9
-supervised POOL_AUTO     27         1.291                 9/9             1.292                     9/9         1.166                 2/9             1.173                     2/9
-supervised      REG8     27         0.933                 5/9             0.936                     5/9         0.562                 0/9             0.564                     0/9
-supervised  REG_AUTO     27         1.315                 9/9             1.314                     9/9         0.699                 2/9             0.703                     2/9
-supervised       SP8     27         0.813                 3/9             0.807                     3/9         0.459                 0/9             0.455                     0/9
-supervised   SP_AUTO     27         1.192                 8/9             1.191                     8/9         0.589                 2/9             0.588                     2/9
- time_only     DIFF8     27         1.253                 9/9             1.254                     9/9         0.664                 0/9             0.665                     0/9
- time_only DIFF_AUTO     27         1.263                 9/9             1.264                     9/9         0.675                 0/9             0.676                     0/9
- time_only     POOL8     27         1.212                 9/9             1.214                     9/9         0.816                 0/9             0.818                     0/9
- time_only POOL_AUTO     27         1.182                 9/9             1.184                     9/9         0.887                 0/9             0.889                     0/9
- time_only       SP8     27         1.286                 9/9             1.289                     9/9         0.488                 0/9             0.488                     0/9
- time_only   SP_AUTO     27         1.333                 9/9             1.334                     9/9         0.554                 0/9             0.555                     0/9
-
-========== VERIFY COMPLETION ==========
-432 models, 432 already evaluated with tag 'strong'
-========== EXP10 STRONG EVAL COMPLETE: 432/432 ==========
-
-
-
 mirzaei@haas034:~/sam/result/Aggregate$ cd ~/sam/result/Aggregate
+for f in SUMMARY_BEH.txt session_behaviour.csv sessions_behaviour_outcomes.csv tests_behaviour.csv rule_preview.csv; do
+  echo "========== $f =========="
+  cat BEHAVIOUR_BUDGET_TESTS/$f
+done
+========== SUMMARY_BEH.txt ==========
+BEHAVIOUR-REFERENCED TRAINING BUDGET - RETROSPECTIVE TEST (no training)
 
-{
-    echo "========== SUMMARY =========="
-    if [ -f STRONG_EVAL_strong/SUMMARY.txt ]; then
-        cat STRONG_EVAL_strong/SUMMARY.txt
-    else
-        echo "SUMMARY.txt not found"
-    fi
+How to read (the behaviour-referenced hypothesis is supported if):
+  1  M-RT3 has the smallest (or an unusually small) eps_beh / eps_sig for the SP metric;
+  2  in SUPERVISED CEBRA, x_beh (lin and/or nl) has a higher AUC and LOSO accuracy for the broken
+     decoders than x_sig, and SP_AUTO in M-RT3 has a larger x_beh than SP_AUTO in the four sessions
+     it rescued (C-RT6, T-RT4, J-CO0, T-RT1);
+  3  in TIME-ONLY CEBRA, x_sig does at least as well as x_beh (the time-contrastive encoder keeps
+     all slow structure);
+  4  the eps_beh rule would give supervised SP in M-RT3 a budget well below 8.24, while the budgets
+     of the rescued sessions stay near the ones that worked (3.7-5.8).
 
-    echo
-    echo "========== RESULT FILES =========="
-    find . -maxdepth 3 -type f \
-      \( -iname '*.csv' -o -iname '*.tsv' -o -iname '*.json' \
-         -o -iname '*.db' -o -iname '*.sqlite*' \
-         -o -iname '*summary*' \) \
-      -printf '%p (%s bytes)\n' | sort
+Per session: signal separation (SP metric), behavioural part (lin / nl), and broken supervised decoders (out of 3 seeds) per arm
+         eps_sig_sp  eps_beh_lin_sp  eps_beh_nl_sp  ratio_beh_lin_sp  ratio_beh_nl_sp  r2_activity_from_behaviour_nl  broken_SP8  broken_SP_AUTO  broken_REG8  broken_REG_AUTO  broken_DIFF8  broken_DIFF_AUTO  broken_POOL8  broken_POOL_AUTO  broken_PGD6  SP_AUTO_eps_train  SP_AUTO_x_sig  SP_AUTO_x_beh_nl
+session                                                                                                                                                                                                                                                                                                        
+C-CO12       22.293          14.854         21.608             0.666            0.969                          0.210           0               0            0                0             0                 0             0                 0            0              5.350           0.24             0.248
+C-CO13       22.965          13.701         20.569             0.597            0.896                          0.189           0               0            0                0             0                 0             0                 0            0              5.512           0.24             0.268
+C-RT13       23.148           9.498         18.791             0.410            0.812                          0.129           0               0            0                0             0                 0             0                 0            0              5.556           0.24             0.296
+C-RT6        24.145          10.668         13.599             0.442            0.563                          0.126           3               0            3                0             0                 0             0                 0            0              5.795           0.24             0.426
+M-CO9        31.651          16.510         23.564             0.522            0.745                          0.241           0               0            0                0             0                 0             0                 0            0              7.596           0.24             0.322
+M-RT3        34.346           9.773         12.180             0.285            0.355                          0.065           3               3            0                0             0                 0             0                 0            0              8.243           0.24             0.677
+T-RT1        22.832           7.451          9.479             0.326            0.415                          0.045           3               0            3                0             0                 0             0                 0            3              5.480           0.24             0.578
+T-RT4        19.922           9.184         12.933             0.461            0.649                          0.085           3               0            3                0             0                 0             0                 0            0              4.781           0.24             0.370
+J-CO0        15.458           8.953         13.221             0.579            0.855                          0.450           3               0            3                0             0                 0             1                 0            0              3.710           0.24             0.281
 
-    echo
-    echo "========== WORKER COUNTS =========="
-    for f in STRONG_EVAL_strong/worker*.out; do
-        printf "%s: " "$(basename "$f")"
-        grep -c '^\[shard [0-3]\] OK ' "$f"
-    done
+Rank of the eps_beh_nl / eps_sig ratio (SP metric), smallest first: M-RT3, T-RT1, C-RT6, T-RT4, M-CO9, C-RT13, J-CO0, C-CO13, C-CO12
 
-    echo
-    echo "========== ERRORS =========="
-    grep -HinE 'ERROR|Traceback|FAILED|out of memory|OOM|Killed' \
-      STRONG_EVAL_strong/worker*.out || echo "No matching errors found"
+Separation of the broken runs (AUC; c*: broken when x >= c*; LOSO accuracy)
+      mode        outcome predictor  n_runs  n_failed   auc  c_star  loso_accuracy  loso_c_min  loso_c_max
+supervised failed_decoder x_nominal     297        34 0.668   7.872          0.478       7.795       7.872
+supervised failed_decoder   x_blind     297        34 0.799   0.967          0.751       0.959       0.969
+supervised failed_decoder     x_sig     297        34 0.859   0.312          0.872       0.310       0.326
+supervised failed_decoder x_beh_lin     297        34 0.968   0.741          0.906       0.610       0.743
+supervised failed_decoder  x_beh_nl     297        34 0.966   0.505          0.896       0.505       0.530
+ time_only failed_decoder x_nominal     279        10 0.970  12.482          0.932      12.338      13.997
+ time_only failed_decoder   x_blind     279        10 0.977   1.287          0.896       1.287       1.933
+ time_only failed_decoder     x_sig     279        10 0.974   0.368          0.889       0.365       0.642
+ time_only failed_decoder x_beh_lin     279        10 0.993   1.007          0.950       0.988       1.190
+ time_only failed_decoder  x_beh_nl     279        10 0.997   0.809          0.975       0.803       0.994
+ time_only     failed_any x_nominal     279        17 0.968  12.482          0.907       9.607      12.482
+ time_only     failed_any   x_blind     279        17 0.973   1.287          0.925       1.286       1.287
+ time_only     failed_any     x_sig     279        17 0.990   0.368          0.914       0.365       0.486
+ time_only     failed_any x_beh_lin     279        17 0.993   0.931          0.971       0.920       1.007
+ time_only     failed_any  x_beh_nl     279        17 0.984   0.678          0.950       0.674       0.725
 
-} 2>&1
-========== SUMMARY ==========
-STRONGER-ATTACK CHECK (steps=100, restarts=3) - 432 models with both evaluations
-
-How to read: the half-damage thresholds drop under the stronger attack (it can only
-be stronger). Gradient masking would show as a larger drop for the noise-aware
-models than for PGD6, i.e. a paired ratio to PGD6 that shrinks from v1 to strong.
-
-Per arm: mean half-damage thresholds and median ratio strong / v1
-      mode       arm  models  ref_half_v1  ref_half_strong  ref_drop_median  iso_half_v1  iso_half_strong  iso_drop_median  clipped_v1  clipped_strong
-supervised     DIFF8      27        1.791            1.759            0.998        2.226            2.198            0.996           0               0
-supervised DIFF_AUTO      27        1.837            1.804            0.997        2.295            2.270            0.995           0               0
-supervised      PGD6      27        1.431            1.408            0.994        3.014            2.964            0.994           3               3
-supervised     POOL8      27        1.725            1.702            0.996        2.735            2.708            0.995           1               1
-supervised POOL_AUTO      27        1.790            1.764            0.996        2.915            2.886            0.996           0               0
-supervised      REG8      27        1.551            1.525            0.998        1.780            1.754            0.999          12              12
-supervised  REG_AUTO      27        1.836            1.805            0.996        1.972            1.951            0.997           0               0
-supervised       SP8      27        1.427            1.385            1.000        1.411            1.362            1.000          15              15
-supervised   SP_AUTO      27        1.807            1.772            0.996        1.716            1.675            0.997           3               3
- time_only     DIFF8      27        1.624            1.614            0.998        2.333            2.320            0.996           0               0
- time_only DIFF_AUTO      27        1.641            1.632            0.998        2.355            2.343            0.997           0               0
- time_only      PGD6      27        1.377            1.366            0.998        3.412            3.387            0.997           0               0
- time_only     POOL8      27        1.633            1.625            0.998        2.742            2.733            0.999           0               0
- time_only POOL_AUTO      27        1.589            1.581            0.998        2.965            2.952            0.998           0               0
- time_only       SP8      27        1.726            1.717            0.998        1.758            1.746            0.997           0               0
- time_only   SP_AUTO      27        1.762            1.752            0.998        1.955            1.945            0.997           0               0
-
-Paired with PGD6 (same mode, session, seed): geometric-mean ratio of the half-damage thresholds over sessions, and sessions won, under the original (v1) and the strong attack
-      mode       arm  pairs  ref_ratio_v1 ref_sessions_won_v1  ref_ratio_strong ref_sessions_won_strong  iso_ratio_v1 iso_sessions_won_v1  iso_ratio_strong iso_sessions_won_strong
-supervised     DIFF8     27         1.317                 9/9             1.315                     9/9         0.823                 2/9             0.826                     2/9
-supervised DIFF_AUTO     27         1.331                 9/9             1.330                     9/9         0.837                 2/9             0.841                     2/9
-supervised     POOL8     27         1.200                 8/9             1.203                     8/9         1.083                 2/9             1.083                     2/9
-supervised POOL_AUTO     27         1.291                 9/9             1.292                     9/9         1.166                 2/9             1.173                     2/9
-supervised      REG8     27         0.933                 5/9             0.936                     5/9         0.562                 0/9             0.564                     0/9
-supervised  REG_AUTO     27         1.315                 9/9             1.314                     9/9         0.699                 2/9             0.703                     2/9
-supervised       SP8     27         0.813                 3/9             0.807                     3/9         0.459                 0/9             0.455                     0/9
-supervised   SP_AUTO     27         1.192                 8/9             1.191                     8/9         0.589                 2/9             0.588                     2/9
- time_only     DIFF8     27         1.253                 9/9             1.254                     9/9         0.664                 0/9             0.665                     0/9
- time_only DIFF_AUTO     27         1.263                 9/9             1.264                     9/9         0.675                 0/9             0.676                     0/9
- time_only     POOL8     27         1.212                 9/9             1.214                     9/9         0.816                 0/9             0.818                     0/9
- time_only POOL_AUTO     27         1.182                 9/9             1.184                     9/9         0.887                 0/9             0.889                     0/9
- time_only       SP8     27         1.286                 9/9             1.289                     9/9         0.488                 0/9             0.488                     0/9
- time_only   SP_AUTO     27         1.333                 9/9             1.334                     9/9         0.554                 0/9             0.555                     0/9
-
-========== RESULT FILES ==========
-./ACORN_AUTO_EPS/run_20261007_211524/config.json (5358 bytes)
-./ACORN_AUTO_EPS/run_20261007_211524/part1_epsilons.csv (1785 bytes)
-./ACORN_AUTO_EPS/run_20261007_211524/results.json (34367 bytes)
-./ACORN_AUTO_EPS/run_20261007_211524/summary.csv (3099 bytes)
-./ACORN_AUTO_EPS/run_20261007_211524/summary.txt (5430 bytes)
-./ACORN_AUTO_EPS_50/parallel_manifest.json (1294 bytes)
-./ACORN_AUTO_EPS_50/results.json (164944 bytes)
-./ACORN_AUTO_EPS_50/summary.csv (13422 bytes)
-./ACORN_AUTO_EPS_50/summary.txt (14535 bytes)
-./ACORN_AUTO_EPS_50_L2/parallel_manifest.json (1276 bytes)
-./ACORN_AUTO_EPS_50_L2/results.json (164761 bytes)
-./ACORN_AUTO_EPS_50_L2/summary.csv (13424 bytes)
-./ACORN_AUTO_EPS_50_L2/summary.txt (14512 bytes)
-./ACORN_CALIBRATED_EXPERIMENT/C-C012_random_tau0.05_20261005_073410_479485/calibration.json (9829 bytes)
-./ACORN_CALIBRATED_EXPERIMENT/C-C012_random_tau0.05_20261005_073410_479485/results.csv (107520 bytes)
-./ACORN_CALIBRATED_EXPERIMENT/C-C012_random_tau0.05_20261005_073410_479485/run_config.json (4997 bytes)
-./ACORN_CALIBRATED_EXPERIMENT/C-C012_random_tau0.05_20261005_073410_479485/summary.json (31373 bytes)
-./ACORN_CALIBRATED_EXPERIMENT/C-C012_random_tau0.05_20261005_073410_479485/summary.txt (7110 bytes)
-./ACORN_CALIBRATED_EXPERIMENT/C-CO12_random_tau0.05_20261005_073410_479485/calibration.json (9829 bytes)
-./ACORN_CALIBRATED_EXPERIMENT/C-CO12_random_tau0.05_20261005_073410_479485/results.csv (19688 bytes)
-./ACORN_CALIBRATED_EXPERIMENT/C-CO12_random_tau0.05_20261005_073410_479485/run_config.json (4946 bytes)
-./ACORN_CALIBRATED_EXPERIMENT/C-CO12_random_tau0.05_20261005_073410_479485/summary.json (5021 bytes)
-./ACORN_CALIBRATED_EXPERIMENT/C-CO12_random_tau0.05_20261005_073410_479485/summary.txt (1662 bytes)
-./ACORN_MARGIN_CAP_SWEEP/caps4_6_seed42/config.json (2342 bytes)
-./ACORN_MARGIN_CAP_SWEEP/caps4_6_seed42/results.json (41102 bytes)
-./ACORN_MARGIN_CAP_SWEEP/caps4_6_seed42/summary.csv (4682 bytes)
-./ACORN_MARGIN_CAP_SWEEP/caps4_6_seed42/summary.txt (2755 bytes)
-./ACORN_MARGIN_VS_FIXED_RANDOM10/selection_seed_42_n10/aggregate.json (3051 bytes)
-./ACORN_MARGIN_VS_FIXED_RANDOM10/selection_seed_42_n10/manifest.json (3915 bytes)
-./ACORN_MARGIN_VS_FIXED_RANDOM10/selection_seed_42_n10/results.json (18160 bytes)
-./ACORN_MARGIN_VS_FIXED_RANDOM10/selection_seed_42_n10/summary.csv (3286 bytes)
-./ACORN_PGD_GRID_ALL_SESSIONS/C-CO40/R2_summary.png (170348 bytes)
-./ACORN_PGD_GRID_ALL_SESSIONS/C-CO7/R2_summary.png (170449 bytes)
-./ACORN_PGD_GRID_ALL_SESSIONS/C-RT0/R2_summary.png (174582 bytes)
-./ACORN_PGD_GRID_ALL_SESSIONS/C-RT11/R2_summary.png (165424 bytes)
-./ACORN_PGD_GRID_ALL_SESSIONS/J-CO0/R2_summary.png (170005 bytes)
-./ACORN_PGD_GRID_ALL_SESSIONS/J-CO1/R2_summary.png (169296 bytes)
-./ACORN_PGD_GRID_ALL_SESSIONS/M-CO17/R2_summary.png (170557 bytes)
-./ACORN_PGD_GRID_ALL_SESSIONS/M-CO21/R2_summary.png (170835 bytes)
-./ACORN_PGD_GRID_ALL_SESSIONS/M-RT0/R2_summary.png (166515 bytes)
-./ACORN_PGD_GRID_ALL_SESSIONS/M-RT4/R2_summary.png (165848 bytes)
-./ACORN_PGD_GRID_ALL_SESSIONS/T-CO1/R2_summary.png (169052 bytes)
-./ACORN_PGD_GRID_ALL_SESSIONS/T-CO5/R2_summary.png (171311 bytes)
-./ACORN_PGD_GRID_ALL_SESSIONS/T-RT0/R2_summary.png (176595 bytes)
-./ACORN_PGD_GRID_ALL_SESSIONS/T-RT5/R2_summary.png (163151 bytes)
-./ACORN_PGD_GRID_ALL_SESSIONS/all_sessions_r2.csv (1796 bytes)
-./ACORN_SVD_RESULTS/C-CO0_20261017_224403_lj_t6dg8/run_config.json (6556 bytes)
-./ACORN_SVD_RESULTS/C-CO0_20261018_020938_kvt1kvrt/results_so_far.csv (2793 bytes)
-./ACORN_SVD_RESULTS/C-CO0_20261018_020938_kvt1kvrt/results_so_far.json (7691 bytes)
-./ACORN_SVD_RESULTS/C-CO0_20261018_020938_kvt1kvrt/run_config.json (6556 bytes)
-./ACORN_SVD_RESULTS/C-CO0_20261018_061609_6ko1xzij/results.csv (13868 bytes)
-./ACORN_SVD_RESULTS/C-CO0_20261018_061609_6ko1xzij/results.json (49749 bytes)
-./ACORN_SVD_RESULTS/C-CO0_20261018_061609_6ko1xzij/run_config.json (6556 bytes)
-./ACORN_SVD_RESULTS/C-CO0_20261018_061609_6ko1xzij/summary.json (6346 bytes)
-./ACORN_SVD_RESULTS/C-CO12_20261015_211308_b1d8o61o/run_config.json (3619 bytes)
-./ACORN_SVD_RESULTS/C-CO12_20261015_211554_gehv9fio/results_so_far.csv (1372 bytes)
-./ACORN_SVD_RESULTS/C-CO12_20261015_211554_gehv9fio/results_so_far.json (3610 bytes)
-./ACORN_SVD_RESULTS/C-CO12_20261015_211554_gehv9fio/run_config.json (3619 bytes)
-./ACORN_SVD_RESULTS/C-CO12_20261015_214434_muawv24p/results.csv (1839 bytes)
-./ACORN_SVD_RESULTS/C-CO12_20261015_214434_muawv24p/results.json (5495 bytes)
-./ACORN_SVD_RESULTS/C-CO12_20261015_214434_muawv24p/run_config.json (3619 bytes)
-./ACORN_SVD_RESULTS/C-CO12_20261015_214434_muawv24p/summary.json (1061 bytes)
-./ACORN_SVD_RESULTS/C-CO12_20261016_152827_xivtqatl/results_so_far.csv (1103 bytes)
-./ACORN_SVD_RESULTS/C-CO12_20261016_152827_xivtqatl/results_so_far.json (2217 bytes)
-./ACORN_SVD_RESULTS/C-CO12_20261016_152827_xivtqatl/run_config.json (5606 bytes)
-./ACORN_SVD_RESULTS/C-CO12_20261016_154608_jp7i8vvg/results.csv (9556 bytes)
-./ACORN_SVD_RESULTS/C-CO12_20261016_154608_jp7i8vvg/results.json (36005 bytes)
-./ACORN_SVD_RESULTS/C-CO12_20261016_154608_jp7i8vvg/run_config.json (5606 bytes)
-./ACORN_SVD_RESULTS/C-CO12_20261016_154608_jp7i8vvg/summary.json (4363 bytes)
-./ACORN_SVD_RESULTS/C-CO12_20261017_055124_efmr02bp/results.csv (17357 bytes)
-./ACORN_SVD_RESULTS/C-CO12_20261017_055124_efmr02bp/results.json (68341 bytes)
-./ACORN_SVD_RESULTS/C-CO12_20261017_055124_efmr02bp/run_config.json (8912 bytes)
-./ACORN_SVD_RESULTS/C-CO12_20261017_055124_efmr02bp/summary.json (7847 bytes)
-./ACORN_SVD_RESULTS/C-CO12_20261017_151516_ekuuxndx/results_so_far.csv (4986 bytes)
-./ACORN_SVD_RESULTS/C-CO12_20261017_151516_ekuuxndx/results_so_far.json (15906 bytes)
-./ACORN_SVD_RESULTS/C-CO12_20261017_151516_ekuuxndx/run_config.json (7302 bytes)
-./ACORN_SVD_RESULTS/C-CO12_20261017_161837_4w071cdx/results_so_far.csv (2754 bytes)
-./ACORN_SVD_RESULTS/C-CO12_20261017_161837_4w071cdx/results_so_far.json (7647 bytes)
-./ACORN_SVD_RESULTS/C-CO12_20261017_161837_4w071cdx/run_config.json (7302 bytes)
-./ACORN_SVD_RESULTS/C-CO12_20261017_164848_ktxq7twl/results_so_far.csv (5764 bytes)
-./ACORN_SVD_RESULTS/C-CO12_20261017_164848_ktxq7twl/results_so_far.json (18847 bytes)
-./ACORN_SVD_RESULTS/C-CO12_20261017_164848_ktxq7twl/run_config.json (7302 bytes)
-./ACORN_SVD_RESULTS/C-CO12_20261017_180055_lxybp8h9/results_so_far.csv (6277 bytes)
-./ACORN_SVD_RESULTS/C-CO12_20261017_180055_lxybp8h9/results_so_far.json (20902 bytes)
-./ACORN_SVD_RESULTS/C-CO12_20261017_180055_lxybp8h9/run_config.json (7302 bytes)
-./ACORN_SVD_RESULTS/C-CO12_20261017_191313_yh00116o/results.csv (15736 bytes)
-./ACORN_SVD_RESULTS/C-CO12_20261017_191313_yh00116o/results.json (56452 bytes)
-./ACORN_SVD_RESULTS/C-CO12_20261017_191313_yh00116o/run_config.json (7302 bytes)
-./ACORN_SVD_RESULTS/C-CO12_20261017_191313_yh00116o/summary.json (7387 bytes)
-./ACORN_SVD_RESULTS/C-CO12_20261017_224446_6n2tfkxh/results.csv (15737 bytes)
-./ACORN_SVD_RESULTS/C-CO12_20261017_224446_6n2tfkxh/results.json (56454 bytes)
-./ACORN_SVD_RESULTS/C-CO12_20261017_224446_6n2tfkxh/run_config.json (7302 bytes)
-./ACORN_SVD_RESULTS/C-CO12_20261017_224446_6n2tfkxh/summary.json (7389 bytes)
-./ACORN_SVD_RESULTS/C-CO12_20261018_024426_ssjlql3f/results.csv (15733 bytes)
-./ACORN_SVD_RESULTS/C-CO12_20261018_024426_ssjlql3f/results.json (56452 bytes)
-./ACORN_SVD_RESULTS/C-CO12_20261018_024426_ssjlql3f/run_config.json (7302 bytes)
-./ACORN_SVD_RESULTS/C-CO12_20261018_024426_ssjlql3f/summary.json (7389 bytes)
-./ACORN_SVD_RESULTS/C-CO1_20261018_092235_fi3oisbp/results_so_far.csv (2798 bytes)
-./ACORN_SVD_RESULTS/C-CO1_20261018_092235_fi3oisbp/results_so_far.json (7705 bytes)
-./ACORN_SVD_RESULTS/C-CO1_20261018_092235_fi3oisbp/run_config.json (6556 bytes)
-./AllenVBN_Jacobian_Plots_1104058216/Neuron_Jacobian_Scores_1104058216.csv (16539 bytes)
-./Area2_Bump_Full_JR_Decoder/Full_CLEAN_ACORN_JR_Decoder.csv (152 bytes)
-./Area2_Bump_RandomBaseline/Random_Subsets_30_K8_CLEAN_ACORN.csv (4279 bytes)
-./Area2_Bump_TopK_JR_AdvFirst_Aggregated/TopK8_REG_8conditions.csv (1317 bytes)
-./Area2_Bump_TopK_JR_AdvFirst_Aggregated/TopK8_REG_selectors.csv (361 bytes)
-./BEHAVIOUR_BUDGET_TESTS/SUMMARY_BEH.txt (7627 bytes)
-./BEHAVIOUR_BUDGET_TESTS/rule_preview.csv (1463 bytes)
-./BEHAVIOUR_BUDGET_TESTS/runs_behaviour.csv (175077 bytes)
-./BEHAVIOUR_BUDGET_TESTS/session_behaviour.csv (6572 bytes)
-./BEHAVIOUR_BUDGET_TESTS/sessions_behaviour_outcomes.csv (1917 bytes)
-./BEHAVIOUR_BUDGET_TESTS/tests_behaviour.csv (2093 bytes)
-./CALIBRATION/C-CO12_tau0.05_random_20261004_175232_851730/calibration.json (14309 bytes)
-./CCO12_SVD_VERBOSE_RESULTS_V3/CCO12_seed42_20261014_171756_gad8e0en/run_config.json (3058 bytes)
-./CCO12_SVD_VERBOSE_RESULTS_V3/CCO12_seed42_20261014_200620_to0b1glh/run_config.json (3058 bytes)
-./CCO12_SVD_VERBOSE_RESULTS_V3/CCO12_seed42_20261014_201753_mb347qlz/run_config.json (3058 bytes)
-./CCO12_SVD_VERBOSE_RESULTS_V3/CCO12_seed42_20261014_203332_h__tizrf/run_config.json (3058 bytes)
-./CCO12_SVD_VERBOSE_RESULTS_V3/CCO12_seed42_20261015_052329_pkly8auv/run_config.json (3058 bytes)
-./CEBRA_CCO12_Behavior_NegPos/decoder/normal_negpos_r2.csv (374 bytes)
-./CEBRA_CCO12_Behavior_NegPos/foreign_86_mapping.csv (1264 bytes)
-./CEBRA_CCO12_Behavior_NegPos_Jacobian/decoder/normal_negpos_acorn_r2.csv (516 bytes)
-./CEBRA_CCO12_Behavior_NegPos_Jacobian/decoder/normal_negpos_r2.csv (385 bytes)
-./CEBRA_CCO12_Behavior_NegPos_Jacobian/foreign_86_mapping.csv (868 bytes)
-./CEBRA_CCO12_Behavior_PNHard_860/cross_test_86_mapping.csv (1265 bytes)
-./CEBRA_CCO12_Behavior_PNHard_860/decoder/all_three_models_r2.csv (529 bytes)
-./CEBRA_CCO12_Behavior_PNHard_860/foreign_860_mapping.csv (13039 bytes)
-./CEBRA_CCO12_NegPos_Test/decoder/decoder_r2_results.csv (426 bytes)
-./CEBRA_CCO12_NegPos_Test/foreign_86_mapping.csv (1264 bytes)
-./CEBRA_NegPosDetach_AllGroups/normal_negpos_all_sessions_r2.csv (6352 bytes)
-./CEBRA_PNHard_AllGroups_NegPos05/all_sessions_r2_summary.csv (6166 bytes)
-./CEBRA_TIME_C-CO0_2LABELS_20260923_181237_943539/results.json (3553 bytes)
-./CEBRA_TIME_C-CO0_2LABELS_20260923_181237_943539/seed_42/metrics.json (588 bytes)
-./CEBRA_TIME_C-CO0_2LABELS_20260923_181632_316189/results.json (3559 bytes)
-./CEBRA_TIME_C-CO0_2LABELS_20260923_181632_316189/seed_42/metrics.json (594 bytes)
-./CEBRA_TIME_CCO12_RESULTS/seed_42/results.json (531 bytes)
-./CEBRA_TIME_CCO36_RESULTS/seed_42/results.json (530 bytes)
-./DPRIME_CCO12_4GPU_RESULTS/records/DPRIME_APGD_RESTARTS3_FIXED3.json (414 bytes)
-./DPRIME_CCO12_4GPU_RESULTS/records/DPRIME_AUTO_GLOBAL.json (402 bytes)
-./DPRIME_CCO12_4GPU_RESULTS/records/DPRIME_AUTO_INSTANCE.json (405 bytes)
-./DPRIME_CCO12_4GPU_RESULTS/records/DPRIME_AUTO_INSTANCE_NO_CURRICULUM.json (419 bytes)
-./DPRIME_CCO12_4GPU_RESULTS/records/DPRIME_GUARDS_ALL.json (404 bytes)
-./DPRIME_CCO12_4GPU_RESULTS/records/DPRIME_GUARDS_FINAL_ONLY.json (407 bytes)
-./DPRIME_CCO12_4GPU_RESULTS/records/DPRIME_GUARD_APERIODIC.json (407 bytes)
-./DPRIME_CCO12_4GPU_RESULTS/records/DPRIME_GUARD_ARTIFACT.json (404 bytes)
-./DPRIME_CCO12_4GPU_RESULTS/records/DPRIME_GUARD_BAND_POWER.json (408 bytes)
-./DPRIME_CCO12_4GPU_RESULTS/records/DPRIME_GUARD_RIEMANN.json (405 bytes)
-./DPRIME_CCO12_4GPU_RESULTS/records/DPRIME_GUARD_SOFT_RIEMANN.json (409 bytes)
-./DPRIME_CCO12_4GPU_RESULTS/records/DPRIME_SPATIAL_EMPIRICAL.json (409 bytes)
-./DPRIME_CCO12_4GPU_RESULTS/records/DPRIME_SPATIAL_OAS.json (402 bytes)
-./DPRIME_CCO12_4GPU_RESULTS/records/DPRIME_SPATIAL_TYLER.json (403 bytes)
-./DPRIME_CCO12_4GPU_RESULTS/records/DPRIME_STATIONARY_APGD_FIXED3.json (414 bytes)
-./DPRIME_CCO12_4GPU_RESULTS/records/DPRIME_STATIONARY_PGD_FIXED3.json (412 bytes)
-./DPRIME_CCO12_4GPU_RESULTS/records/DPRIME_TEMPORAL_AR4.json (403 bytes)
-./DPRIME_CCO12_4GPU_RESULTS/records/DPRIME_TEMPORAL_VANROSSUM.json (410 bytes)
-./DPRIME_CCO12_4GPU_RESULTS/records/DPRIME_TEMPORAL_WHITE.json (406 bytes)
-./DPRIME_CCO12_4GPU_RESULTS/records/DPRIME_TRADES_AUTO_INSTANCE.json (412 bytes)
-./DPRIME_CCO12_4GPU_RESULTS/records/DPRIME_TRIAL_MASK.json (401 bytes)
-./DPRIME_CCO12_4GPU_RESULTS/records/DPRIME_TRIAL_MASK_PGD.json (406 bytes)
-./DPRIME_CCO12_4GPU_RESULTS/records/PGD_L2_EPS3.json (296 bytes)
-./DPRIME_CCO12_4GPU_RESULTS/records/PGD_LINF_EPS3.json (299 bytes)
-./DPRIME_CCO12_4GPU_RESULTS/results.csv (4476 bytes)
-./DPRIME_CCO12_4GPU_RESULTS/run_config.json (15790 bytes)
-./DPRIME_CCO12_ABLATION_4MODELS/records/MADRY_AUTO_INSTANCE.json (451 bytes)
-./DPRIME_CCO12_ABLATION_4MODELS/records/MADRY_FIXED1.json (443 bytes)
-./DPRIME_CCO12_ABLATION_4MODELS/records/TRADES_AUTO_INSTANCE.json (452 bytes)
-./DPRIME_CCO12_ABLATION_4MODELS/records/TRADES_FIXED1.json (445 bytes)
-./DPRIME_CCO12_ABLATION_4MODELS/reports/MADRY_AUTO_INSTANCE.json (5741 bytes)
-./DPRIME_CCO12_ABLATION_4MODELS/reports/MADRY_FIXED1.json (3844 bytes)
-./DPRIME_CCO12_ABLATION_4MODELS/reports/TRADES_AUTO_INSTANCE.json (5783 bytes)
-./DPRIME_CCO12_ABLATION_4MODELS/reports/TRADES_FIXED1.json (3847 bytes)
-./DPRIME_CCO12_ABLATION_4MODELS/results.csv (1030 bytes)
-./DPRIME_CCO12_ABLATION_4MODELS/run_config.json (3292 bytes)
-./DPRIME_CCO12_EXP3_SEED42/records/CLEAN.json (290 bytes)
-./DPRIME_CCO12_EXP3_SEED42/records/MADRY_D0.json (651 bytes)
-./DPRIME_CCO12_EXP3_SEED42/records/MADRY_D1.json (555 bytes)
-./DPRIME_CCO12_EXP3_SEED42/records/MADRY_D3.json (554 bytes)
-./DPRIME_CCO12_EXP3_SEED42/records/MADRY_D8.json (554 bytes)
-./DPRIME_CCO12_EXP3_SEED42/records/PGD_L2_EPS3.json (295 bytes)
-./DPRIME_CCO12_EXP3_SEED42/records/TRADES_D0.json (653 bytes)
-./DPRIME_CCO12_EXP3_SEED42/records/TRADES_D1.json (555 bytes)
-./DPRIME_CCO12_EXP3_SEED42/records/TRADES_D3.json (556 bytes)
-./DPRIME_CCO12_EXP3_SEED42/records/TRADES_D8.json (555 bytes)
-./DPRIME_CCO12_EXP3_SEED42/records/TRADES_ISO_D1.json (560 bytes)
-./DPRIME_CCO12_EXP3_SEED42/records/TRADES_ISO_D3.json (559 bytes)
-./DPRIME_CCO12_EXP3_SEED42/reports/MADRY_D0.json (4303 bytes)
-./DPRIME_CCO12_EXP3_SEED42/reports/MADRY_D1.json (4282 bytes)
-./DPRIME_CCO12_EXP3_SEED42/reports/MADRY_D3.json (4280 bytes)
-./DPRIME_CCO12_EXP3_SEED42/reports/MADRY_D8.json (4282 bytes)
-./DPRIME_CCO12_EXP3_SEED42/reports/TRADES_D0.json (4304 bytes)
-./DPRIME_CCO12_EXP3_SEED42/reports/TRADES_D1.json (4282 bytes)
-./DPRIME_CCO12_EXP3_SEED42/reports/TRADES_D3.json (4281 bytes)
-./DPRIME_CCO12_EXP3_SEED42/reports/TRADES_D8.json (4282 bytes)
-./DPRIME_CCO12_EXP3_SEED42/reports/TRADES_ISO_D1.json (4250 bytes)
-./DPRIME_CCO12_EXP3_SEED42/reports/TRADES_ISO_D3.json (4251 bytes)
-./DPRIME_CCO12_EXP3_SEED42/results.csv (3868 bytes)
-./DPRIME_CCO12_EXP3_SEED42/run_config.json (7893 bytes)
-./DPRIME_CCO12_EXP3_SEED43/records/CLEAN.json (291 bytes)
-./DPRIME_CCO12_EXP3_SEED43/records/MADRY_D0.json (652 bytes)
-./DPRIME_CCO12_EXP3_SEED43/records/MADRY_D1.json (555 bytes)
-./DPRIME_CCO12_EXP3_SEED43/records/MADRY_D3.json (555 bytes)
-./DPRIME_CCO12_EXP3_SEED43/records/MADRY_D8.json (555 bytes)
-./DPRIME_CCO12_EXP3_SEED43/records/PGD_L2_EPS3.json (296 bytes)
-./DPRIME_CCO12_EXP3_SEED43/records/TRADES_D0.json (654 bytes)
-./DPRIME_CCO12_EXP3_SEED43/records/TRADES_D1.json (555 bytes)
-./DPRIME_CCO12_EXP3_SEED43/records/TRADES_D3.json (554 bytes)
-./DPRIME_CCO12_EXP3_SEED43/records/TRADES_D8.json (554 bytes)
-./DPRIME_CCO12_EXP3_SEED43/records/TRADES_ISO_D1.json (559 bytes)
-./DPRIME_CCO12_EXP3_SEED43/records/TRADES_ISO_D3.json (560 bytes)
-./DPRIME_CCO12_EXP3_SEED43/reports/MADRY_D0.json (4303 bytes)
-./DPRIME_CCO12_EXP3_SEED43/reports/MADRY_D1.json (4280 bytes)
-./DPRIME_CCO12_EXP3_SEED43/reports/MADRY_D3.json (4279 bytes)
-./DPRIME_CCO12_EXP3_SEED43/reports/MADRY_D8.json (4283 bytes)
-./DPRIME_CCO12_EXP3_SEED43/reports/TRADES_D0.json (4304 bytes)
-./DPRIME_CCO12_EXP3_SEED43/reports/TRADES_D1.json (4281 bytes)
-./DPRIME_CCO12_EXP3_SEED43/reports/TRADES_D3.json (4277 bytes)
-./DPRIME_CCO12_EXP3_SEED43/reports/TRADES_D8.json (4280 bytes)
-./DPRIME_CCO12_EXP3_SEED43/reports/TRADES_ISO_D1.json (4260 bytes)
-./DPRIME_CCO12_EXP3_SEED43/reports/TRADES_ISO_D3.json (4252 bytes)
-./DPRIME_CCO12_EXP3_SEED43/results.csv (3871 bytes)
-./DPRIME_CCO12_EXP3_SEED43/run_config.json (7893 bytes)
-./DPRIME_CCO12_EXP3_SEED44/records/CLEAN.json (290 bytes)
-./DPRIME_CCO12_EXP3_SEED44/records/MADRY_D0.json (652 bytes)
-./DPRIME_CCO12_EXP3_SEED44/records/MADRY_D1.json (554 bytes)
-./DPRIME_CCO12_EXP3_SEED44/records/MADRY_D3.json (554 bytes)
-./DPRIME_CCO12_EXP3_SEED44/records/MADRY_D8.json (554 bytes)
-./DPRIME_CCO12_EXP3_SEED44/records/PGD_L2_EPS3.json (295 bytes)
-./DPRIME_CCO12_EXP3_SEED44/records/TRADES_D0.json (653 bytes)
-./DPRIME_CCO12_EXP3_SEED44/records/TRADES_D1.json (556 bytes)
-./DPRIME_CCO12_EXP3_SEED44/records/TRADES_D3.json (554 bytes)
-./DPRIME_CCO12_EXP3_SEED44/records/TRADES_D8.json (556 bytes)
-./DPRIME_CCO12_EXP3_SEED44/records/TRADES_ISO_D1.json (560 bytes)
-./DPRIME_CCO12_EXP3_SEED44/records/TRADES_ISO_D3.json (560 bytes)
-./DPRIME_CCO12_EXP3_SEED44/reports/MADRY_D0.json (4303 bytes)
-./DPRIME_CCO12_EXP3_SEED44/reports/MADRY_D1.json (4280 bytes)
-./DPRIME_CCO12_EXP3_SEED44/reports/MADRY_D3.json (4280 bytes)
-./DPRIME_CCO12_EXP3_SEED44/reports/MADRY_D8.json (4281 bytes)
-./DPRIME_CCO12_EXP3_SEED44/reports/TRADES_D0.json (4304 bytes)
-./DPRIME_CCO12_EXP3_SEED44/reports/TRADES_D1.json (4282 bytes)
-./DPRIME_CCO12_EXP3_SEED44/reports/TRADES_D3.json (4281 bytes)
-./DPRIME_CCO12_EXP3_SEED44/reports/TRADES_D8.json (4292 bytes)
-./DPRIME_CCO12_EXP3_SEED44/reports/TRADES_ISO_D1.json (4260 bytes)
-./DPRIME_CCO12_EXP3_SEED44/reports/TRADES_ISO_D3.json (4251 bytes)
-./DPRIME_CCO12_EXP3_SEED44/results.csv (3869 bytes)
-./DPRIME_CCO12_EXP3_SEED44/run_config.json (7893 bytes)
-./DPRIME_CCO12_FINAL_CONTROLS/SEED42/results.csv (791 bytes)
-./DPRIME_CCO12_FINAL_CONTROLS/SEED42/run_config.json (2365 bytes)
-./DPRIME_CCO12_FINAL_CONTROLS/SEED43/results.csv (789 bytes)
-./DPRIME_CCO12_FINAL_CONTROLS/SEED43/run_config.json (2365 bytes)
-./DPRIME_CCO12_FINAL_CONTROLS/SEED44/results.csv (791 bytes)
-./DPRIME_CCO12_FINAL_CONTROLS/SEED44/run_config.json (2365 bytes)
-./DPRIME_EXP5/detectability_seed42.csv (49020 bytes)
-./DPRIME_EXP9_AUTOSIG_SUPERVISED/summary.csv (31713 bytes)
-./DPRIME_EXP9_AUTOSIG_TIMEONLY/summary.csv (19872 bytes)
-./DPRIME_EXP9_E1_EPOCHS340/summary.csv (4502 bytes)
-./DPRIME_EXP9_E2B_ITER6000/summary.csv (1186 bytes)
-./DPRIME_EXP9_E2_TRUNC9174/summary.csv (1163 bytes)
-./Fake_dataset_result/Fake_dataset_all_seeds_results.csv (2724 bytes)
-./JIGSAWNET_C-CO13_20260923_200634/results.json (38294 bytes)
-./JIGSAW_CEBRA_C-CO16_20260921_122320/infonce_only/R2.json (1247 bytes)
-./JIGSAW_CEBRA_C-CO16_20260921_122320/infonce_only/config.json (979 bytes)
-./JIGSAW_CEBRA_C-CO16_20260921_122320/infonce_only/history.json (1280 bytes)
-./JIGSAW_CEBRA_C-CO16_20260921_122320/infonce_only/puzzle.json (4941 bytes)
-./JIGSAW_CEBRA_C-CO16_20260921_122320/infonce_only/validation_history.json (3200 bytes)
-./JIGSAW_CEBRA_C-CO16_20260921_122320/ladder_2_tiles/R2.json (1245 bytes)
-./JIGSAW_CEBRA_C-CO16_20260921_122320/ladder_2_tiles/config.json (973 bytes)
-./JIGSAW_CEBRA_C-CO16_20260921_122320/ladder_2_tiles/history.json (1312 bytes)
-./JIGSAW_CEBRA_C-CO16_20260921_122320/ladder_2_tiles/puzzle.json (4837 bytes)
-./JIGSAW_CEBRA_C-CO16_20260921_122320/ladder_2_tiles/validation_history.json (3057 bytes)
-./JIGSAW_CEBRA_C-CO16_20260921_122320/mobilenet_trunk/R2.json (1252 bytes)
-./JIGSAW_CEBRA_C-CO16_20260921_122320/mobilenet_trunk/config.json (989 bytes)
-./JIGSAW_CEBRA_C-CO16_20260921_122320/mobilenet_trunk/history.json (1278 bytes)
-./JIGSAW_CEBRA_C-CO16_20260921_122320/mobilenet_trunk/puzzle.json (4976 bytes)
-./JIGSAW_CEBRA_C-CO16_20260921_122320/mobilenet_trunk/validation_history.json (3198 bytes)
-./JIGSAW_CEBRA_C-CO16_20260921_122320/proposed/R2.json (1248 bytes)
-./JIGSAW_CEBRA_C-CO16_20260921_122320/proposed/config.json (947 bytes)
-./JIGSAW_CEBRA_C-CO16_20260921_122320/proposed/history.json (1277 bytes)
-./JIGSAW_CEBRA_C-CO16_20260921_122320/proposed/puzzle.json (4963 bytes)
-./JIGSAW_CEBRA_C-CO16_20260921_122320/proposed/validation_history.json (3211 bytes)
-./JIGSAW_CEBRA_C-CO16_20260921_122320/puzzle_only/R2.json (1247 bytes)
-./JIGSAW_CEBRA_C-CO16_20260921_122320/puzzle_only/config.json (1012 bytes)
-./JIGSAW_CEBRA_C-CO16_20260921_122320/puzzle_only/history.json (1314 bytes)
-./JIGSAW_CEBRA_C-CO16_20260921_122320/puzzle_only/puzzle.json (4941 bytes)
-./JIGSAW_CEBRA_C-CO16_20260921_122320/puzzle_only/validation_history.json (3193 bytes)
-./JIGSAW_CEBRA_C-CO16_20260921_122320/random_encoder/R2.json (1243 bytes)
-./JIGSAW_CEBRA_C-CO16_20260921_122320/random_encoder/config.json (976 bytes)
-./JIGSAW_CEBRA_C-CO16_20260921_122320/random_encoder/history.json (2 bytes)
-./JIGSAW_CEBRA_C-CO16_20260921_122320/random_encoder/puzzle.json (4958 bytes)
-./JIGSAW_CEBRA_C-CO16_20260921_122320/random_encoder/validation_history.json (2 bytes)
-./JIGSAW_CEBRA_C-CO16_20260921_122320/raw_window_baseline.json (231 bytes)
-./JIGSAW_CEBRA_C-CO16_20260921_122320/shortcut_open/R2.json (1248 bytes)
-./JIGSAW_CEBRA_C-CO16_20260921_122320/shortcut_open/config.json (1066 bytes)
-./JIGSAW_CEBRA_C-CO16_20260921_122320/shortcut_open/history.json (1312 bytes)
-./JIGSAW_CEBRA_C-CO16_20260921_122320/shortcut_open/puzzle.json (4947 bytes)
-./JIGSAW_CEBRA_C-CO16_20260921_122320/shortcut_open/validation_history.json (3206 bytes)
-./JIGSAW_CEBRA_C-CO16_20260921_122320/summary.csv (3817 bytes)
-./JIGSAW_CEBRA_C-CO16_20260921_122320/summary.json (8533 bytes)
-./JIGSAW_CEBRA_C-CO16_20260921_122453/infonce_only/R2.json (1258 bytes)
-./JIGSAW_CEBRA_C-CO16_20260921_122453/infonce_only/config.json (980 bytes)
-./JIGSAW_CEBRA_C-CO16_20260921_122453/infonce_only/history.json (26299 bytes)
-./JIGSAW_CEBRA_C-CO16_20260921_122453/infonce_only/puzzle.json (4960 bytes)
-./JIGSAW_CEBRA_C-CO16_20260921_122453/infonce_only/validation_history.json (10684 bytes)
-./JIGSAW_CEBRA_C-CO16_20260921_122453/ladder_2_tiles/R2.json (1242 bytes)
-./JIGSAW_CEBRA_C-CO16_20260921_122453/ladder_2_tiles/config.json (974 bytes)
-./JIGSAW_CEBRA_C-CO16_20260921_122453/ladder_2_tiles/history.json (26346 bytes)
-./JIGSAW_CEBRA_C-CO16_20260921_122453/ladder_2_tiles/puzzle.json (4809 bytes)
-./JIGSAW_CEBRA_C-CO16_20260921_122453/ladder_2_tiles/validation_history.json (10190 bytes)
-./JIGSAW_CEBRA_C-CO16_20260921_122453/mobilenet_trunk/R2.json (1248 bytes)
-./JIGSAW_CEBRA_C-CO16_20260921_122453/mobilenet_trunk/config.json (990 bytes)
-./JIGSAW_CEBRA_C-CO16_20260921_122453/mobilenet_trunk/history.json (26345 bytes)
-./JIGSAW_CEBRA_C-CO16_20260921_122453/mobilenet_trunk/puzzle.json (4918 bytes)
-./JIGSAW_CEBRA_C-CO16_20260921_122453/mobilenet_trunk/validation_history.json (10714 bytes)
-./JIGSAW_CEBRA_C-CO16_20260921_122453/proposed/R2.json (1255 bytes)
-./JIGSAW_CEBRA_C-CO16_20260921_122453/proposed/config.json (948 bytes)
-./JIGSAW_CEBRA_C-CO16_20260921_122453/proposed/history.json (26350 bytes)
-./JIGSAW_CEBRA_C-CO16_20260921_122453/proposed/puzzle.json (4938 bytes)
-./JIGSAW_CEBRA_C-CO16_20260921_122453/proposed/validation_history.json (10718 bytes)
-./JIGSAW_CEBRA_C-CO16_20260921_122453/puzzle_only/R2.json (1243 bytes)
-./JIGSAW_CEBRA_C-CO16_20260921_122453/puzzle_only/config.json (1013 bytes)
-./JIGSAW_CEBRA_C-CO16_20260921_122453/puzzle_only/history.json (26266 bytes)
-./JIGSAW_CEBRA_C-CO16_20260921_122453/puzzle_only/puzzle.json (4996 bytes)
-./JIGSAW_CEBRA_C-CO16_20260921_122453/puzzle_only/validation_history.json (10701 bytes)
-./JIGSAW_CEBRA_C-CO16_20260921_122453/random_encoder/R2.json (1240 bytes)
-./JIGSAW_CEBRA_C-CO16_20260921_122453/random_encoder/config.json (976 bytes)
-./JIGSAW_CEBRA_C-CO16_20260921_122453/random_encoder/history.json (2 bytes)
-./JIGSAW_CEBRA_C-CO16_20260921_122453/random_encoder/puzzle.json (4958 bytes)
-./JIGSAW_CEBRA_C-CO16_20260921_122453/random_encoder/validation_history.json (2 bytes)
-./JIGSAW_CEBRA_C-CO16_20260921_122453/raw_window_baseline.json (230 bytes)
-./JIGSAW_CEBRA_C-CO16_20260921_122453/shortcut_open/R2.json (1250 bytes)
-./JIGSAW_CEBRA_C-CO16_20260921_122453/shortcut_open/config.json (1067 bytes)
-./JIGSAW_CEBRA_C-CO16_20260921_122453/shortcut_open/history.json (26401 bytes)
-./JIGSAW_CEBRA_C-CO16_20260921_122453/shortcut_open/puzzle.json (4923 bytes)
-./JIGSAW_CEBRA_C-CO16_20260921_122453/shortcut_open/validation_history.json (10698 bytes)
-./JIGSAW_CEBRA_C-CO16_20260921_122453/summary.csv (3846 bytes)
-./JIGSAW_CEBRA_C-CO16_20260921_122453/summary.json (8562 bytes)
-./NEURAL_JIGSAW_C-CO16_SWEEP/center_20260921_085704_088190/R2.json (561 bytes)
-./NEURAL_JIGSAW_C-CO16_SWEEP/center_20260921_085704_088190/checkpoint_selection.json (111 bytes)
-./NEURAL_JIGSAW_C-CO16_SWEEP/center_20260921_085704_088190/history.json (330444 bytes)
-./NEURAL_JIGSAW_C-CO16_SWEEP/center_20260921_085704_088190/puzzle_accuracy_train.json (527 bytes)
-./NEURAL_JIGSAW_C-CO16_SWEEP/center_20260921_085704_088190/puzzle_accuracy_validation.json (533 bytes)
-./NEURAL_JIGSAW_C-CO16_SWEEP/center_20260921_085704_088190/run_config.json (606 bytes)
-./NEURAL_JIGSAW_C-CO16_SWEEP/center_20260921_085704_088190/timing.json (40 bytes)
-./NEURAL_JIGSAW_C-CO16_SWEEP/center_20260921_090605_506909/R2.json (570 bytes)
-./NEURAL_JIGSAW_C-CO16_SWEEP/center_20260921_090605_506909/checkpoint_selection.json (106 bytes)
-./NEURAL_JIGSAW_C-CO16_SWEEP/center_20260921_090605_506909/history.json (178 bytes)
-./NEURAL_JIGSAW_C-CO16_SWEEP/center_20260921_090605_506909/puzzle_accuracy_train.json (530 bytes)
-./NEURAL_JIGSAW_C-CO16_SWEEP/center_20260921_090605_506909/puzzle_accuracy_validation.json (533 bytes)
-./NEURAL_JIGSAW_C-CO16_SWEEP/center_20260921_090605_506909/run_config.json (602 bytes)
-./NEURAL_JIGSAW_C-CO16_SWEEP/center_20260921_090605_506909/timing.json (41 bytes)
-./NEURAL_JIGSAW_C-CO16_SWEEP/off_20260921_083623_079594/run_config.json (615 bytes)
-./NEURAL_JIGSAW_C-CO16_SWEEP/off_20260921_084150_229715/run_config.json (615 bytes)
-./NEURAL_JIGSAW_C-CO16_SWEEP/off_20260921_084320_437791/run_config.json (615 bytes)
-./NEURAL_JIGSAW_C-CO16_SWEEP/off_20260921_084533_068262/checkpoint_selection.json (109 bytes)
-./NEURAL_JIGSAW_C-CO16_SWEEP/off_20260921_084533_068262/history.json (494407 bytes)
-./NEURAL_JIGSAW_C-CO16_SWEEP/off_20260921_084533_068262/puzzle_accuracy_train.json (526 bytes)
-./NEURAL_JIGSAW_C-CO16_SWEEP/off_20260921_084533_068262/puzzle_accuracy_validation.json (529 bytes)
-./NEURAL_JIGSAW_C-CO16_SWEEP/off_20260921_084533_068262/run_config.json (613 bytes)
-./NEURAL_JIGSAW_C-CO16_SWEEP/off_20260921_085317_856953/R2.json (556 bytes)
-./NEURAL_JIGSAW_C-CO16_SWEEP/off_20260921_085317_856953/checkpoint_selection.json (109 bytes)
-./NEURAL_JIGSAW_C-CO16_SWEEP/off_20260921_085317_856953/history.json (329086 bytes)
-./NEURAL_JIGSAW_C-CO16_SWEEP/off_20260921_085317_856953/puzzle_accuracy_train.json (526 bytes)
-./NEURAL_JIGSAW_C-CO16_SWEEP/off_20260921_085317_856953/puzzle_accuracy_validation.json (529 bytes)
-./NEURAL_JIGSAW_C-CO16_SWEEP/off_20260921_085317_856953/run_config.json (600 bytes)
-./NEURAL_JIGSAW_C-CO16_SWEEP/off_20260921_085317_856953/timing.json (40 bytes)
-./NEURAL_JIGSAW_C-CO16_SWEEP/off_20260921_090600_398477/R2.json (548 bytes)
-./NEURAL_JIGSAW_C-CO16_SWEEP/off_20260921_090600_398477/checkpoint_selection.json (104 bytes)
-./NEURAL_JIGSAW_C-CO16_SWEEP/off_20260921_090600_398477/history.json (177 bytes)
-./NEURAL_JIGSAW_C-CO16_SWEEP/off_20260921_090600_398477/puzzle_accuracy_train.json (526 bytes)
-./NEURAL_JIGSAW_C-CO16_SWEEP/off_20260921_090600_398477/puzzle_accuracy_validation.json (507 bytes)
-./NEURAL_JIGSAW_C-CO16_SWEEP/off_20260921_090600_398477/run_config.json (596 bytes)
-./NEURAL_JIGSAW_C-CO16_SWEEP/off_20260921_090600_398477/timing.json (40 bytes)
-./NEURAL_JIGSAW_C-CO16_SWEEP/sweep_summary.csv (989 bytes)
-./NEURAL_JIGSAW_C-CO16_SWEEP/sweep_summary.json (1741 bytes)
-./NEURAL_JIGSAW_C-CO16_SWEEP/zscore_20260921_090051_221441/R2.json (565 bytes)
-./NEURAL_JIGSAW_C-CO16_SWEEP/zscore_20260921_090051_221441/checkpoint_selection.json (112 bytes)
-./NEURAL_JIGSAW_C-CO16_SWEEP/zscore_20260921_090051_221441/history.json (329559 bytes)
-./NEURAL_JIGSAW_C-CO16_SWEEP/zscore_20260921_090051_221441/puzzle_accuracy_train.json (529 bytes)
-./NEURAL_JIGSAW_C-CO16_SWEEP/zscore_20260921_090051_221441/puzzle_accuracy_validation.json (534 bytes)
-./NEURAL_JIGSAW_C-CO16_SWEEP/zscore_20260921_090051_221441/run_config.json (606 bytes)
-./NEURAL_JIGSAW_C-CO16_SWEEP/zscore_20260921_090051_221441/timing.json (41 bytes)
-./NEURAL_JIGSAW_C-CO16_SWEEP/zscore_20260921_090608_127555/R2.json (574 bytes)
-./NEURAL_JIGSAW_C-CO16_SWEEP/zscore_20260921_090608_127555/checkpoint_selection.json (104 bytes)
-./NEURAL_JIGSAW_C-CO16_SWEEP/zscore_20260921_090608_127555/history.json (177 bytes)
-./NEURAL_JIGSAW_C-CO16_SWEEP/zscore_20260921_090608_127555/puzzle_accuracy_train.json (526 bytes)
-./NEURAL_JIGSAW_C-CO16_SWEEP/zscore_20260921_090608_127555/puzzle_accuracy_validation.json (534 bytes)
-./NEURAL_JIGSAW_C-CO16_SWEEP/zscore_20260921_090608_127555/run_config.json (602 bytes)
-./NEURAL_JIGSAW_C-CO16_SWEEP/zscore_20260921_090608_127555/timing.json (41 bytes)
-./NTT_CCO12_RESULTS/C-CO12_20261010_073021_393663/comparisons.json (1501 bytes)
-./NTT_CCO12_RESULTS/C-CO12_20261010_073021_393663/completed.json (78 bytes)
-./NTT_CCO12_RESULTS/C-CO12_20261010_073021_393663/controls.csv (1966 bytes)
-./NTT_CCO12_RESULTS/C-CO12_20261010_073021_393663/controls_summary.json (7117 bytes)
-./NTT_CCO12_RESULTS/C-CO12_20261010_073021_393663/dataset_audit.json (1123 bytes)
-./NTT_CCO12_RESULTS/C-CO12_20261010_073021_393663/results.csv (27645 bytes)
-./NTT_CCO12_RESULTS/C-CO12_20261010_073021_393663/run_config.json (3021 bytes)
-./NTT_CCO12_RESULTS/C-CO12_20261010_073021_393663/shortcut_audit.json (654 bytes)
-./NTT_CCO12_RESULTS/C-CO12_20261010_073021_393663/summary.json (16619 bytes)
-./NTT_CCO12_RESULTS/C-CO12_20261010_074247_208611/comparisons.json (1000 bytes)
-./NTT_CCO12_RESULTS/C-CO12_20261010_074247_208611/controls.csv (1233 bytes)
-./NTT_CCO12_RESULTS/C-CO12_20261010_074247_208611/controls_summary.json (6456 bytes)
-./NTT_CCO12_RESULTS/C-CO12_20261010_074247_208611/dataset_audit.json (1123 bytes)
-./NTT_CCO12_RESULTS/C-CO12_20261010_074247_208611/results.csv (19235 bytes)
-./NTT_CCO12_RESULTS/C-CO12_20261010_074247_208611/run_config.json (3021 bytes)
-./NTT_CCO12_RESULTS/C-CO12_20261010_074247_208611/shortcut_audit.json (654 bytes)
-./NTT_CCO12_RESULTS/C-CO12_20261010_074247_208611/summary.json (15250 bytes)
-./NTT_CCO12_RESULTS/C-CO12_20261010_080227_521876/comparisons.json (1000 bytes)
-./NTT_CCO12_RESULTS/C-CO12_20261010_080227_521876/completed.json (78 bytes)
-./NTT_CCO12_RESULTS/C-CO12_20261010_080227_521876/controls.csv (1337 bytes)
-./NTT_CCO12_RESULTS/C-CO12_20261010_080227_521876/controls_summary.json (6688 bytes)
-./NTT_CCO12_RESULTS/C-CO12_20261010_080227_521876/dataset_audit.json (1123 bytes)
-./NTT_CCO12_RESULTS/C-CO12_20261010_080227_521876/results.csv (18680 bytes)
-./NTT_CCO12_RESULTS/C-CO12_20261010_080227_521876/run_config.json (3011 bytes)
-./NTT_CCO12_RESULTS/C-CO12_20261010_080227_521876/shortcut_audit.json (654 bytes)
-./NTT_CCO12_RESULTS/C-CO12_20261010_080227_521876/summary.json (15568 bytes)
-./NTT_CCO36_ABLATION_RESULTS/C-CO36_20261010_103657_235504/comparisons.json (2 bytes)
-./NTT_CCO36_ABLATION_RESULTS/C-CO36_20261010_103657_235504/completed.json (78 bytes)
-./NTT_CCO36_ABLATION_RESULTS/C-CO36_20261010_103657_235504/controls.csv (1058 bytes)
-./NTT_CCO36_ABLATION_RESULTS/C-CO36_20261010_103657_235504/controls_summary.json (3536 bytes)
-./NTT_CCO36_ABLATION_RESULTS/C-CO36_20261010_103657_235504/dataset_audit.json (1110 bytes)
-./NTT_CCO36_ABLATION_RESULTS/C-CO36_20261010_103657_235504/results.csv (17350 bytes)
-./NTT_CCO36_ABLATION_RESULTS/C-CO36_20261010_103657_235504/run_config.json (2999 bytes)
-./NTT_CCO36_ABLATION_RESULTS/C-CO36_20261010_103657_235504/shortcut_audit.json (663 bytes)
-./NTT_CCO36_ABLATION_RESULTS/C-CO36_20261010_103657_235504/summary.json (10074 bytes)
-./NTT_CCO36_RESULTS/C-CO36_20261010_101036_953960/comparisons.json (1002 bytes)
-./NTT_CCO36_RESULTS/C-CO36_20261010_101036_953960/controls.csv (955 bytes)
-./NTT_CCO36_RESULTS/C-CO36_20261010_101036_953960/controls_summary.json (5875 bytes)
-./NTT_CCO36_RESULTS/C-CO36_20261010_101036_953960/dataset_audit.json (1110 bytes)
-./NTT_CCO36_RESULTS/C-CO36_20261010_101036_953960/results.csv (16311 bytes)
-./NTT_CCO36_RESULTS/C-CO36_20261010_101036_953960/run_config.json (3021 bytes)
-./NTT_CCO36_RESULTS/C-CO36_20261010_101036_953960/shortcut_audit.json (663 bytes)
-./NTT_CCO36_RESULTS/C-CO36_20261010_101036_953960/summary.json (14055 bytes)
-./NTT_CCO36_RESULTS/C-CO36_20261010_101623_881118/comparisons.json (1501 bytes)
-./NTT_CCO36_RESULTS/C-CO36_20261010_101623_881118/completed.json (78 bytes)
-./NTT_CCO36_RESULTS/C-CO36_20261010_101623_881118/controls.csv (1955 bytes)
-./NTT_CCO36_RESULTS/C-CO36_20261010_101623_881118/controls_summary.json (7108 bytes)
-./NTT_CCO36_RESULTS/C-CO36_20261010_101623_881118/dataset_audit.json (1110 bytes)
-./NTT_CCO36_RESULTS/C-CO36_20261010_101623_881118/results.csv (27321 bytes)
-./NTT_CCO36_RESULTS/C-CO36_20261010_101623_881118/run_config.json (3021 bytes)
-./NTT_CCO36_RESULTS/C-CO36_20261010_101623_881118/shortcut_audit.json (663 bytes)
-./NTT_CCO36_RESULTS/C-CO36_20261010_101623_881118/summary.json (16621 bytes)
-./PUZZLE_C-CO16_RESULTS/20260920_083056_842531/run_config.json (1302 bytes)
-./PUZZLE_C-CO16_RESULTS/20260920_083804_926512/R2.csv (376 bytes)
-./PUZZLE_C-CO16_RESULTS/20260920_083804_926512/R2.json (561 bytes)
-./PUZZLE_C-CO16_RESULTS/20260920_083804_926512/pca_info.json (228 bytes)
-./PUZZLE_C-CO16_RESULTS/20260920_083804_926512/puzzle_accuracy_validation.json (7557 bytes)
-./PUZZLE_C-CO16_RESULTS/20260920_083804_926512/puzzle_history.json (2761005 bytes)
-./PUZZLE_C-CO16_RESULTS/20260920_083804_926512/run_config.json (1302 bytes)
-./PUZZLE_C-CO16_RESULTS/20260920_083804_926512/timing.json (95 bytes)
-./PUZZLE_C-CO16_RESULTS/20260920_084514_397464/R2.csv (379 bytes)
-./PUZZLE_C-CO16_RESULTS/20260920_084514_397464/R2.json (564 bytes)
-./PUZZLE_C-CO16_RESULTS/20260920_084514_397464/pca_info.json (227 bytes)
-./PUZZLE_C-CO16_RESULTS/20260920_084514_397464/puzzle_accuracy_validation.json (7597 bytes)
-./PUZZLE_C-CO16_RESULTS/20260920_084514_397464/puzzle_history.json (2070246 bytes)
-./PUZZLE_C-CO16_RESULTS/20260920_084514_397464/run_config.json (1304 bytes)
-./PUZZLE_C-CO16_RESULTS/20260920_084514_397464/timing.json (95 bytes)
-./ROBUST_EVAL/C-CO12_decoder_mse_20261004_075858_821949/eval_config.json (11493 bytes)
-./ROBUST_EVAL/C-CO12_decoder_mse_20261004_075858_821949/results.csv (65787 bytes)
-./ROBUST_EVAL/C-CO12_decoder_mse_20261004_075858_821949/results.json (126594 bytes)
-./ROBUST_EVAL/C-CO12_decoder_mse_20261004_075858_821949/summary.json (20688 bytes)
-./RRESULT/ADV_JF.csv (15692 bytes)
-./RRESULT/ADV_JFINV.csv (11494 bytes)
-./RRESULT/CLEAN_JF.csv (12015 bytes)
-./RRESULT/CLEAN_JFINV.csv (11477 bytes)
-./RRESULT/summary.csv (61 bytes)
-./Robustness_C-CO12_CLEAN_vs_ACORN/robustness_summary.csv (342 bytes)
-./SIGNAL_BUDGET_TESTS/SUMMARY.txt (23044 bytes)
-./SIGNAL_BUDGET_TESTS/runs.csv (147912 bytes)
-./SIGNAL_BUDGET_TESTS/session_signal.csv (9535 bytes)
-./SIGNAL_BUDGET_TESTS/session_signal.json (17557 bytes)
-./SIGNAL_BUDGET_TESTS/testA_collapse.csv (1120 bytes)
-./SIGNAL_BUDGET_TESTS/testA_comparisons.csv (326 bytes)
-./SIGNAL_BUDGET_TESTS/testA_sessions.csv (6936 bytes)
-./SIGNAL_BUDGET_TESTS/testA_within_arm.csv (3745 bytes)
-./SIGNAL_BUDGET_TESTS/testB_auto.csv (1509 bytes)
-./SIGNAL_BUDGET_TESTS/testB_pooled.csv (3169 bytes)
-./SIGNAL_BUDGET_TESTS/testB_supervised.csv (7392 bytes)
-./SIGNAL_BUDGET_TESTS/testB_supervised_summary.csv (1076 bytes)
-./SIGNAL_BUDGET_TESTS/testC_margin.csv (3342 bytes)
-./SOLO_FIXED_J-CO0_20260929_125543/results.json (114303 bytes)
-./STRONG_EVAL_strong/SUMMARY.txt (5837 bytes)
-./STRONG_EVAL_strong/paired_vs_pgd6.csv (1726 bytes)
-./STRONG_EVAL_strong/strong_vs_v1.csv (101796 bytes)
-./STRONG_EVAL_strong/summary_by_arm.csv (2296 bytes)
-./TopK_Drop_Both_C-CO12/topk_drop_summary.csv (293 bytes)
-./TopK_Drop_TrainOnly_C-CO12/topk_drop_summary.csv (298 bytes)
-./acorn_cyclegan_results.csv (835 bytes)
-./acorn_cyclegan_summary.json (523 bytes)
-./adaptive_epsilon_C-CO12_8models.csv (7780 bytes)
-./attribution_benchmark_results.csv (5921 bytes)
-./cebra_C-RT9/results.json (403 bytes)
-./epsilon_comparison_multisession_56runs.csv (57539 bytes)
-./evaluate_euclidean_tanh.csv (37833 bytes)
-./evaluate_euclidean_tanh_Lorenzo.csv (31754 bytes)
-./gain_vs_fixed_C-CO12_24runs.csv (24065 bytes)
-./mi_analysis/C-CO12_nb16.json (39827 bytes)
-./mi_analysis_all/C-CO0_nb24.json (39992 bytes)
-./mi_analysis_all/C-CO10_nb30.json (39850 bytes)
-./mi_analysis_all/C-CO11_nb32.json (39852 bytes)
-./mi_analysis_all/C-CO12_nb30.json (39865 bytes)
-./mi_analysis_all/C-CO13_nb25.json (39872 bytes)
-./mi_analysis_all/C-CO14_nb17.json (32745 bytes)
-./mi_analysis_all/C-CO15_nb15.json (33040 bytes)
-./mi_analysis_all/C-CO16_nb17.json (32611 bytes)
-./mi_analysis_all/C-CO17_nb18.json (32641 bytes)
-./mi_analysis_all/C-CO18_nb16.json (32534 bytes)
-./mi_analysis_all/C-CO19_nb15.json (32654 bytes)
-./mi_analysis_all/C-CO1_nb14.json (33377 bytes)
-./mi_analysis_all/C-CO20_nb22.json (40443 bytes)
-./mi_analysis_all/C-CO21_nb21.json (32640 bytes)
-./mi_analysis_all/C-CO22_nb19.json (32658 bytes)
-./mi_analysis_all/C-CO23_nb20.json (32674 bytes)
-./mi_analysis_all/C-CO24_nb23.json (39905 bytes)
-./mi_analysis_all/C-CO25_nb21.json (32633 bytes)
-./mi_analysis_all/C-CO26_nb21.json (32635 bytes)
-./mi_analysis_all/C-CO27_nb13.json (32618 bytes)
-./mi_analysis_all/C-CO28_nb21.json (32571 bytes)
-./mi_analysis_all/C-CO29_nb21.json (32649 bytes)
-./mi_analysis_all/C-CO2_nb21.json (32612 bytes)
-./mi_analysis_all/C-CO30_nb23.json (39875 bytes)
-./mi_analysis_all/C-CO31_nb21.json (32607 bytes)
-./mi_analysis_all/C-CO32_nb15.json (32659 bytes)
-./mi_analysis_all/C-CO33_nb19.json (32609 bytes)
-./mi_analysis_all/C-CO34_nb19.json (32592 bytes)
-./mi_analysis_all/C-CO35_nb20.json (32631 bytes)
-./mi_analysis_all/C-CO36_nb24.json (39852 bytes)
-./mi_analysis_all/C-CO37_nb19.json (32543 bytes)
-./mi_analysis_all/C-CO38_nb19.json (32656 bytes)
-./mi_analysis_all/C-CO39_nb84.json (40398 bytes)
-./mi_analysis_all/C-CO3_nb17.json (32719 bytes)
-./mi_analysis_all/C-CO40_nb84.json (40348 bytes)
-./mi_analysis_all/C-CO41_nb123.json (40347 bytes)
-./mi_analysis_all/C-CO42_nb107.json (40126 bytes)
-./mi_analysis_all/C-CO43_nb103.json (40081 bytes)
-./mi_analysis_all/C-CO44_nb107.json (40381 bytes)
-./mi_analysis_all/C-CO45_nb104.json (41039 bytes)
-./mi_analysis_all/C-CO46_nb66.json (39938 bytes)
-./mi_analysis_all/C-CO47_nb86.json (40103 bytes)
-./mi_analysis_all/C-CO48_nb89.json (40133 bytes)
-./mi_analysis_all/C-CO49_nb72.json (39873 bytes)
-./mi_analysis_all/C-CO4_nb14.json (32716 bytes)
-./mi_analysis_all/C-CO50_nb84.json (40022 bytes)
-./mi_analysis_all/C-CO51_nb78.json (39877 bytes)
-./mi_analysis_all/C-CO52_nb101.json (40093 bytes)
-./mi_analysis_all/C-CO5_nb16.json (32823 bytes)
-./mi_analysis_all/C-CO6_nb18.json (32760 bytes)
-./mi_analysis_all/C-CO7_nb22.json (39982 bytes)
-./mi_analysis_all/C-CO8_nb23.json (40067 bytes)
-./mi_analysis_all/C-CO9_nb26.json (40113 bytes)
-./mi_analysis_all/C-RT0_nb26.json (40366 bytes)
-./mi_analysis_all/C-RT10_nb22.json (33091 bytes)
-./mi_analysis_all/C-RT11_nb26.json (40029 bytes)
-./mi_analysis_all/C-RT12_nb27.json (40488 bytes)
-./mi_analysis_all/C-RT13_nb26.json (39968 bytes)
-./mi_analysis_all/C-RT14_nb23.json (40040 bytes)
-./mi_analysis_all/C-RT1_nb25.json (40983 bytes)
-./mi_analysis_all/C-RT2_nb30.json (40643 bytes)
-./mi_analysis_all/C-RT3_nb27.json (40716 bytes)
-./mi_analysis_all/C-RT4_nb23.json (40178 bytes)
-./mi_analysis_all/C-RT5_nb22.json (40697 bytes)
-./mi_analysis_all/C-RT6_nb22.json (33308 bytes)
-./mi_analysis_all/C-RT7_nb21.json (33120 bytes)
-./mi_analysis_all/C-RT8_nb23.json (40603 bytes)
-./mi_analysis_all/C-RT9_nb20.json (33204 bytes)
-./mi_analysis_all/J-CO0_nb13.json (32667 bytes)
-./mi_analysis_all/J-CO1_nb6.json (25473 bytes)
-./mi_analysis_all/J-CO2_nb7.json (25502 bytes)
-./mi_analysis_all/M-CO0_nb40.json (40330 bytes)
-./mi_analysis_all/M-CO10_nb20.json (33011 bytes)
-./mi_analysis_all/M-CO11_nb24.json (39883 bytes)
-./mi_analysis_all/M-CO12_nb31.json (39946 bytes)
-./mi_analysis_all/M-CO13_nb17.json (32689 bytes)
-./mi_analysis_all/M-CO14_nb19.json (32996 bytes)
-./mi_analysis_all/M-CO15_nb13.json (33007 bytes)
-./mi_analysis_all/M-CO16_nb14.json (32757 bytes)
-./mi_analysis_all/M-CO17_nb19.json (32733 bytes)
-./mi_analysis_all/M-CO18_nb20.json (32793 bytes)
-./mi_analysis_all/M-CO19_nb18.json (32691 bytes)
-./mi_analysis_all/M-CO1_nb51.json (40421 bytes)
-./mi_analysis_all/M-CO20_nb21.json (32641 bytes)
-./mi_analysis_all/M-CO21_nb21.json (32753 bytes)
-./mi_analysis_all/M-CO2_nb56.json (40190 bytes)
-./mi_analysis_all/M-CO3_nb41.json (40610 bytes)
-./mi_analysis_all/M-CO4_nb40.json (39852 bytes)
-./mi_analysis_all/M-CO5_nb45.json (39907 bytes)
-./mi_analysis_all/M-CO6_nb32.json (39956 bytes)
-./mi_analysis_all/M-CO7_nb9.json (25354 bytes)
-./mi_analysis_all/M-CO8_nb9.json (25449 bytes)
-./mi_analysis_all/M-CO9_nb50.json (40104 bytes)
-./mi_analysis_all/M-RT0_nb58.json (40121 bytes)
-./mi_analysis_all/M-RT1_nb57.json (39912 bytes)
-./mi_analysis_all/M-RT2_nb56.json (39914 bytes)
-./mi_analysis_all/M-RT3_nb41.json (40189 bytes)
-./mi_analysis_all/M-RT4_nb44.json (40141 bytes)
-./mi_analysis_all/M-RT5_nb42.json (40054 bytes)
-./mi_analysis_all/T-CO0_nb19.json (32983 bytes)
-./mi_analysis_all/T-CO1_nb21.json (32895 bytes)
-./mi_analysis_all/T-CO2_nb16.json (32729 bytes)
-./mi_analysis_all/T-CO3_nb19.json (32974 bytes)
-./mi_analysis_all/T-CO4_nb23.json (40026 bytes)
-./mi_analysis_all/T-CO5_nb21.json (32824 bytes)
-./mi_analysis_all/T-RT0_nb18.json (33255 bytes)
-./mi_analysis_all/T-RT1_nb22.json (40380 bytes)
-./mi_analysis_all/T-RT2_nb13.json (33208 bytes)
-./mi_analysis_all/T-RT3_nb26.json (40110 bytes)
-./mi_analysis_all/T-RT4_nb19.json (33107 bytes)
-./mi_analysis_all/T-RT5_nb24.json (40117 bytes)
-./mi_analysis_nb32/C-CO12_nb32.json (32592 bytes)
-./outputs/X021920_topk_results.csv (618 bytes)
-./outputs/decoder_ACORN_topJf__ACORN_confusion.csv (57 bytes)
-./outputs/decoder_ACORN_topJf__CEBRA_confusion.csv (57 bytes)
-./outputs/decoder_ACORN_topJfinv__ACORN_confusion.csv (57 bytes)
-./outputs/decoder_ACORN_topJfinv__CEBRA_confusion.csv (57 bytes)
-./outputs/decoder_CEBRA_topJf__ACORN_confusion.csv (57 bytes)
-./outputs/decoder_CEBRA_topJf__CEBRA_confusion.csv (57 bytes)
-./outputs/decoder_CEBRA_topJfinv__ACORN_confusion.csv (57 bytes)
-./outputs/decoder_CEBRA_topJfinv__CEBRA_confusion.csv (57 bytes)
-./outputs/decoder_FULL__ACORN_confusion.csv (57 bytes)
-./outputs/decoder_FULL__CEBRA_confusion.csv (57 bytes)
-./outputs/synthetic_auroc_detailed.csv (2750 bytes)
-./outputs/synthetic_auroc_summary.csv (583 bytes)
-./outputs_multi_session/CEBRA_vs_ACORN_multisession_gru_accuracy.csv (70 bytes)
-./outputs_multi_session/session_comparison_multi_vs_single.csv (1453 bytes)
-./perich_context_screen/aggregate.csv (7135 bytes)
-./perich_context_screen/summary.csv (9638 bytes)
-./rank_crt2_v2_b256/summary.csv (271 bytes)
-./rank_pilot_2500/summary.csv (303 bytes)
-./rank_runs/summary.csv (399 bytes)
-./rank_v2_s0/summary.csv (552 bytes)
-./select_euclidean_tanh.csv (17121 bytes)
-./select_euclidean_tanh_Lorenzo.csv (13373 bytes)
-./xcebra_ratinabox_acorn/results.csv (3738 bytes)
-./xcebra_ratinabox_acorn_REAL/results.csv (7148 bytes)
-./xcebra_ratinabox_sweep/calibration.csv (2320 bytes)
-./xcebra_ratinabox_sweep/results.csv (119075 bytes)
-
-========== WORKER COUNTS ==========
-worker0.out: 108
-worker1.out: 108
-worker2.out: 108
-worker3.out: 108
-
-========== ERRORS ==========
-No matching errors found
-mirzaei@haas034:~/sam/result/Aggregate$
+Preview: eps_beh rule calibrated on DIFF8 like AUTO_SIG, x*_beh = 0.363; budgets per session (min with (2D)^(1/4)) next to the AUTO_SIG ones
+         sp_beh_rule  sp_sig_rule  diff_beh_rule  diff_sig_rule  reg_beh_rule  reg_sig_rule  iso_beh_rule  iso_sig_rule
+session                                                                                                                
+C-CO12          7.85         5.35           8.87           8.19          8.87          6.31          8.87          8.79
+C-CO13          7.47         5.51           8.49           8.32          8.49          6.17          8.49          8.13
+C-RT13          6.82         5.56           8.57           7.75          7.61          6.01          8.57          7.84
+C-RT6           4.94         5.79           6.95           8.21          5.69          6.14          8.21          8.21
+M-CO9           8.56         7.60          10.11          10.11         10.11          8.53         10.11         10.11
+M-RT3           4.42         8.24           7.51           9.56          5.64          8.65          9.56          9.56
+T-RT1           3.44         5.48           4.76           7.24          3.82          5.66          5.88          8.16
+T-RT4           4.70         4.78           6.31           6.26          5.09          5.00          7.37          7.20
+J-CO0           4.80         3.71           7.23           5.91          5.41          4.08          7.23          7.23
+========== session_behaviour.csv ==========
+session,n_ch,n_time,eps_blind_theory,sigma_bar,r2_activity_from_behaviour_lin,r2_activity_from_behaviour_nl,ridge_alpha_lin,ridge_alpha_nl,eps_sig_sp,eps_beh_lin_sp,ratio_beh_lin_sp,eps_beh_nl_sp,ratio_beh_nl_sp,eps_sig_diff,eps_beh_lin_diff,ratio_beh_lin_diff,eps_beh_nl_diff,ratio_beh_nl_diff,eps_sig_reg,eps_beh_lin_reg,ratio_beh_lin_reg,eps_beh_nl_reg,ratio_beh_nl_reg,eps_sig_iso,eps_beh_lin_iso,ratio_beh_lin_iso,eps_beh_nl_iso,ratio_beh_nl_iso,eps_sig_ref,eps_beh_lin_ref,ratio_beh_lin_ref,eps_beh_nl_ref,ratio_beh_nl_ref,eps_sig_raw,eps_beh_lin_raw,ratio_beh_lin_raw,eps_beh_nl_raw,ratio_beh_nl_raw
+C-CO12,86,18384,8.870696832359,0.6932641695910414,0.09151447540907043,0.20959382682696248,0.01,0.001,22.292703525856137,14.8539680667434,0.6663152385046104,21.608341027314985,0.9693010541432359,34.10539864981469,22.119525121613005,0.6485637464241513,32.461825411869086,0.9518090008323496,26.271473701952363,20.291864207175816,0.7723915467166133,25.908456828906434,0.9861820894722418,36.60668566649185,24.180293874479265,0.6605431066547727,36.23705339316329,0.9899026020357014,17.773791857804873,13.038096212214464,0.7335573813693076,18.743858956547683,1.0545785112430486,25.378103540060817,16.763331353358208,0.6605431066547708,25.121850729037572,0.9899026020356985
+C-CO13,72,17861,8.48528137423857,0.7348470285748483,0.076734300531763,0.18868434894582908,0.01,0.001,22.964824195410635,13.701374617647337,0.5966244070087618,20.5689393952582,0.895671537488572,34.681343191973085,19.263064607990454,0.5554301775846111,30.054454369608663,0.8665885344534376,25.71258666100742,17.80681725340265,0.6925330962678407,23.737084969242954,0.923169857711738,33.86756186361138,20.86047718044377,0.6159426906622728,31.89757660594701,0.9418326815022077,18.042674789692963,12.031199370650846,0.6668190559818644,17.757019153409235,0.9841677778038259,24.887477200549647,15.329259670702534,0.6159426906622735,23.439839387618765,0.941832681502209
+C-RT13,75,35938,8.572321289096399,0.73917008098536,0.05095250029484921,0.12942717938823578,1.0,0.001,23.148450035048082,9.49811481111265,0.4103132087345787,18.79077857856926,0.8117510481314707,32.274758374103584,13.975062187270634,0.43300284467764927,26.067008171220525,0.8076592818781877,25.028992817613855,11.79827211006806,0.47138421414085696,20.943761574654165,0.8367800385445491,32.656622988095485,15.131513006349305,0.46335204383702766,27.66173710902422,0.8470483037731096,17.90288715593131,7.522114330598095,0.4201620814051762,16.0252682786786,0.8951220068082344,24.13879865881885,11.184761694334249,0.463352043837029,20.44672845907317,0.8470483037731117
+C-RT6,63,8389,8.206694399204283,0.5015198871218814,0.08070197296840276,0.12613557291864175,0.01,0.01,24.14505728681009,10.66839865643825,0.4418460693512688,13.599419977124644,0.5632382568234247,35.63994750029759,15.171199249125525,0.42567961832712714,19.148154185424357,0.5372666215421465,25.57303947570199,13.054077749983872,0.5104625033870962,15.657895507312693,0.6122813646062648,35.18216068155356,19.723185891479325,0.5606018933857133,23.939198199074415,0.6804357019387394,18.963848330788693,8.653008672288195,0.4562897003473515,11.158168419466366,0.5883915661438063,17.64455325371655,9.891569961978597,0.5606018933857162,12.005983978588144,0.6804357019387426
+M-CO9,145,13604,10.108230220743808,0.4900042175342242,0.134432841089545,0.2406183400648222,0.01,0.001,31.65085282559008,16.510044180138827,0.5216303102831488,23.564435858005087,0.7445118773846425,46.32288192519851,28.587532896470936,0.6171363202883977,38.38031042857212,0.8285389171284306,35.541723557434715,22.778928616678154,0.6409066960376264,28.481249873387217,0.801346896623122,56.232881746794064,37.914863739516406,0.6742472119824803,50.7108880794624,0.9018013394334626,25.61864079002137,13.917761612807421,0.5432669799651698,19.96928511490981,0.7794826149671444,27.554349220032357,18.57844313959847,0.6742472119824812,24.8485490338426,0.9018013394334639
+M-RT3,116,9174,9.559773913140775,0.5041807097042573,0.07818019249679042,0.06499146418919854,1.0,1.0,34.3461918620688,9.772588972818152,0.2845319507927978,12.180393074812422,0.35463591200234884,47.27447818602382,17.00596380087373,0.3597282181297848,20.689495332602196,0.4376461914860187,36.04244031558765,12.850617948047617,0.35654128398431384,15.542077700072847,0.43121602100153034,51.67337955460991,23.633528387228505,0.4573637062435972,28.698247564466325,0.5553777943658048,26.518829476200565,7.0544881870792,0.2660180832419576,9.023888261058591,0.34028229900407625,26.052721176660736,11.91556911508858,0.45736370624359624,14.469102824321102,0.5553777943658036
+T-RT1,64,11458,8.23906857562847,0.5393701763507094,0.04524937377225524,0.045288971897495145,1.0,1.0,22.83246368592753,7.451085860758786,0.3263373573370078,9.479310707980693,0.41516810618308936,30.178788264364016,10.396078483131726,0.3444829657195917,13.118442001871905,0.43469081286350186,23.573311595044515,8.380022798982873,0.35548772030589404,10.518563603802239,0.4462064467010824,33.99592623919066,12.99060983042372,0.3821225443020313,16.182908125991897,0.47602492169594623,18.3172059597841,5.830680492788506,0.3183171333875874,7.513692888879112,0.4101986353909881,18.336388730837843,7.006747515138903,0.38212254430203413,8.728578009783579,0.47602492169594973
+T-RT4,53,10360,7.859629816086888,0.565154635186027,0.04948274787389795,0.08462806175497273,0.1,0.01,19.921553481748482,9.183852241312318,0.46100080747850725,12.932785164175197,0.6491855756140614,26.086153865897362,12.32779608053789,0.4725800569877845,17.38771921466675,0.6665497452806891,20.83137344101449,10.462065258978464,0.5022263792928748,14.008764240654255,0.6724839473653076,29.98369343275089,14.638835417492146,0.48822655722267666,20.287755190229273,0.6766262880766103,16.31680207675583,7.520045397615459,0.4608774049130725,10.717295564531245,0.6568257379182538,16.945423323516007,8.273205689921067,0.4882265572226766,11.465718883277448,0.6766262880766101
+J-CO0,38,3816,7.232343141920748,0.6753206350053013,0.17634852741323825,0.4504861389792567,0.01,0.001,15.4576516727946,8.952601679775295,0.5791695834065038,13.22064150803868,0.855281370540064,24.618785674281195,14.335578265827516,0.5823024114793622,21.84002724323768,0.8871285339655711,17.012411677497436,10.714123931147787,0.6297827806106712,14.885252769882818,0.8749642938379958,36.89363489659338,22.45879702110022,0.6087444916731146,35.65329434879887,0.9663806358123569,12.031640690864844,7.625828235689263,0.6338144922728001,10.599255288523452,0.8809484558968798,24.915032946020926,15.166889065744572,0.6087444916731211,24.07740537966177,0.9663806358123669
+========== sessions_behaviour_outcomes.csv ==========
+session,eps_sig_sp,eps_beh_lin_sp,eps_beh_nl_sp,ratio_beh_lin_sp,ratio_beh_nl_sp,r2_activity_from_behaviour_nl,broken_SP8,broken_SP_AUTO,broken_REG8,broken_REG_AUTO,broken_DIFF8,broken_DIFF_AUTO,broken_POOL8,broken_POOL_AUTO,broken_PGD6,SP_AUTO_eps_train,SP_AUTO_x_sig,SP_AUTO_x_beh_nl
+C-CO12,22.292703525856137,14.8539680667434,21.608341027314985,0.6663152385046104,0.9693010541432359,0.20959382682696248,0,0,0,0,0,0,0,0,0,5.350248846205472,0.24,0.24760109253376983
+C-CO13,22.964824195410635,13.701374617647337,20.5689393952582,0.5966244070087618,0.895671537488572,0.18868434894582908,0,0,0,0,0,0,0,0,0,5.511557806898552,0.24,0.2679553719803921
+C-RT13,23.148450035048082,9.49811481111265,18.79077857856926,0.4103132087345787,0.8117510481314707,0.12942717938823578,0,0,0,0,0,0,0,0,0,5.5556280084115395,0.24,0.29565714827525513
+C-RT6,24.14505728681009,10.66839865643825,13.599419977124644,0.4418460693512688,0.5632382568234247,0.12613557291864175,3,0,3,0,0,0,0,0,0,5.794813748834422,0.24,0.4261074191827137
+M-CO9,31.65085282559008,16.510044180138827,23.564435858005087,0.5216303102831488,0.7445118773846425,0.2406183400648222,0,0,0,0,0,0,0,0,0,7.596204678141619,0.24,0.3223588599326093
+M-RT3,34.3461918620688,9.772588972818152,12.180393074812422,0.2845319507927978,0.35463591200234884,0.06499146418919854,3,3,0,0,0,0,0,0,0,8.243086046896508,0.23999999999999988,0.6767504132475176
+T-RT1,22.83246368592753,7.451085860758786,9.479310707980693,0.3263373573370078,0.41516810618308936,0.045288971897495145,3,0,3,0,0,0,0,0,3,5.479791284622607,0.24,0.5780790875447447
+T-RT4,19.921553481748482,9.183852241312318,12.932785164175197,0.46100080747850725,0.6491855756140614,0.08462806175497273,3,0,3,0,0,0,0,0,0,4.7811728356196355,0.24,0.3696939812209863
+J-CO0,15.4576516727946,8.952601679775295,13.22064150803868,0.5791695834065038,0.855281370540064,0.4504861389792567,3,0,3,0,0,0,1,0,0,3.7098364014707044,0.24,0.2806094090982631
+========== tests_behaviour.csv ==========
+mode,outcome,predictor,n_runs,n_failed,auc,c_star,loso_accuracy,loso_c_min,loso_c_max
+supervised,failed_decoder,x_nominal,297,34,0.6675799597405503,7.87194614299913,0.4781144781144781,7.795488273683243,7.87194614299913
+supervised,failed_decoder,x_blind,297,34,0.7990941623797807,0.9666070638257052,0.7508417508417509,0.9588709247479499,0.9685117470737374
+supervised,failed_decoder,x_sig,297,34,0.8589800939387161,0.31197940700879007,0.8720538720538721,0.3097374985731567,0.32608468438051186
+supervised,failed_decoder,x_beh_lin,297,34,0.968016103779915,0.7410352809757922,0.9057239057239057,0.6096981926755293,0.7426216395905799
+supervised,failed_decoder,x_beh_nl,297,34,0.9656676358756431,0.5053066848783152,0.8956228956228957,0.5053066848783152,0.5303247146713512
+time_only,failed_decoder,x_nominal,279,10,0.9704460966542751,12.48166730426376,0.931899641577061,12.337535970646119,13.997024006923509
+time_only,failed_decoder,x_blind,279,10,0.9771375464684015,1.2871577543072306,0.8960573476702509,1.2871577543072306,1.9332141276514103
+time_only,failed_decoder,x_sig,279,10,0.9736059479553902,0.3684136370786547,0.8888888888888888,0.36460381938373276,0.6418725372196671
+time_only,failed_decoder,x_beh_lin,279,10,0.9929368029739777,1.0066773020984696,0.9498207885304659,0.9879139126938931,1.1902438068997827
+time_only,failed_decoder,x_beh_nl,279,10,0.9973977695167285,0.8087472464746046,0.974910394265233,0.8032003029195771,0.994084839022703
+time_only,failed_any,x_nominal,279,17,0.9684553210597217,12.48166730426376,0.9068100358422939,9.607185168033364,12.48166730426376
+time_only,failed_any,x_blind,279,17,0.9733947013920072,1.2871577543072306,0.9247311827956989,1.2856667888538884,1.2871577543072306
+time_only,failed_any,x_sig,279,17,0.9896722047597666,0.3684136370786547,0.9139784946236559,0.36460381938373276,0.48604282959771
+time_only,failed_any,x_beh_lin,279,17,0.9934889986528962,0.9305854030252353,0.9713261648745519,0.9200678208687735,1.0066773020984696
+time_only,failed_any,x_beh_nl,279,17,0.9842837898518186,0.677868936355857,0.9498207885304659,0.6736536371505808,0.7252438085072208
+========== rule_preview.csv ==========
+session,sp_beh_rule,sp_sig_rule,diff_beh_rule,diff_sig_rule,reg_beh_rule,reg_sig_rule,iso_beh_rule,iso_sig_rule
+C-CO12,7.847804084041999,5.3502488462054725,8.870696832359,8.185295675955524,8.870696832359,6.305153688468567,8.870696832359,8.785604559958044
+C-CO13,7.470310024562657,5.511557806898552,8.48528137423857,8.32352236607354,8.48528137423857,6.171020798641781,8.48528137423857,8.128214847266731
+C-RT13,6.824510437187813,5.5556280084115395,8.572321289096399,7.7459420097848595,7.606439449146191,6.006958276227325,8.572321289096399,7.837589517142916
+C-RT6,4.9390919692617725,5.794813748834422,6.954303545481926,8.206694399204283,5.686697380167194,6.137529474168478,8.206694399204283,8.206694399204283
+M-CO9,8.558226461292435,7.596204678141619,10.108230220743808,10.108230220743808,10.108230220743808,8.530013653784332,10.108230220743808,10.108230220743808
+M-RT3,4.423724079368974,8.243086046896511,7.514094014099278,9.559773913140775,5.644634203752461,8.650185675741035,9.559773913140775,9.559773913140775
+T-RT1,3.4427341365056994,5.479791284622607,4.764408456365007,7.242909183447363,3.8201741773617295,5.657594782810683,5.877373571728403,8.159022297405757
+T-RT4,4.696980860361002,4.7811728356196355,6.314941702028152,6.260676927815367,5.08775926301866,4.999529625843478,7.368188415605973,7.196086423860213
+J-CO0,4.801525683498216,3.709836401470704,7.232343141920748,5.908508561827487,5.406085887473578,4.082978802599385,7.232343141920748,7.232343141920748
+mirzaei@haas034:~/sam/result/Aggregate$ 
