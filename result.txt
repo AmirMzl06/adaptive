@@ -1,973 +1,832 @@
-# Experiment 9 — Signal-Referenced Automatic Epsilon Calibration and Signal-Subspace Projection for Robust CEBRA
-
-**Complete Experimental Report — 216 New Training Runs**
-
-**Dataset:** Perich motor-cortex recordings, nine sessions from four monkeys  
-**Model:** CEBRA neural encoder with downstream behavioral decoding  
-**Training modes:** Behavior-supervised and time-only CEBRA  
-**Random seeds:** 42, 43, 44  
-**Reference baselines:** Experiments 5, 6b, and 8  
-**Execution status:** 216/216 successful
-
----
-
-## 1. Executive Summary
-
-Experiment 9 investigated whether adversarial training budgets can be calibrated automatically from the relationship between neural signal structure and recording noise, without selecting the perturbation budget through behavioral validation performance.
-
-The experiment also included a mechanistic control that restricted adversarial perturbations to estimated nuisance directions while preserving a fixed \(d'=8\) training budget.
-
-The evaluation comprised **216 new CEBRA training runs**, covering nine recording sessions, three random seeds, and two training modes.
-
-The principal findings are:
-
-1. **Signal-referenced automatic epsilon calibration was operationally successful.** All 189 AUTO_SIG training runs completed with finite, session-specific training budgets calculated from the training recordings. No behavioral validation sweep was required to select those budgets.
-
-2. **The supervised AUTO_SIG methods substantially outperformed conventional PGD6 under the reference noise-shaped threat model.** DIFF_AUTO, REG_AUTO, and POOL_AUTO each achieved a higher reference half-damage threshold than PGD6 in all 27 matched runs. SP_AUTO achieved a higher threshold in 23/27 runs.
-
-3. **AUTO_SIG did not universally outperform its fixed-budget counterpart.** The improvements over fixed DIFF8 were modest, particularly in time-only CEBRA. POOL_AUTO improved upon fixed POOL8 in supervised CEBRA but slightly underperformed it in time-only reference robustness.
-
-4. **Whole-covariance SP_AUTO remained vulnerable in M-RT3.** Its supervised reference half-damage threshold was clipped at 0.5 in all three seeds, despite automatic calibration. Thus, automatic budget selection alone did not eliminate every failure of the whole-covariance spatial metric.
-
-5. **POOL_AUTO offered the strongest overall supervised clean-performance compromise.** Its mean clean \(R^2\) was 0.6109, compared with 0.5970 for PGD6, while its mean reference half-damage threshold increased from 1.4310 to 1.7902. It exhibited no lower-grid-clipped runs.
-
-6. **DIFF_AUTO remained a strong, stable alternative.** Its mean supervised reference half-damage threshold was 1.8366, with no clipped runs, although its clean and robustness improvements over fixed DIFF8 were small.
-
-7. **The signal-projection control did not provide the expected general rescue.** SP8_SIGPROJ never exceeded PGD6 in reference half-damage threshold across the 27 supervised runs, although it improved upon the original SP8 in several previously brittle recordings.
-
-Overall, the results support **signal-referenced epsilon calibration as a useful automatic training procedure**, but not as a universally superior replacement for fixed \(d'=8\). The most convincing contribution is a training-data-derived calibration rule that remains competitive with strong manually specified budgets while offering important improvements for selected geometries and difficult sessions.
-
----
-
-## 2. Research Motivation
-
-### 2.1 Background
-
-Earlier experiments established that the geometry of adversarial perturbations matters for neural representation learning.
-
-Conventional PGD operates in the raw spike-count \(L_2\) metric. Our noise-aware methods instead measure perturbations in recording-specific \(d'\) units.
-
-The distinction is important because different neural channels exhibit different covariance and noise characteristics. An isotropic raw-space perturbation need not correspond to equal statistical detectability across recordings.
-
-Experiments 5 and 6 demonstrated robust benefits from appropriately chosen noise-aware training geometries.
-
-Experiment 8 then extended the evaluation to behavior-supervised CEBRA and revealed a failure mode: whole-covariance SP8 became catastrophically vulnerable in several sessions, while difference-residual DIFF8 remained substantially more stable.
-
-Experiment 9 was designed to determine whether two complementary interventions could address these issues:
-
-- Calibrate the magnitude of training perturbations automatically from the estimated separation between natural neural signal states.
-- Restrict training perturbations to estimated nuisance directions rather than allowing attacks to move through the entire spatial representation.
-
-### 2.2 Connection to the earlier epoch-control experiments
-
-Before the AUTO_SIG runs, Experiment 9 completed 42 additional training runs across E1, E2, and E2b.
-
-Those tests examined whether SP8 brittleness could be explained solely by the effective number of training epochs.
-
-The principal observations were:
-
-| Control | Observation |
-|---|---|
-| E1: Reduce training to approximately 340 epochs in five brittle sessions | SP8 remained lower-grid clipped in 15/15 runs |
-| E2: Halve the training data in previously stable C-CO12 | SP8 retained a reference advantage over PGD6 in 3/3 runs |
-| E2b: Double iterations on the complete C-CO12 recording | SP8 retained a reference advantage in 3/3 runs |
-
-These findings did not support an explanation based solely on excessive training epochs.
-
-They motivated investigation of the perturbation budget and attack geometry directly.
-
-The 216 AUTO_SIG/SIGPROJ runs reported here are additional to those 42 control runs.
-
----
-
-## 3. Methods
-
-### 3.1 Dataset and training protocol
-
-We used nine Perich neural recording sessions:
-
-C-CO12, C-CO13, C-RT13, C-RT6, M-CO9, M-RT3, T-RT1, T-RT4, and J-CO0.
-
-The sessions represent four animals, denoted C, M, T, and J.
-
-Neural inputs were raw, nonnegative spike-count recordings. Each recording was divided into the same training and held-out evaluation splits used in the previous experiments.
-
-The CEBRA encoder architecture and training configuration were retained from the corresponding earlier protocols, including the 36-bin receptive field and 3,000 optimization iterations.
-
-For time-only CEBRA, the encoder was fitted to neural data without behavioral labels. A separate downstream behavioral decoder was subsequently trained using the training labels.
-
-For supervised CEBRA, behavioral labels were supplied during encoder training.
-
-All models were evaluated using held-out behavioral decoding performance and the established adversarial robustness evaluation pipeline.
-
-### 3.2 Definition of automatic training epsilon
-
-The new training-budget rule was:
-
-\[
-\boxed{
-\varepsilon_{\mathrm{train}}(M)
-=
-\min\left[(2D)^{1/4},\;0.24\varepsilon_{\mathrm{sig}}(M)\right]
-}
-\]
-
-Here:
-
-- \(D=CT\) is the total dimensionality of the neural input window, with \(C\) neural channels and \(T=36\) time bins.
-- \(M\) is the covariance-based training metric.
-- \(\varepsilon_{\mathrm{sig}}(M)\) is the estimated typical separation between natural signal states measured in that metric.
-- \(0.24\) is the common signal-relative training fraction.
-
-The signal-separation estimator uses the temporal covariance of the training recording to approximate the slowly varying neural signal component.
-
-In the white-temporal case, the corresponding expression is:
-
-\[
-\varepsilon_{\mathrm{sig}}^2(M)
-=
-2T\operatorname{tr}\left(
-\Sigma_s^{-1}\operatorname{sym}\Gamma_1
-\right),
-\]
-
-where \(\Gamma_1\) is the lag-one covariance of the neural recording.
-
-The more general implementation accounts for the temporal factor of the training metric.
-
-This rule is distinct from the previously proposed **threat budget**:
-
-\[
-\varepsilon_{\mathrm{threat}}
-=
-\min(1,\varepsilon_{\mathrm{NN}},\varepsilon_{\mathrm{det}}).
-\]
-
-The threat budget defines the statistical scale of the evaluation threat. AUTO_SIG selects the perturbation magnitude used during adversarial training.
-
-The cap \((2D)^{1/4}\) is a theoretical blind-observer energy-detectability scale, not a demonstrated guarantee of biological imperceptibility or low CNN-detector AUC.
-
-The coefficient 0.24 was informed by the earlier Perich retrospective analyses. Thus, the calibration is automatic *within a recording*, but fully dataset-independent transfer of this coefficient has not yet been established.
-
-### 3.3 Experimental arms
-
-The experiment evaluated five new methods.
-
-| Arm | Training perturbation | Calibration | Mode |
-|---|---|---|---|
-| DIFF_AUTO | Difference-residual spatial covariance | AUTO_SIG | Both |
-| SP_AUTO | Whole-residual spatial covariance | AUTO_SIG | Both |
-| REG_AUTO | Regression-residual spatial covariance | AUTO_SIG | Supervised |
-| POOL_AUTO | Whole-covariance and isotropic mixture | AUTO_SIG, separately per pool member | Both |
-| SP8_SIGPROJ | Whole-residual spatial covariance, projected attack | Fixed \(d'=8\) | Supervised |
-
-REG_AUTO uses behavioral labels from the training split to estimate regression residuals. Therefore, it should not be described as a completely label-free noise-model estimator, even though its epsilon is not tuned using behavioral validation results.
-
-POOL_AUTO independently calibrates the budget of each covariance-pool component. The primary epsilon recorded in the run summary corresponds to the first, whole-covariance component; it does not fully describe the isotropic member's internal budget.
-
-SP8_SIGPROJ retains the spatial noise model and nominal \(d'=8\) budget while projecting the attack into estimated nuisance directions. Signal modes are estimated from lag-one covariance and difference-residual noise; the `"jnd"` rule removes modes considered detectable over the input window.
-
-### 3.4 Number of runs
-
-| Mode | Arms | Sessions | Seeds | Runs |
-|---|---:|---:|---:|---:|
-| Supervised | 5 | 9 | 3 | 135 |
-| Time-only | 3 | 9 | 3 | 81 |
-| **Total** | | | | **216** |
-
-All **216/216 runs completed successfully**.
-
-### 3.5 Evaluation metrics
-
-The principal metric was the reference half-damage threshold, \(\varepsilon_{1/2,\mathrm{ref}}\), defined by the evaluated robustness curve's crossing of half the clean decoding \(R^2\).
-
-We additionally report the isotropic half-damage threshold, \(\varepsilon_{1/2,\mathrm{iso}}\), the clean validation \(R^2\), and robust \(R^2\) at selected evaluation budgets.
-
-Both reference and isotropic threats were evaluated using the same standardized protocol as the earlier experiments.
-
-Importantly, a reported half-damage threshold of 0.5000 is **left-censored** by the evaluation grid. It indicates the model was already sufficiently damaged at the smallest evaluated budget; it is not necessarily the true crossing point.
-
-All primary comparisons below use the same session and random seed.
-
-The main baseline remains raw-\(L_2\) PGD6, a fixed, preselected conventional adversarial-training baseline.
-
-Fixed DIFF8, SP8, REG8, and POOL8 are used as corresponding method-specific comparisons.
-
----
-
-## 4. Automatic Epsilon Values Across Sessions
-
-The first important result is that the budget varied meaningfully by recording and training geometry.
-
-The resulting epsilon values are given below.
-
-| Session | DIFF_AUTO ε | SP_AUTO ε | REG_AUTO ε | POOL_AUTO primary ε |
-|---|---:|---:|---:|---:|
-| C-CO12 | 8.185 | 5.350 | 6.305 | 5.350 |
-| C-CO13 | 8.324 | 5.512 | 6.171 | 5.512 |
-| C-RT13 | 7.746 | 5.556 | 6.007 | 5.556 |
-| C-RT6 | 8.207 | 5.795 | 6.138 | 5.795 |
-| M-CO9 | 10.108 | 7.596 | 8.530 | 7.596 |
-| M-RT3 | 9.560 | 8.243 | 8.650 | 8.243 |
-| T-RT1 | 7.243 | 5.480 | 5.658 | 5.480 |
-| T-RT4 | 6.261 | 4.781 | 5.000 | 4.781 |
-| J-CO0 | 5.909 | 3.710 | 4.083 | 3.710 |
-
-These values were identical across seeds within a session and mode because they were computed from the same training recording before stochastic model training.
-
-For SP_AUTO, the budgets ranged from approximately 3.71 to 8.24. For DIFF_AUTO, they ranged from approximately 5.91 to 10.11.
-
-This confirms that AUTO_SIG did not simply assign a common perturbation budget across recordings.
-
-However, a notable failure case emerged in M-RT3:
-
-\[
-\varepsilon_{\mathrm{SP,AUTO}}=8.243,
-\]
-
-which is slightly larger than the original fixed SP8 budget.
-
-This observation is important for interpreting the continued SP_AUTO failure in that session.
-
-In most arms, the signal-relative budget was active and the realized normalized fraction was approximately 0.24.
-
-For DIFF_AUTO, the blind cap was active in C-RT6, M-CO9, and M-RT3, yielding normalized fractions of approximately 0.230, 0.218, and 0.202, respectively.
-
-Thus, the method uses both components of the minimum rule; it is not purely a fixed multiplier of signal separation in every session.
-
----
-
-## 5. Supervised CEBRA — Aggregate Results
-
-### 5.1 Mean clean and adversarial performance
-
-All values in this section are means across nine sessions and three seeds, corresponding to 27 matched observations per arm.
-
-| Method | Clean R² | Reference ε½ | Isotropic ε½ |
-|---|---:|---:|---:|
-| PGD6 baseline | 0.5970 | 1.4310 | 3.0142 |
-| Fixed SP8 | 0.5955 | 1.4274 | 1.4106 |
-| Fixed DIFF8 | 0.6075 | 1.7908 | 2.2263 |
-| Fixed REG8 | 0.5969 | 1.5508 | 1.7802 |
-| Fixed POOL8 | 0.6076 | 1.7250 | 2.7348 |
-| **DIFF_AUTO** | **0.6062** | **1.8366** | 2.2951 |
-| **REG_AUTO** | 0.6023 | **1.8361** | 1.9723 |
-| **SP_AUTO** | 0.5930 | 1.8070 | 1.7160 |
-| **POOL_AUTO** | **0.6109** | 1.7902 | **2.9151** |
-| **SP8_SIGPROJ** | 0.6021 | 0.9208 | 1.2582 |
-
-The highest mean reference threshold among the new methods was obtained by DIFF_AUTO, closely followed by REG_AUTO.
-
-POOL_AUTO obtained the highest mean clean \(R^2\) and isotropic threshold among the new supervised methods.
-
-The projected fixed-budget control performed substantially worse in reference robustness.
-
-### 5.2 Paired improvements over PGD6
-
-| Method | Δ Clean R² | Δ Reference ε½ | Reference wins | Clipped runs |
-|---|---:|---:|---:|---:|
-| DIFF_AUTO | +0.0092 | +0.4056 | 27/27 | 0 |
-| REG_AUTO | +0.0053 | +0.4051 | 27/27 | 0 |
-| SP_AUTO | −0.0040 | +0.3761 | 23/27 | 3 |
-| POOL_AUTO | +0.0139 | +0.3593 | 27/27 | 0 |
-| SP8_SIGPROJ | +0.0051 | −0.5102 | 0/27 | 6 |
-
-The geometric-mean multiplicative reference-threshold ratios relative to PGD6 were approximately:
-
-| Method | Reference ε½ ratio vs PGD6 |
-|---|---:|
-| DIFF_AUTO | 1.332× |
-| REG_AUTO | 1.315× |
-| SP_AUTO | 1.192× |
-| POOL_AUTO | 1.291× |
-| SP8_SIGPROJ | 0.678× |
-
-The geometric ratios and arithmetic mean differences summarize different aspects of performance, especially when a baseline is left-censored at the evaluation-grid minimum.
-
-### 5.3 Clean-performance constraint
-
-A proposed criterion for selecting training budgets was to maximize reference robustness while maintaining:
-
-\[
-R^2_{\mathrm{clean,new}}
-\geq
-R^2_{\mathrm{clean,PGD6}}-0.01.
-\]
-
-Evaluated on matched session-seed pairs:
-
-| Method | Pairs satisfying clean constraint | Pairs improving Reference and satisfying clean constraint |
-|---|---:|---:|
-| DIFF_AUTO | 22/27 | 22/27 |
-| REG_AUTO | 20/27 | 20/27 |
-| SP_AUTO | 17/27 | 17/27 |
-| POOL_AUTO | **24/27** | **24/27** |
-| SP8_SIGPROJ | 18/27 | 0/27 |
-
-POOL_AUTO was the strongest supervised AUTO_SIG method under this joint criterion.
-
-It provided a reference improvement in every paired run and remained within the allowed clean-performance margin in 24 of the 27 runs.
-
-DIFF_AUTO also performed well, but it violated the clean constraint in five pairs.
-
-SP_AUTO had a less favorable clean-performance profile, particularly in J-CO0 and M-RT3.
-
-### 5.4 Robustness at evaluation epsilon = 4
-
-The half-damage threshold is the principal reported robustness metric, but it is also useful to examine the actual decoding \(R^2\) under a common perturbation budget.
-
-The following are mean absolute decoding \(R^2\) values at evaluation ε = 4. Negative values are possible because these are ordinary \(R^2\) scores, not probabilities.
-
-| Method | Reference robust R² at ε=4 | Isotropic robust R² at ε=4 |
-|---|---:|---:|
-| PGD6 | −2.6919 | −0.6198 |
-| Fixed DIFF8 | −1.0086 | −1.1302 |
-| Fixed POOL8 | −1.1959 | −0.1652 |
-| DIFF_AUTO | −1.0655 | −1.2183 |
-| REG_AUTO | −0.9490 | −1.5478 |
-| SP_AUTO | −1.1590 | −2.0065 |
-| POOL_AUTO | −1.1509 | −0.0795 |
-| SP8_SIGPROJ | −2.7168 | −1.7551 |
-
-At this specific evaluation budget, REG_AUTO achieved the highest mean reference robust \(R^2\) among the new methods, while POOL_AUTO produced the strongest mean isotropic robust \(R^2\).
-
-However, all mean reference values at ε=4 were negative, indicating substantial decoding degradation at that attack magnitude.
-
-This reinforces the importance of reporting full curves and half-damage thresholds rather than a single large-budget value.
-
----
-
-## 6. Supervised CEBRA — Complete Session-Level Results
-
-Each entry below contains:
-
-**Clean R² / Reference ε½ / Isotropic ε½**
-
-All entries are means over seeds 42, 43, and 44.
-
-| Session | DIFF_AUTO | SP_AUTO | REG_AUTO | POOL_AUTO | SP8_SIGPROJ |
-|---|---|---|---|---|---|
-| C-CO12 | 0.681 / 2.727 / 4.343 | 0.670 / 3.003 / 3.508 | 0.668 / 2.685 / 3.984 | 0.667 / 2.759 / 4.766 | 0.683 / 1.401 / 2.293 |
-| C-CO13 | 0.784 / 2.784 / 4.246 | 0.778 / 2.959 / 3.610 | 0.769 / 2.944 / 4.064 | 0.778 / 2.766 / 4.416 | 0.786 / 1.544 / 2.271 |
-| C-RT13 | 0.547 / 1.987 / 2.529 | 0.553 / 2.042 / 2.293 | 0.553 / 1.981 / 2.326 | 0.547 / 1.909 / 2.697 | 0.529 / 1.091 / 1.514 |
-| C-RT6 | 0.665 / 1.662 / 1.619 | 0.646 / 1.564 / 1.203 | 0.664 / 1.660 / 1.349 | 0.660 / 1.530 / 2.496 | 0.634 / 0.804 / 0.893 |
-| J-CO0 | 0.669 / 1.029 / 0.837 | 0.621 / 0.853 / 0.527 | 0.642 / 0.921 / 0.567 | 0.710 / 1.068 / 2.174 | 0.697 / 0.622 / 0.869 |
-| M-CO9 | 0.789 / 3.126 / 3.934 | 0.780 / 3.495 / 2.368 | 0.792 / 3.161 / 2.791 | 0.789 / 3.002 / 5.062 | 0.790 / 1.241 / 1.675 |
-| M-RT3 | 0.592 / 1.252 / 1.372 | 0.563 / 0.500 / 0.500 | 0.591 / 1.314 / 1.187 | 0.606 / 1.285 / 2.093 | 0.579 / 0.584 / 0.799 |
-| T-RT1 | 0.449 / 0.816 / 0.715 | 0.456 / 0.753 / 0.580 | 0.469 / 0.774 / 0.601 | 0.470 / 0.730 / 1.053 | 0.485 / 0.500 / 0.500 |
-| T-RT4 | 0.278 / 1.147 / 1.060 | 0.270 / 1.093 / 0.856 | 0.273 / 1.085 / 0.883 | 0.270 / 1.064 / 1.479 | 0.236 / 0.500 / 0.510 |
-
-### 6.1 C-CO12 and C-CO13
-
-In the two C-CO sessions, SP_AUTO achieved the highest mean reference robustness among the new methods.
-
-For C-CO12, SP_AUTO reached a reference threshold of 3.003, compared with 2.409 for PGD6 and 2.567 for fixed SP8.
-
-For C-CO13, SP_AUTO reached 2.959, compared with 2.358 for PGD6 and 2.756 for fixed SP8.
-
-These examples demonstrate that signal-referenced calibration can improve whole-covariance training when the session supports that geometry.
-
-However, its isotropic performance was lower than that of POOL_AUTO and, in general, lower than conventional PGD6.
-
-### 6.2 C-RT13
-
-In C-RT13, all four AUTO_SIG methods achieved reference thresholds near 1.9–2.0.
-
-SP_AUTO reached 2.042, compared with 1.728 for PGD6 and 1.496 for fixed SP8.
-
-Thus, automatic calibration improved the fixed SP8 method substantially in this session.
-
-SIGPROJ reached only 1.091, despite the same nominal training budget as SP8.
-
-### 6.3 C-RT6 — Rescue of a previously brittle session
-
-C-RT6 was one of the most important failure cases in Experiment 8.
-
-Previously, fixed SP8 was clipped at the minimum reference evaluation budget in all three seeds.
-
-The new results were:
-
-| Method | Mean Reference ε½ |
-|---|---:|
-| PGD6 | 0.862 |
-| Fixed SP8 | ≤0.500 |
-| Fixed DIFF8 | 1.662 |
-| DIFF_AUTO | 1.662 |
-| SP_AUTO | 1.564 |
-| REG_AUTO | 1.660 |
-| POOL_AUTO | 1.530 |
-| SP8_SIGPROJ | 0.804 |
-
-SP_AUTO eliminated the lower-grid clipping of fixed SP8 in all three seeds.
-
-However, DIFF_AUTO essentially reproduced the strong fixed-DIFF8 performance rather than providing a large additional improvement.
-
-SIGPROJ improved over fixed SP8 but still fell slightly below PGD6.
-
-These results support the view that reducing the whole-covariance training budget can help in this session, but projection alone was not competitive with the best automatic methods.
-
-### 6.4 J-CO0 — A critical clean-performance case
-
-J-CO0 demonstrates why reference robustness alone is insufficient for method selection.
-
-The mean PGD6 clean \(R^2\) was approximately 0.701.
-
-SP_AUTO achieved a reference threshold of 0.853, slightly above PGD6's 0.813, but its mean clean \(R^2\) fell to 0.621.
-
-This represents a clean-performance decrease of approximately 0.080.
-
-REG_AUTO similarly sacrificed substantial clean performance.
-
-DIFF_AUTO performed better in reference robustness but still reduced clean decoding performance relative to PGD6.
-
-POOL_AUTO was notably more favorable:
-
-\[
-R^2_{\mathrm{clean}}=0.710,
-\qquad
-\varepsilon_{1/2,\mathrm{ref}}=1.068,
-\qquad
-\varepsilon_{1/2,\mathrm{iso}}=2.174.
-\]
-
-Thus, POOL_AUTO was the most attractive of the tested automatic methods for J-CO0 when both clean performance and the reference threat model are considered.
-
-This session illustrates that automatic calibration of the perturbation radius does not by itself guarantee signal preservation.
-
-### 6.5 M-CO9
-
-M-CO9 provided some of the largest robustness improvements.
-
-SP_AUTO achieved a reference threshold of 3.495, compared with 2.288 for PGD6.
-
-This corresponds to an average improvement of approximately 1.207 reference \(d'\) units.
-
-However, the fixed SP8 model reached approximately 3.527 in this recording, slightly exceeding SP_AUTO.
-
-POOL_AUTO produced the strongest isotropic half-damage threshold among the new methods, approximately 5.062, and mean clean \(R^2\) of 0.789.
-
-The result demonstrates that a fixed strong spatial budget can remain competitive, and automatic calibration is not always superior in recordings where the original geometry already performs well.
-
-### 6.6 M-RT3 — Persistent failure of SP_AUTO
-
-M-RT3 is the most important negative result for the proposed universal automatic-budget rule.
-
-| Method | Mean Reference ε½ | Mean Clean R² |
-|---|---:|---:|
-| PGD6 | 1.094 | 0.602 |
-| Fixed SP8 | ≤0.500 | — |
-| DIFF_AUTO | 1.252 | 0.592 |
-| REG_AUTO | 1.314 | 0.591 |
-| SP_AUTO | ≤0.500 | 0.563 |
-| POOL_AUTO | 1.285 | 0.606 |
-| SP8_SIGPROJ | 0.584 | 0.579 |
-
-SP_AUTO remained clipped at the smallest evaluation budget in all three random seeds.
-
-Its automatically selected budget was:
-
-\[
-\varepsilon_{\mathrm{SP,AUTO}}=8.243.
-\]
-
-Consequently, this specific calibration did not reduce the training radius below the earlier fixed SP8 value of 8.
-
-This is a concrete failure of the hypothesis that \(0.24\varepsilon_{\mathrm{sig}}\), capped by the blind threshold, is always sufficiently conservative for whole-covariance training.
-
-By contrast, DIFF_AUTO, REG_AUTO, and POOL_AUTO avoided clipping.
-
-POOL_AUTO also maintained slightly higher mean clean \(R^2\) than PGD6.
-
-This result is especially relevant because it distinguishes automatic scalar calibration from changes in the covariance geometry. A scalar budget adjustment does not necessarily correct a problematic training metric.
-
-### 6.7 T-RT1
-
-T-RT1 was difficult even for PGD6, whose reference threshold was left-censored at 0.5.
-
-All four AUTO_SIG methods obtained an above-grid reference threshold.
-
-DIFF_AUTO achieved the highest mean reference threshold, 0.816, while POOL_AUTO and REG_AUTO provided favorable clean decoding performance.
-
-SIGPROJ remained clipped at 0.5.
-
-These results support the ability of signal-referenced training to improve robustness in a particularly challenging recording, while also illustrating the importance of distinguishing lower-grid clipping from an exact threshold measurement.
-
-### 6.8 T-RT4
-
-Fixed SP8 and SIGPROJ both remained clipped at 0.5 in T-RT4.
-
-All AUTO_SIG methods avoided clipping.
-
-DIFF_AUTO reached the highest mean reference threshold, 1.147, followed by SP_AUTO at 1.093, REG_AUTO at 1.085, and POOL_AUTO at 1.064.
-
-The improvements occurred without sacrificing mean clean \(R^2\) relative to PGD6.
-
-This provides another example in which recalibrating the training radius was more effective than the tested signal-projection mechanism.
-
----
-
-## 7. Supervised AUTO_SIG Versus the Corresponding Fixed-Budget Method
-
-Comparisons with PGD6 establish the value of noise-aware methods relative to conventional adversarial training.
-
-However, they do not isolate the additional contribution of automatic epsilon calibration.
-
-For that purpose, each AUTO_SIG method must be compared with the fixed-budget version using the same noise geometry.
-
-### 7.1 Reference robustness
-
-| Automatic method | Fixed counterpart | Mean Δ Reference ε½ | Paired wins |
-|---|---|---:|---:|
-| DIFF_AUTO | DIFF8 | +0.0458 | 15/27 |
-| REG_AUTO | REG8 | +0.2853 | 20/27 |
-| SP_AUTO | SP8 | +0.3796 | 21/27 |
-| POOL_AUTO | POOL8 | +0.0652 | 21/27 |
-| SP8_SIGPROJ | SP8 | −0.5066 | 10/27 |
-
-The strongest improvements relative to fixed counterparts occurred for SP_AUTO and REG_AUTO.
-
-DIFF_AUTO had a much smaller mean effect because fixed DIFF8 was already strong.
-
-POOL_AUTO produced a modest positive average improvement in supervised reference robustness, but the effect varied by session.
-
-SIGPROJ was worse on average than the original fixed SP8 method.
-
-### 7.2 Isotropic robustness relative to the fixed counterpart
-
-| Automatic method | Mean Δ Isotropic ε½ vs fixed |
-|---|---:|
-| DIFF_AUTO | +0.0688 |
-| REG_AUTO | +0.1921 |
-| SP_AUTO | +0.3054 |
-| POOL_AUTO | +0.1802 |
-| SP8_SIGPROJ | −0.1524 |
-
-All four AUTO_SIG variants improved mean isotropic half-damage thresholds relative to their corresponding fixed-budget versions.
-
-However, these improvements do not imply superiority to conventional PGD6 in isotropic robustness.
-
-For instance, mean isotropic thresholds remained below PGD6 for all four supervised AUTO_SIG methods, although POOL_AUTO was relatively close.
-
-### 7.3 Interpretation
-
-The evidence supports the value of automatic calibration most strongly for previously unstable training geometries, particularly SP and REG.
-
-For difference-residual training, the automatic rule is primarily competitive with the well-performing fixed \(d'=8\) setting rather than demonstrating a large additional robustness advantage.
-
-The distinction is scientifically important: the contribution of AUTO_SIG is not simply that it makes all models more robust, but that it replaces a manually selected budget with a signal-referenced rule while preserving or improving performance in many cases.
-
----
-
-## 8. Time-Only CEBRA — Aggregate Results
-
-The time-only experiments comprised 81 runs: three AUTO_SIG arms across nine sessions and three seeds.
-
-### 8.1 Mean results
-
-| Method | Clean R² | Reference ε½ | Isotropic ε½ |
-|---|---:|---:|---:|
-| PGD6 | 0.5069 | 1.3766 | 3.4117 |
-| Fixed DIFF8 | 0.5170 | 1.6238 | 2.3326 |
-| Fixed SP8 | 0.5048 | 1.7255 | 1.7583 |
-| Fixed POOL8 | 0.5292 | 1.6331 | 2.7415 |
-| **DIFF_AUTO** | 0.5178 | 1.6409 | 2.3548 |
-| **SP_AUTO** | 0.5100 | **1.7623** | 1.9550 |
-| **POOL_AUTO** | **0.5252** | 1.5893 | **2.9647** |
-
-SP_AUTO achieved the highest mean reference half-damage threshold among the new time-only methods.
-
-POOL_AUTO achieved the highest clean \(R^2\) and isotropic robustness among the three automatic methods.
-
-Fixed POOL8 nevertheless retained a small advantage in both clean performance and reference robustness over POOL_AUTO.
-
-### 8.2 Paired comparison with PGD6
-
-| Method | Δ Clean R² | Δ Reference ε½ | Reference wins | Clipped runs |
-|---|---:|---:|---:|---:|
-| DIFF_AUTO | +0.0109 | +0.2643 | 25/27 | 0 |
-| SP_AUTO | +0.0032 | +0.3856 | 27/27 | 0 |
-| POOL_AUTO | +0.0183 | +0.2127 | 27/27 | 0 |
-
-The geometric-mean reference ratios relative to PGD6 were:
-
-- DIFF_AUTO: 1.263×
-- SP_AUTO: 1.333×
-- POOL_AUTO: 1.182×
-
-SP_AUTO therefore provided the strongest reference robustness gain relative to PGD6 in time-only CEBRA.
-
-However, its isotropic performance remained substantially lower than that of conventional PGD6.
-
-### 8.3 Comparison with fixed-budget methods
-
-| Automatic method | Fixed counterpart | Mean Δ Reference ε½ | Paired wins |
-|---|---|---:|---:|
-| DIFF_AUTO | DIFF8 | +0.0171 | 14/27 |
-| SP_AUTO | SP8 | +0.0367 | 16/27 |
-| POOL_AUTO | POOL8 | −0.0438 | 8/27 |
-
-These differences are generally small.
-
-In particular, DIFF_AUTO and SP_AUTO were close to their fixed counterparts.
-
-POOL_AUTO underperformed fixed POOL8 in mean reference robustness, despite a higher mean isotropic half-damage threshold.
-
-This is a meaningful negative result for any claim that automatic epsilon calibration universally improves upon fixed training budgets.
-
-### 8.4 Clean-performance constraint
-
-The numbers of matched runs satisfying the clean \(R^2\) tolerance of PGD6 minus 0.01 were:
-
-| Method | Runs satisfying clean constraint |
-|---|---:|
-| DIFF_AUTO | 21/27 |
-| SP_AUTO | 19/27 |
-| POOL_AUTO | **27/27** |
-
-POOL_AUTO was the most reliable of the automatic time-only variants under the clean-performance constraint, although fixed POOL8 remained very competitive overall.
-
----
-
-## 9. Time-Only CEBRA — Complete Session-Level Results
-
-Each entry reports:
-
-**Clean R² / Reference ε½ / Isotropic ε½**
-
-All values are averaged over the three seeds.
-
-| Session | DIFF_AUTO | SP_AUTO | POOL_AUTO |
-|---|---|---|---|
-| C-CO12 | 0.617 / 2.294 / 4.218 | 0.615 / 2.615 / 4.050 | 0.631 / 2.449 / 4.639 |
-| C-CO13 | 0.690 / 2.336 / 4.036 | 0.684 / 2.587 / 3.510 | 0.714 / 2.411 / 4.278 |
-| C-RT13 | 0.431 / 1.376 / 2.173 | 0.427 / 1.440 / 2.061 | 0.434 / 1.387 / 2.335 |
-| C-RT6 | 0.547 / 1.318 / 1.419 | 0.540 / 1.340 / 1.235 | 0.550 / 1.150 / 2.236 |
-| J-CO0 | 0.577 / 1.085 / 1.100 | 0.548 / 1.047 / 0.746 | 0.617 / 1.084 / 2.610 |
-| M-CO9 | 0.698 / 2.534 / 3.642 | 0.696 / 2.907 / 2.307 | 0.711 / 2.621 / 4.911 |
-| M-RT3 | 0.532 / 1.684 / 2.217 | 0.514 / 1.686 / 1.517 | 0.535 / 1.518 / 2.752 |
-| T-RT1 | 0.374 / 1.072 / 1.272 | 0.367 / 1.128 / 1.125 | 0.338 / 0.812 / 1.393 |
-| T-RT4 | 0.194 / 1.069 / 1.115 | 0.200 / 1.110 / 1.046 | 0.197 / 0.873 / 1.529 |
-
-### 9.1 Notable session-level findings
-
-C-CO12 and C-CO13 retained the strong reference robustness of whole-covariance training. SP_AUTO was favorable under the reference metric, while POOL_AUTO was preferable for clean performance and isotropic robustness.
-
-In C-RT6, DIFF_AUTO and SP_AUTO both improved reference robustness relative to PGD6. POOL_AUTO preserved more isotropic robustness than SP_AUTO.
-
-In J-CO0, POOL_AUTO substantially improved clean decoding performance relative to the other automatic methods, reaching a mean clean \(R^2\) of 0.617.
-
-In M-CO9, SP_AUTO achieved a reference threshold of 2.907, compared with 2.141 for PGD6. POOL_AUTO instead favored isotropic robustness, reaching 4.911.
-
-In M-RT3, all three automatic methods were robust above the evaluation-grid minimum, unlike the supervised whole-covariance failure. This reinforces the importance of considering the interaction between the supervised objective and the attack geometry.
-
-In T-RT1 and T-RT4, SP_AUTO again produced strong reference robustness, but POOL_AUTO was not consistently the best method for that metric.
-
-### 9.2 Interpretation
-
-Time-only CEBRA did not reproduce the widespread whole-covariance collapse seen in behavior-supervised CEBRA.
-
-This is consistent with the earlier finding that whole-covariance spatial training is more fragile when the supervised objective directly incorporates behavioral information.
-
-Nevertheless, the current results do not establish a single causal mechanism. The supervised and time-only training objectives differ, and their representations may respond differently to perturbations even under identical nominal training budgets.
-
-The time-only results primarily establish that AUTO_SIG can preserve competitive reference robustness while assigning the perturbation budget automatically.
-
----
-
-## 10. Signal Projection Mechanism Test
-
-### 10.1 Hypothesis
-
-The signal-projection experiment tested whether the catastrophic supervised SP8 failures arose primarily because whole-covariance adversarial perturbations could move along behaviorally meaningful neural signal directions.
-
-The proposed intervention was to remove estimated signal modes from the attack space while retaining \(d'=8\).
-
-If the main failure were caused by the attack moving in behaviorally relevant directions, the projected attack might be expected to reduce that interference and restore robust decoding.
-
-### 10.2 Projection characteristics
-
-The number of removed estimated signal modes varied by session:
-
-| Session | Projected-out modes |
-|---|---:|
-| C-CO12 | 22 |
-| C-CO13 | 22 |
-| C-RT13 | 27 |
-| C-RT6 | 24 |
-| M-CO9 | 36 |
-| M-RT3 | 42 |
-| T-RT1 | 23 |
-| T-RT4 | 17 |
-| J-CO0 | 8 |
-
-The projection is therefore session dependent rather than a constant-dimensional operation.
-
-### 10.3 Results
-
-Across the 27 supervised SIGPROJ runs:
-
-| Metric | SP8_SIGPROJ |
-|---|---:|
-| Mean clean R² | 0.6021 |
-| Mean reference ε½ | 0.9208 |
-| Mean isotropic ε½ | 1.2582 |
-| Reference wins over PGD6 | **0/27** |
-| Reference wins over fixed SP8 | 10/27 |
-| Lower-grid-clipped runs | 6/27 |
-| Mean training loss gain | 0.2138 |
-
-Relative to PGD6, the mean reference threshold decreased by approximately 0.510.
-
-Relative to fixed SP8, the mean reference threshold decreased by approximately 0.507.
-
-The projection control therefore did not rescue whole-covariance training as a general method.
-
-### 10.4 Interpretation of partially rescued sessions
-
-SIGPROJ did improve upon the original clipped SP8 result in several difficult recordings:
-
-- C-RT6: reference threshold increased from the 0.5 floor to approximately 0.804.
-- J-CO0: increased from the 0.5 floor to approximately 0.622.
-- M-RT3: increased from the 0.5 floor to approximately 0.584.
-
-However, these values were still below PGD6 and below most AUTO_SIG methods.
-
-In T-RT1 and T-RT4, SIGPROJ remained clipped.
-
-Furthermore, SIGPROJ substantially degraded robustness in recordings where unprojected SP8 was previously effective, such as C-CO12, C-CO13, and M-CO9.
-
-This suggests a possible trade-off: restricting the adversary to estimated nuisance directions can reduce harmful interference with signal directions, but may also weaken adversarial training or remove useful robustness-inducing perturbations.
-
-The low observed training loss gain is compatible with a weaker or more constrained effective adversary.
-
-These findings do **not** disprove the broader signal-subspace hypothesis. They show that this particular projection estimator, threshold, and fixed-budget implementation did not deliver a general improvement.
-
-A causal conclusion about the importance of attack direction would require additional controls that account for differences in the effective strength of the projected attack.
-
----
-
-## 11. What Do the Results Establish About Automatic Epsilon Calibration?
-
-### 11.1 What is supported
-
-The experiments establish that the proposed calibration rule can:
-
-- Produce finite and different training budgets across sessions and covariance geometries without a validation-budget sweep.
-- Train successfully across both supervised and time-only CEBRA.
-- Preserve strong reference robustness relative to conventional PGD6 for most methods and virtually all session-seed pairs.
-- Avoid lower-grid clipping for DIFF_AUTO, REG_AUTO, and POOL_AUTO throughout the supervised experiment.
-- Improve some previously unstable whole-covariance sessions by reducing their training radius.
-- Remain competitive with fixed DIFF8 and POOL8, particularly in the supervised setting.
-
-### 11.2 What is not supported
-
-The results do not support the stronger claim that AUTO_SIG:
-
-- Always outperforms a well-chosen fixed \(d'=8\) budget.
-- Prevents every catastrophic failure of whole-covariance spatial training.
-- Automatically preserves clean decoding performance within a prescribed margin in every session.
-- Eliminates the reference-versus-isotropic robustness trade-off.
-- Has been validated without any prior dataset-level calibration of its common fraction.
-- Guarantees low attack detectability against separately trained discriminative detectors.
-
-The experiment also does not establish that a higher ε½ under the reference metric implies robustness to all biologically meaningful perturbations.
-
-### 11.3 The fixed-budget comparison is essential
-
-For supervised DIFF_AUTO:
-
-\[
-\Delta\varepsilon_{1/2,\mathrm{ref}}
-=
-+0.0458
-\]
-
-relative to fixed DIFF8.
-
-For time-only DIFF_AUTO:
-
-\[
-\Delta\varepsilon_{1/2,\mathrm{ref}}
-=
-+0.0171.
-\]
-
-These small improvements mean that the principal contribution cannot be described simply as a large increase in robustness over fixed DIFF8.
-
-Instead, the contribution is that a recording-dependent epsilon calibration was able to recover approximately the same strong performance without selecting one shared hand-specified training epsilon for every recording.
-
-For POOL_AUTO, the evidence is somewhat stronger in supervised CEBRA but mixed in time-only CEBRA.
-
-The distinction should remain explicit in any future manuscript.
-
----
-
-## 12. Statistical Interpretation
-
-The dataset comprises nine sessions from four monkeys, with three seeds for each session.
-
-The 27 seed-level results per arm are matched observations, but they are not 27 independent biological datasets.
-
-The strongest evidence is therefore the repeated direction of performance differences across sessions, supported by matched-seed consistency.
-
-For example:
-
-- Supervised DIFF_AUTO improved reference robustness over PGD6 in 9/9 session means.
-- Supervised REG_AUTO improved reference robustness over PGD6 in 9/9 session means.
-- Supervised POOL_AUTO improved reference robustness over PGD6 in 9/9 session means.
-- Supervised SP_AUTO improved reference robustness over PGD6 in 8/9 session means.
-- Time-only DIFF_AUTO, SP_AUTO, and POOL_AUTO each improved reference robustness over PGD6 in 9/9 session means.
-
-As an exploratory descriptive check, a two-sided paired Wilcoxon signed-rank test on the nine session-mean reference differences gives \(p=0.0039\) for comparisons in which all nine session differences are positive.
-
-However, these are exploratory tests, and the nine sessions are themselves nested within four animals. The p-values should not be treated as independent-animal confirmation or interpreted without accounting for the multiple method comparisons.
-
-Crucially, performance gains relative to the fixed-budget counterparts are less consistent.
-
-For example:
-
-| Supervised comparison | Session-mean wins | Exploratory Wilcoxon p |
-|---|---:|---:|
-| DIFF_AUTO vs DIFF8 | 5/9 | 0.359 |
-| REG_AUTO vs REG8 | 8/9 | 0.039 |
-| SP_AUTO vs SP8 | 7/9 | 0.016 |
-| POOL_AUTO vs POOL8 | 7/9 | 0.164 |
-
-These exploratory unadjusted results suggest that improvements over fixed-budget methods are more convincing for the previously unstable SP and REG geometries than for DIFF8 or POOL8.
-
-They do not by themselves establish generalization to unseen animals or datasets.
-
-Animal-level comparisons and an independent-dataset test remain important.
-
----
-
-## 13. Limitations
-
-Several limitations should be acknowledged.
-
-**First, the signal-separation estimate relies on assumptions about temporal noise and slowly varying signal.** Lag-one covariance is a practical signal proxy, not direct measurement of behaviorally sufficient neural information.
-
-**Second, the coefficient 0.24 was informed by Perich retrospective results.** Although no behavioral validation sweep was used to choose epsilon for each new recording, the global coefficient is not yet independently validated.
-
-**Third, the training geometries themselves influence the meaning of epsilon.** Equal nominal \(d'\) budgets are not necessarily equivalent in their ability to perturb behaviorally important structure.
-
-**Fourth, the half-damage threshold is left-censored at 0.5.** Apparent equalities at this boundary should not be interpreted as true equalities of robustness.
-
-**Fifth, the isotropic and reference threat models reveal different rankings.** Optimizing one geometry can sacrifice robustness under another.
-
-**Sixth, the experiment used the established attack evaluation configuration.** Additional multi-restart or stronger-step-budget testing would be useful to exclude weaknesses in attack optimization.
-
-**Seventh, the current evidence is limited to nine sessions from four monkeys.** External recordings with different neural modalities, noise structure, and behavioral tasks are needed to demonstrate broader calibration transfer.
-
-**Finally, Experiment 9 did not establish the detectability of the new trained models' perturbations against an independent supervised CNN detector.** A theoretical detectability cap should not be presented as equivalent to empirical adversarial stealth.
-
----
-
-## 14. Recommended Method Selection
-
-The results suggest that a single method should not be selected based only on mean reference robustness.
-
-Under the proposed joint criterion of reference robustness and preservation of clean performance, the following distinctions are useful.
-
-| Objective | Most promising method | Reason |
-|---|---|---|
-| Strong, stable reference robustness in supervised CEBRA | DIFF_AUTO | Highest mean reference threshold among new methods; no clipped runs |
-| Supervised balance of clean performance and reference robustness | POOL_AUTO | Highest mean clean R²; 27/27 reference wins over PGD6; 24/27 satisfy clean constraint |
-| Supervised improvement over previously unstable fixed spatial training | SP_AUTO, with caveats | Large gains in multiple sessions, but persistent M-RT3 failure |
-| Supervised regression-based alternative | REG_AUTO | Strong reference gains and no clipping, but uses training behavioral labels |
-| Highest mean time-only reference robustness among automatic arms | SP_AUTO | Mean reference threshold 1.7623 |
-| Time-only clean performance and isotropic balance | POOL_AUTO | Strong clean performance and isotropic robustness, although fixed POOL8 remains competitive |
-| Fixed-budget projection alternative | Not recommended as tested | Weak reference performance relative to PGD6 and the AUTO_SIG arms |
-
-For a conservative label-free noise-estimation method that must operate in both supervised and time-only CEBRA, DIFF_AUTO remains an attractive candidate.
-
-For an application in which clean behavioral decoding performance and robustness across attack geometries are considered jointly, POOL_AUTO merits further evaluation.
-
-However, if the objective is strictly the best reference-geometry performance on these Perich sessions, the fixed-budget methods must remain part of the comparison.
-
----
-
-## 15. Proposed Next Experiments
-
-### 15.1 Independent calibration transfer
-
-Evaluate the same AUTO_SIG rule on a dataset not used to motivate the coefficient 0.24.
-
-Keep the fraction fixed.
-
-The primary question would be whether the method can preserve robust performance without new dataset-specific epsilon selection.
-
-### 15.2 Failure analysis of M-RT3
-
-The persistent supervised SP_AUTO failure is particularly informative.
-
-A focused budget comparison around its automatically selected value of 8.243 could determine whether reducing the training radius further resolves the failure or whether the whole-covariance geometry remains problematic even at substantially smaller budgets.
-
-This should be treated as a diagnostic experiment, not as a replacement for the existing automatic rule.
-
-### 15.3 Stronger adversarial evaluation
-
-Evaluate selected models under more extensive APGD optimization, including multiple restarts and a larger attack-step budget.
-
-Compare reference and isotropic geometries under exactly matched evaluation conditions.
-
-### 15.4 Detectability controls
-
-Repeat discriminative and blind detectability analyses for representative AUTO_SIG methods.
-
-This would help determine whether the automatically selected training budgets correspond to genuinely difficult-to-detect perturbations under the learned detector models, rather than relying exclusively on the theoretical cap.
-
-### 15.5 More informative projection controls
-
-For SIGPROJ, compare the effect of removing different numbers of estimated signal modes and examine the realized attack strength.
-
-The current results suggest that the projection substantially changes the effective adversary. A matched-strength control would be needed before concluding that nuisance-only perturbations are intrinsically less useful for robust training.
-
----
-
-## 16. Final Conclusions
-
-Experiment 9 provides the first full prospective evaluation of signal-referenced automatic epsilon calibration in both time-only and behavior-supervised CEBRA across the nine Perich recordings.
-
-The computational result was complete: **216 successful new training runs**, comprising 189 AUTO_SIG models and 27 signal-projection controls.
-
-The principal scientific result is that AUTO_SIG can produce competitive, often strongly robust neural representations without selecting epsilon separately through behavioral validation sweeps.
-
-In supervised CEBRA, all four automatic methods improved reference robustness over conventional PGD6 on average, with DIFF_AUTO, REG_AUTO, and POOL_AUTO winning all 27 matched comparisons.
-
-The strongest clean-performance compromise was obtained by POOL_AUTO, while DIFF_AUTO provided particularly stable reference robustness.
-
-However, automatic epsilon calibration did not universally improve upon the corresponding fixed \(d'=8\) methods, and SP_AUTO retained a catastrophic failure in M-RT3.
-
-The SIGPROJ experiment provided partial improvements in certain previously brittle sessions but failed to deliver a broadly competitive alternative.
-
-The overall evidence therefore supports a nuanced conclusion:
-
-**Signal-referenced automatic epsilon calibration is a viable and useful method for selecting recording-specific adversarial-training budgets. Its principal contribution is automatic, interpretable calibration with competitive robustness—not universal dominance over strong fixed-budget adversarial training.**
-
-Further evaluation on independent recordings is necessary to establish whether this calibration generalizes beyond the Perich sessions and whether its common signal-relative fraction can be transferred without retuning.
-
----
-
-## Reproducibility and Source Results
-
-**Experiment 9 output directories**
-
-- `DPRIME_EXP9_AUTOSIG_SUPERVISED` — 135 supervised runs.
-- `DPRIME_EXP9_AUTOSIG_TIMEONLY` — 81 time-only runs.
-
-**Earlier paired baselines**
-
-- `DPRIME_EXP5`
-- `DPRIME_EXP6`
-- `DPRIME_SUPERVISED_PERICH_EXP8`
-
-**Implementation**
-
-- `Exp9_autosig_bundle_v2.zip`
-- `dprime_exp9.py`
-- Modified `Acorn-dprime` fork with `auto_sig` calibration and signal-subspace projection.
-
-All reported aggregate statistics were reconstructed from the completed 216-run terminal results and matched with the original Exp5/6/8 numerical evaluation records by session, seed, and method.
-
-All results should be interpreted as performance on the evaluated Perich recordings under the specified threat models and training configurations, rather than as universal properties of adversarial training.
+mirzaei@haas034:~/sam/result/Aggregate$ runai logs sam-dprime -p upmwmathis-mirzaei -f
+========== EXP10 STRONG EVALUATION ==========
+100 APGD steps | 3 restarts | 4 H200 GPUs
+No model training
+Thu Oct 22 14:38:27 2026       
++-----------------------------------------------------------------------------------------+
+| NVIDIA-SMI 580.159.04             Driver Version: 580.159.04     CUDA Version: 13.0     |
++-----------------------------------------+------------------------+----------------------+
+| GPU  Name                 Persistence-M | Bus-Id          Disp.A | Volatile Uncorr. ECC |
+| Fan  Temp   Perf          Pwr:Usage/Cap |           Memory-Usage | GPU-Util  Compute M. |
+|                                         |                        |               MIG M. |
+|=========================================+========================+======================|
+|   0  NVIDIA H200                    On  |   00000000:03:00.0 Off |                    0 |
+| N/A   38C    P0             76W /  700W |       4MiB / 143771MiB |      0%      Default |
+|                                         |                        |             Disabled |
++-----------------------------------------+------------------------+----------------------+
+|   1  NVIDIA H200                    On  |   00000000:63:00.0 Off |                    0 |
+| N/A   29C    P0             75W /  700W |       4MiB / 143771MiB |      0%      Default |
+|                                         |                        |             Disabled |
++-----------------------------------------+------------------------+----------------------+
+|   2  NVIDIA H200                    On  |   00000000:83:00.0 Off |                    0 |
+| N/A   30C    P0             75W /  700W |       4MiB / 143771MiB |      0%      Default |
+|                                         |                        |             Disabled |
++-----------------------------------------+------------------------+----------------------+
+|   3  NVIDIA H200                    On  |   00000000:A3:00.0 Off |                    0 |
+| N/A   30C    P0             73W /  700W |       4MiB / 143771MiB |      0%      Default |
+|                                         |                        |             Disabled |
++-----------------------------------------+------------------------+----------------------+
+
++-----------------------------------------------------------------------------------------+
+| Processes:                                                                              |
+|  GPU   GI   CI              PID   Type   Process name                        GPU Memory |
+|        ID   ID                                                               Usage      |
+|=========================================================================================|
+|  No running processes found                                                             |
++-----------------------------------------------------------------------------------------+
+========== VERIFY SAVED MODELS ==========
+DPRIME_EXP5                      MADRY_SPDIFF_D8            9 models
+DPRIME_EXP5                      MADRY_SP_D8                9 models
+DPRIME_EXP5                      PGD_L2_EPS6                9 models
+DPRIME_EXP6                      MADRY_SPDIFF_D8           18 models
+DPRIME_EXP6                      MADRY_SP_D8               18 models
+DPRIME_EXP6                      MADRY_SP_D8_POOL          27 models
+DPRIME_EXP6                      PGD_L2_EPS6               18 models
+DPRIME_EXP9_AUTOSIG_SUPERVISED   MADRY_SPDIFF_AUTOSIG      27 models
+DPRIME_EXP9_AUTOSIG_SUPERVISED   MADRY_SPREG_AUTOSIG       27 models
+DPRIME_EXP9_AUTOSIG_SUPERVISED   MADRY_SP_AUTOSIG          27 models
+DPRIME_EXP9_AUTOSIG_SUPERVISED   MADRY_SP_AUTOSIG_POOL     27 models
+DPRIME_EXP9_AUTOSIG_TIMEONLY     MADRY_SPDIFF_AUTOSIG      27 models
+DPRIME_EXP9_AUTOSIG_TIMEONLY     MADRY_SP_AUTOSIG          27 models
+DPRIME_EXP9_AUTOSIG_TIMEONLY     MADRY_SP_AUTOSIG_POOL     27 models
+DPRIME_SUPERVISED_PERICH_EXP8    MADRY_SPDIFF_D8           27 models
+DPRIME_SUPERVISED_PERICH_EXP8    MADRY_SPREG_D8            27 models
+DPRIME_SUPERVISED_PERICH_EXP8    MADRY_SP_D8               27 models
+DPRIME_SUPERVISED_PERICH_EXP8    MADRY_SP_D8_POOL          27 models
+DPRIME_SUPERVISED_PERICH_EXP8    PGD_L2_EPS6               27 models
+432 models, 0 already evaluated with tag 'strong'
+432 models, 0 already evaluated with tag 'strong'
+========== START STRONG EVALUATION ==========
+432 saved models found, 432 to evaluate (steps=100, restarts=3, tag=strong)
+[GPU 0] shard 0 started, log=STRONG_EVAL_strong/worker0.out
+[GPU 1] shard 1 started, log=STRONG_EVAL_strong/worker1.out
+[GPU 2] shard 2 started, log=STRONG_EVAL_strong/worker2.out
+[GPU 3] shard 3 started, log=STRONG_EVAL_strong/worker3.out
+shard log STRONG_EVAL_strong/worker0.out: exit 0
+shard log STRONG_EVAL_strong/worker1.out: exit 0
+shard log STRONG_EVAL_strong/worker2.out: exit 0
+shard log STRONG_EVAL_strong/worker3.out: exit 0
+STRONGER-ATTACK CHECK (steps=100, restarts=3) - 432 models with both evaluations
+
+How to read: the half-damage thresholds drop under the stronger attack (it can only
+be stronger). Gradient masking would show as a larger drop for the noise-aware
+models than for PGD6, i.e. a paired ratio to PGD6 that shrinks from v1 to strong.
+
+Per arm: mean half-damage thresholds and median ratio strong / v1
+      mode       arm  models  ref_half_v1  ref_half_strong  ref_drop_median  iso_half_v1  iso_half_strong  iso_drop_median  clipped_v1  clipped_strong
+supervised     DIFF8      27        1.791            1.759            0.998        2.226            2.198            0.996           0               0
+supervised DIFF_AUTO      27        1.837            1.804            0.997        2.295            2.270            0.995           0               0
+supervised      PGD6      27        1.431            1.408            0.994        3.014            2.964            0.994           3               3
+supervised     POOL8      27        1.725            1.702            0.996        2.735            2.708            0.995           1               1
+supervised POOL_AUTO      27        1.790            1.764            0.996        2.915            2.886            0.996           0               0
+supervised      REG8      27        1.551            1.525            0.998        1.780            1.754            0.999          12              12
+supervised  REG_AUTO      27        1.836            1.805            0.996        1.972            1.951            0.997           0               0
+supervised       SP8      27        1.427            1.385            1.000        1.411            1.362            1.000          15              15
+supervised   SP_AUTO      27        1.807            1.772            0.996        1.716            1.675            0.997           3               3
+ time_only     DIFF8      27        1.624            1.614            0.998        2.333            2.320            0.996           0               0
+ time_only DIFF_AUTO      27        1.641            1.632            0.998        2.355            2.343            0.997           0               0
+ time_only      PGD6      27        1.377            1.366            0.998        3.412            3.387            0.997           0               0
+ time_only     POOL8      27        1.633            1.625            0.998        2.742            2.733            0.999           0               0
+ time_only POOL_AUTO      27        1.589            1.581            0.998        2.965            2.952            0.998           0               0
+ time_only       SP8      27        1.726            1.717            0.998        1.758            1.746            0.997           0               0
+ time_only   SP_AUTO      27        1.762            1.752            0.998        1.955            1.945            0.997           0               0
+
+Paired with PGD6 (same mode, session, seed): geometric-mean ratio of the half-damage thresholds over sessions, and sessions won, under the original (v1) and the strong attack
+      mode       arm  pairs  ref_ratio_v1 ref_sessions_won_v1  ref_ratio_strong ref_sessions_won_strong  iso_ratio_v1 iso_sessions_won_v1  iso_ratio_strong iso_sessions_won_strong
+supervised     DIFF8     27         1.317                 9/9             1.315                     9/9         0.823                 2/9             0.826                     2/9
+supervised DIFF_AUTO     27         1.331                 9/9             1.330                     9/9         0.837                 2/9             0.841                     2/9
+supervised     POOL8     27         1.200                 8/9             1.203                     8/9         1.083                 2/9             1.083                     2/9
+supervised POOL_AUTO     27         1.291                 9/9             1.292                     9/9         1.166                 2/9             1.173                     2/9
+supervised      REG8     27         0.933                 5/9             0.936                     5/9         0.562                 0/9             0.564                     0/9
+supervised  REG_AUTO     27         1.315                 9/9             1.314                     9/9         0.699                 2/9             0.703                     2/9
+supervised       SP8     27         0.813                 3/9             0.807                     3/9         0.459                 0/9             0.455                     0/9
+supervised   SP_AUTO     27         1.192                 8/9             1.191                     8/9         0.589                 2/9             0.588                     2/9
+ time_only     DIFF8     27         1.253                 9/9             1.254                     9/9         0.664                 0/9             0.665                     0/9
+ time_only DIFF_AUTO     27         1.263                 9/9             1.264                     9/9         0.675                 0/9             0.676                     0/9
+ time_only     POOL8     27         1.212                 9/9             1.214                     9/9         0.816                 0/9             0.818                     0/9
+ time_only POOL_AUTO     27         1.182                 9/9             1.184                     9/9         0.887                 0/9             0.889                     0/9
+ time_only       SP8     27         1.286                 9/9             1.289                     9/9         0.488                 0/9             0.488                     0/9
+ time_only   SP_AUTO     27         1.333                 9/9             1.334                     9/9         0.554                 0/9             0.555                     0/9
+
+========== VERIFY COMPLETION ==========
+432 models, 432 already evaluated with tag 'strong'
+========== EXP10 STRONG EVAL COMPLETE: 432/432 ==========
+
+
+
+mirzaei@haas034:~/sam/result/Aggregate$ cd ~/sam/result/Aggregate
+
+{
+    echo "========== SUMMARY =========="
+    if [ -f STRONG_EVAL_strong/SUMMARY.txt ]; then
+        cat STRONG_EVAL_strong/SUMMARY.txt
+    else
+        echo "SUMMARY.txt not found"
+    fi
+
+    echo
+    echo "========== RESULT FILES =========="
+    find . -maxdepth 3 -type f \
+      \( -iname '*.csv' -o -iname '*.tsv' -o -iname '*.json' \
+         -o -iname '*.db' -o -iname '*.sqlite*' \
+         -o -iname '*summary*' \) \
+      -printf '%p (%s bytes)\n' | sort
+
+    echo
+    echo "========== WORKER COUNTS =========="
+    for f in STRONG_EVAL_strong/worker*.out; do
+        printf "%s: " "$(basename "$f")"
+        grep -c '^\[shard [0-3]\] OK ' "$f"
+    done
+
+    echo
+    echo "========== ERRORS =========="
+    grep -HinE 'ERROR|Traceback|FAILED|out of memory|OOM|Killed' \
+      STRONG_EVAL_strong/worker*.out || echo "No matching errors found"
+
+} 2>&1
+========== SUMMARY ==========
+STRONGER-ATTACK CHECK (steps=100, restarts=3) - 432 models with both evaluations
+
+How to read: the half-damage thresholds drop under the stronger attack (it can only
+be stronger). Gradient masking would show as a larger drop for the noise-aware
+models than for PGD6, i.e. a paired ratio to PGD6 that shrinks from v1 to strong.
+
+Per arm: mean half-damage thresholds and median ratio strong / v1
+      mode       arm  models  ref_half_v1  ref_half_strong  ref_drop_median  iso_half_v1  iso_half_strong  iso_drop_median  clipped_v1  clipped_strong
+supervised     DIFF8      27        1.791            1.759            0.998        2.226            2.198            0.996           0               0
+supervised DIFF_AUTO      27        1.837            1.804            0.997        2.295            2.270            0.995           0               0
+supervised      PGD6      27        1.431            1.408            0.994        3.014            2.964            0.994           3               3
+supervised     POOL8      27        1.725            1.702            0.996        2.735            2.708            0.995           1               1
+supervised POOL_AUTO      27        1.790            1.764            0.996        2.915            2.886            0.996           0               0
+supervised      REG8      27        1.551            1.525            0.998        1.780            1.754            0.999          12              12
+supervised  REG_AUTO      27        1.836            1.805            0.996        1.972            1.951            0.997           0               0
+supervised       SP8      27        1.427            1.385            1.000        1.411            1.362            1.000          15              15
+supervised   SP_AUTO      27        1.807            1.772            0.996        1.716            1.675            0.997           3               3
+ time_only     DIFF8      27        1.624            1.614            0.998        2.333            2.320            0.996           0               0
+ time_only DIFF_AUTO      27        1.641            1.632            0.998        2.355            2.343            0.997           0               0
+ time_only      PGD6      27        1.377            1.366            0.998        3.412            3.387            0.997           0               0
+ time_only     POOL8      27        1.633            1.625            0.998        2.742            2.733            0.999           0               0
+ time_only POOL_AUTO      27        1.589            1.581            0.998        2.965            2.952            0.998           0               0
+ time_only       SP8      27        1.726            1.717            0.998        1.758            1.746            0.997           0               0
+ time_only   SP_AUTO      27        1.762            1.752            0.998        1.955            1.945            0.997           0               0
+
+Paired with PGD6 (same mode, session, seed): geometric-mean ratio of the half-damage thresholds over sessions, and sessions won, under the original (v1) and the strong attack
+      mode       arm  pairs  ref_ratio_v1 ref_sessions_won_v1  ref_ratio_strong ref_sessions_won_strong  iso_ratio_v1 iso_sessions_won_v1  iso_ratio_strong iso_sessions_won_strong
+supervised     DIFF8     27         1.317                 9/9             1.315                     9/9         0.823                 2/9             0.826                     2/9
+supervised DIFF_AUTO     27         1.331                 9/9             1.330                     9/9         0.837                 2/9             0.841                     2/9
+supervised     POOL8     27         1.200                 8/9             1.203                     8/9         1.083                 2/9             1.083                     2/9
+supervised POOL_AUTO     27         1.291                 9/9             1.292                     9/9         1.166                 2/9             1.173                     2/9
+supervised      REG8     27         0.933                 5/9             0.936                     5/9         0.562                 0/9             0.564                     0/9
+supervised  REG_AUTO     27         1.315                 9/9             1.314                     9/9         0.699                 2/9             0.703                     2/9
+supervised       SP8     27         0.813                 3/9             0.807                     3/9         0.459                 0/9             0.455                     0/9
+supervised   SP_AUTO     27         1.192                 8/9             1.191                     8/9         0.589                 2/9             0.588                     2/9
+ time_only     DIFF8     27         1.253                 9/9             1.254                     9/9         0.664                 0/9             0.665                     0/9
+ time_only DIFF_AUTO     27         1.263                 9/9             1.264                     9/9         0.675                 0/9             0.676                     0/9
+ time_only     POOL8     27         1.212                 9/9             1.214                     9/9         0.816                 0/9             0.818                     0/9
+ time_only POOL_AUTO     27         1.182                 9/9             1.184                     9/9         0.887                 0/9             0.889                     0/9
+ time_only       SP8     27         1.286                 9/9             1.289                     9/9         0.488                 0/9             0.488                     0/9
+ time_only   SP_AUTO     27         1.333                 9/9             1.334                     9/9         0.554                 0/9             0.555                     0/9
+
+========== RESULT FILES ==========
+./ACORN_AUTO_EPS/run_20261007_211524/config.json (5358 bytes)
+./ACORN_AUTO_EPS/run_20261007_211524/part1_epsilons.csv (1785 bytes)
+./ACORN_AUTO_EPS/run_20261007_211524/results.json (34367 bytes)
+./ACORN_AUTO_EPS/run_20261007_211524/summary.csv (3099 bytes)
+./ACORN_AUTO_EPS/run_20261007_211524/summary.txt (5430 bytes)
+./ACORN_AUTO_EPS_50/parallel_manifest.json (1294 bytes)
+./ACORN_AUTO_EPS_50/results.json (164944 bytes)
+./ACORN_AUTO_EPS_50/summary.csv (13422 bytes)
+./ACORN_AUTO_EPS_50/summary.txt (14535 bytes)
+./ACORN_AUTO_EPS_50_L2/parallel_manifest.json (1276 bytes)
+./ACORN_AUTO_EPS_50_L2/results.json (164761 bytes)
+./ACORN_AUTO_EPS_50_L2/summary.csv (13424 bytes)
+./ACORN_AUTO_EPS_50_L2/summary.txt (14512 bytes)
+./ACORN_CALIBRATED_EXPERIMENT/C-C012_random_tau0.05_20261005_073410_479485/calibration.json (9829 bytes)
+./ACORN_CALIBRATED_EXPERIMENT/C-C012_random_tau0.05_20261005_073410_479485/results.csv (107520 bytes)
+./ACORN_CALIBRATED_EXPERIMENT/C-C012_random_tau0.05_20261005_073410_479485/run_config.json (4997 bytes)
+./ACORN_CALIBRATED_EXPERIMENT/C-C012_random_tau0.05_20261005_073410_479485/summary.json (31373 bytes)
+./ACORN_CALIBRATED_EXPERIMENT/C-C012_random_tau0.05_20261005_073410_479485/summary.txt (7110 bytes)
+./ACORN_CALIBRATED_EXPERIMENT/C-CO12_random_tau0.05_20261005_073410_479485/calibration.json (9829 bytes)
+./ACORN_CALIBRATED_EXPERIMENT/C-CO12_random_tau0.05_20261005_073410_479485/results.csv (19688 bytes)
+./ACORN_CALIBRATED_EXPERIMENT/C-CO12_random_tau0.05_20261005_073410_479485/run_config.json (4946 bytes)
+./ACORN_CALIBRATED_EXPERIMENT/C-CO12_random_tau0.05_20261005_073410_479485/summary.json (5021 bytes)
+./ACORN_CALIBRATED_EXPERIMENT/C-CO12_random_tau0.05_20261005_073410_479485/summary.txt (1662 bytes)
+./ACORN_MARGIN_CAP_SWEEP/caps4_6_seed42/config.json (2342 bytes)
+./ACORN_MARGIN_CAP_SWEEP/caps4_6_seed42/results.json (41102 bytes)
+./ACORN_MARGIN_CAP_SWEEP/caps4_6_seed42/summary.csv (4682 bytes)
+./ACORN_MARGIN_CAP_SWEEP/caps4_6_seed42/summary.txt (2755 bytes)
+./ACORN_MARGIN_VS_FIXED_RANDOM10/selection_seed_42_n10/aggregate.json (3051 bytes)
+./ACORN_MARGIN_VS_FIXED_RANDOM10/selection_seed_42_n10/manifest.json (3915 bytes)
+./ACORN_MARGIN_VS_FIXED_RANDOM10/selection_seed_42_n10/results.json (18160 bytes)
+./ACORN_MARGIN_VS_FIXED_RANDOM10/selection_seed_42_n10/summary.csv (3286 bytes)
+./ACORN_PGD_GRID_ALL_SESSIONS/C-CO40/R2_summary.png (170348 bytes)
+./ACORN_PGD_GRID_ALL_SESSIONS/C-CO7/R2_summary.png (170449 bytes)
+./ACORN_PGD_GRID_ALL_SESSIONS/C-RT0/R2_summary.png (174582 bytes)
+./ACORN_PGD_GRID_ALL_SESSIONS/C-RT11/R2_summary.png (165424 bytes)
+./ACORN_PGD_GRID_ALL_SESSIONS/J-CO0/R2_summary.png (170005 bytes)
+./ACORN_PGD_GRID_ALL_SESSIONS/J-CO1/R2_summary.png (169296 bytes)
+./ACORN_PGD_GRID_ALL_SESSIONS/M-CO17/R2_summary.png (170557 bytes)
+./ACORN_PGD_GRID_ALL_SESSIONS/M-CO21/R2_summary.png (170835 bytes)
+./ACORN_PGD_GRID_ALL_SESSIONS/M-RT0/R2_summary.png (166515 bytes)
+./ACORN_PGD_GRID_ALL_SESSIONS/M-RT4/R2_summary.png (165848 bytes)
+./ACORN_PGD_GRID_ALL_SESSIONS/T-CO1/R2_summary.png (169052 bytes)
+./ACORN_PGD_GRID_ALL_SESSIONS/T-CO5/R2_summary.png (171311 bytes)
+./ACORN_PGD_GRID_ALL_SESSIONS/T-RT0/R2_summary.png (176595 bytes)
+./ACORN_PGD_GRID_ALL_SESSIONS/T-RT5/R2_summary.png (163151 bytes)
+./ACORN_PGD_GRID_ALL_SESSIONS/all_sessions_r2.csv (1796 bytes)
+./ACORN_SVD_RESULTS/C-CO0_20261017_224403_lj_t6dg8/run_config.json (6556 bytes)
+./ACORN_SVD_RESULTS/C-CO0_20261018_020938_kvt1kvrt/results_so_far.csv (2793 bytes)
+./ACORN_SVD_RESULTS/C-CO0_20261018_020938_kvt1kvrt/results_so_far.json (7691 bytes)
+./ACORN_SVD_RESULTS/C-CO0_20261018_020938_kvt1kvrt/run_config.json (6556 bytes)
+./ACORN_SVD_RESULTS/C-CO0_20261018_061609_6ko1xzij/results.csv (13868 bytes)
+./ACORN_SVD_RESULTS/C-CO0_20261018_061609_6ko1xzij/results.json (49749 bytes)
+./ACORN_SVD_RESULTS/C-CO0_20261018_061609_6ko1xzij/run_config.json (6556 bytes)
+./ACORN_SVD_RESULTS/C-CO0_20261018_061609_6ko1xzij/summary.json (6346 bytes)
+./ACORN_SVD_RESULTS/C-CO12_20261015_211308_b1d8o61o/run_config.json (3619 bytes)
+./ACORN_SVD_RESULTS/C-CO12_20261015_211554_gehv9fio/results_so_far.csv (1372 bytes)
+./ACORN_SVD_RESULTS/C-CO12_20261015_211554_gehv9fio/results_so_far.json (3610 bytes)
+./ACORN_SVD_RESULTS/C-CO12_20261015_211554_gehv9fio/run_config.json (3619 bytes)
+./ACORN_SVD_RESULTS/C-CO12_20261015_214434_muawv24p/results.csv (1839 bytes)
+./ACORN_SVD_RESULTS/C-CO12_20261015_214434_muawv24p/results.json (5495 bytes)
+./ACORN_SVD_RESULTS/C-CO12_20261015_214434_muawv24p/run_config.json (3619 bytes)
+./ACORN_SVD_RESULTS/C-CO12_20261015_214434_muawv24p/summary.json (1061 bytes)
+./ACORN_SVD_RESULTS/C-CO12_20261016_152827_xivtqatl/results_so_far.csv (1103 bytes)
+./ACORN_SVD_RESULTS/C-CO12_20261016_152827_xivtqatl/results_so_far.json (2217 bytes)
+./ACORN_SVD_RESULTS/C-CO12_20261016_152827_xivtqatl/run_config.json (5606 bytes)
+./ACORN_SVD_RESULTS/C-CO12_20261016_154608_jp7i8vvg/results.csv (9556 bytes)
+./ACORN_SVD_RESULTS/C-CO12_20261016_154608_jp7i8vvg/results.json (36005 bytes)
+./ACORN_SVD_RESULTS/C-CO12_20261016_154608_jp7i8vvg/run_config.json (5606 bytes)
+./ACORN_SVD_RESULTS/C-CO12_20261016_154608_jp7i8vvg/summary.json (4363 bytes)
+./ACORN_SVD_RESULTS/C-CO12_20261017_055124_efmr02bp/results.csv (17357 bytes)
+./ACORN_SVD_RESULTS/C-CO12_20261017_055124_efmr02bp/results.json (68341 bytes)
+./ACORN_SVD_RESULTS/C-CO12_20261017_055124_efmr02bp/run_config.json (8912 bytes)
+./ACORN_SVD_RESULTS/C-CO12_20261017_055124_efmr02bp/summary.json (7847 bytes)
+./ACORN_SVD_RESULTS/C-CO12_20261017_151516_ekuuxndx/results_so_far.csv (4986 bytes)
+./ACORN_SVD_RESULTS/C-CO12_20261017_151516_ekuuxndx/results_so_far.json (15906 bytes)
+./ACORN_SVD_RESULTS/C-CO12_20261017_151516_ekuuxndx/run_config.json (7302 bytes)
+./ACORN_SVD_RESULTS/C-CO12_20261017_161837_4w071cdx/results_so_far.csv (2754 bytes)
+./ACORN_SVD_RESULTS/C-CO12_20261017_161837_4w071cdx/results_so_far.json (7647 bytes)
+./ACORN_SVD_RESULTS/C-CO12_20261017_161837_4w071cdx/run_config.json (7302 bytes)
+./ACORN_SVD_RESULTS/C-CO12_20261017_164848_ktxq7twl/results_so_far.csv (5764 bytes)
+./ACORN_SVD_RESULTS/C-CO12_20261017_164848_ktxq7twl/results_so_far.json (18847 bytes)
+./ACORN_SVD_RESULTS/C-CO12_20261017_164848_ktxq7twl/run_config.json (7302 bytes)
+./ACORN_SVD_RESULTS/C-CO12_20261017_180055_lxybp8h9/results_so_far.csv (6277 bytes)
+./ACORN_SVD_RESULTS/C-CO12_20261017_180055_lxybp8h9/results_so_far.json (20902 bytes)
+./ACORN_SVD_RESULTS/C-CO12_20261017_180055_lxybp8h9/run_config.json (7302 bytes)
+./ACORN_SVD_RESULTS/C-CO12_20261017_191313_yh00116o/results.csv (15736 bytes)
+./ACORN_SVD_RESULTS/C-CO12_20261017_191313_yh00116o/results.json (56452 bytes)
+./ACORN_SVD_RESULTS/C-CO12_20261017_191313_yh00116o/run_config.json (7302 bytes)
+./ACORN_SVD_RESULTS/C-CO12_20261017_191313_yh00116o/summary.json (7387 bytes)
+./ACORN_SVD_RESULTS/C-CO12_20261017_224446_6n2tfkxh/results.csv (15737 bytes)
+./ACORN_SVD_RESULTS/C-CO12_20261017_224446_6n2tfkxh/results.json (56454 bytes)
+./ACORN_SVD_RESULTS/C-CO12_20261017_224446_6n2tfkxh/run_config.json (7302 bytes)
+./ACORN_SVD_RESULTS/C-CO12_20261017_224446_6n2tfkxh/summary.json (7389 bytes)
+./ACORN_SVD_RESULTS/C-CO12_20261018_024426_ssjlql3f/results.csv (15733 bytes)
+./ACORN_SVD_RESULTS/C-CO12_20261018_024426_ssjlql3f/results.json (56452 bytes)
+./ACORN_SVD_RESULTS/C-CO12_20261018_024426_ssjlql3f/run_config.json (7302 bytes)
+./ACORN_SVD_RESULTS/C-CO12_20261018_024426_ssjlql3f/summary.json (7389 bytes)
+./ACORN_SVD_RESULTS/C-CO1_20261018_092235_fi3oisbp/results_so_far.csv (2798 bytes)
+./ACORN_SVD_RESULTS/C-CO1_20261018_092235_fi3oisbp/results_so_far.json (7705 bytes)
+./ACORN_SVD_RESULTS/C-CO1_20261018_092235_fi3oisbp/run_config.json (6556 bytes)
+./AllenVBN_Jacobian_Plots_1104058216/Neuron_Jacobian_Scores_1104058216.csv (16539 bytes)
+./Area2_Bump_Full_JR_Decoder/Full_CLEAN_ACORN_JR_Decoder.csv (152 bytes)
+./Area2_Bump_RandomBaseline/Random_Subsets_30_K8_CLEAN_ACORN.csv (4279 bytes)
+./Area2_Bump_TopK_JR_AdvFirst_Aggregated/TopK8_REG_8conditions.csv (1317 bytes)
+./Area2_Bump_TopK_JR_AdvFirst_Aggregated/TopK8_REG_selectors.csv (361 bytes)
+./BEHAVIOUR_BUDGET_TESTS/SUMMARY_BEH.txt (7627 bytes)
+./BEHAVIOUR_BUDGET_TESTS/rule_preview.csv (1463 bytes)
+./BEHAVIOUR_BUDGET_TESTS/runs_behaviour.csv (175077 bytes)
+./BEHAVIOUR_BUDGET_TESTS/session_behaviour.csv (6572 bytes)
+./BEHAVIOUR_BUDGET_TESTS/sessions_behaviour_outcomes.csv (1917 bytes)
+./BEHAVIOUR_BUDGET_TESTS/tests_behaviour.csv (2093 bytes)
+./CALIBRATION/C-CO12_tau0.05_random_20261004_175232_851730/calibration.json (14309 bytes)
+./CCO12_SVD_VERBOSE_RESULTS_V3/CCO12_seed42_20261014_171756_gad8e0en/run_config.json (3058 bytes)
+./CCO12_SVD_VERBOSE_RESULTS_V3/CCO12_seed42_20261014_200620_to0b1glh/run_config.json (3058 bytes)
+./CCO12_SVD_VERBOSE_RESULTS_V3/CCO12_seed42_20261014_201753_mb347qlz/run_config.json (3058 bytes)
+./CCO12_SVD_VERBOSE_RESULTS_V3/CCO12_seed42_20261014_203332_h__tizrf/run_config.json (3058 bytes)
+./CCO12_SVD_VERBOSE_RESULTS_V3/CCO12_seed42_20261015_052329_pkly8auv/run_config.json (3058 bytes)
+./CEBRA_CCO12_Behavior_NegPos/decoder/normal_negpos_r2.csv (374 bytes)
+./CEBRA_CCO12_Behavior_NegPos/foreign_86_mapping.csv (1264 bytes)
+./CEBRA_CCO12_Behavior_NegPos_Jacobian/decoder/normal_negpos_acorn_r2.csv (516 bytes)
+./CEBRA_CCO12_Behavior_NegPos_Jacobian/decoder/normal_negpos_r2.csv (385 bytes)
+./CEBRA_CCO12_Behavior_NegPos_Jacobian/foreign_86_mapping.csv (868 bytes)
+./CEBRA_CCO12_Behavior_PNHard_860/cross_test_86_mapping.csv (1265 bytes)
+./CEBRA_CCO12_Behavior_PNHard_860/decoder/all_three_models_r2.csv (529 bytes)
+./CEBRA_CCO12_Behavior_PNHard_860/foreign_860_mapping.csv (13039 bytes)
+./CEBRA_CCO12_NegPos_Test/decoder/decoder_r2_results.csv (426 bytes)
+./CEBRA_CCO12_NegPos_Test/foreign_86_mapping.csv (1264 bytes)
+./CEBRA_NegPosDetach_AllGroups/normal_negpos_all_sessions_r2.csv (6352 bytes)
+./CEBRA_PNHard_AllGroups_NegPos05/all_sessions_r2_summary.csv (6166 bytes)
+./CEBRA_TIME_C-CO0_2LABELS_20260923_181237_943539/results.json (3553 bytes)
+./CEBRA_TIME_C-CO0_2LABELS_20260923_181237_943539/seed_42/metrics.json (588 bytes)
+./CEBRA_TIME_C-CO0_2LABELS_20260923_181632_316189/results.json (3559 bytes)
+./CEBRA_TIME_C-CO0_2LABELS_20260923_181632_316189/seed_42/metrics.json (594 bytes)
+./CEBRA_TIME_CCO12_RESULTS/seed_42/results.json (531 bytes)
+./CEBRA_TIME_CCO36_RESULTS/seed_42/results.json (530 bytes)
+./DPRIME_CCO12_4GPU_RESULTS/records/DPRIME_APGD_RESTARTS3_FIXED3.json (414 bytes)
+./DPRIME_CCO12_4GPU_RESULTS/records/DPRIME_AUTO_GLOBAL.json (402 bytes)
+./DPRIME_CCO12_4GPU_RESULTS/records/DPRIME_AUTO_INSTANCE.json (405 bytes)
+./DPRIME_CCO12_4GPU_RESULTS/records/DPRIME_AUTO_INSTANCE_NO_CURRICULUM.json (419 bytes)
+./DPRIME_CCO12_4GPU_RESULTS/records/DPRIME_GUARDS_ALL.json (404 bytes)
+./DPRIME_CCO12_4GPU_RESULTS/records/DPRIME_GUARDS_FINAL_ONLY.json (407 bytes)
+./DPRIME_CCO12_4GPU_RESULTS/records/DPRIME_GUARD_APERIODIC.json (407 bytes)
+./DPRIME_CCO12_4GPU_RESULTS/records/DPRIME_GUARD_ARTIFACT.json (404 bytes)
+./DPRIME_CCO12_4GPU_RESULTS/records/DPRIME_GUARD_BAND_POWER.json (408 bytes)
+./DPRIME_CCO12_4GPU_RESULTS/records/DPRIME_GUARD_RIEMANN.json (405 bytes)
+./DPRIME_CCO12_4GPU_RESULTS/records/DPRIME_GUARD_SOFT_RIEMANN.json (409 bytes)
+./DPRIME_CCO12_4GPU_RESULTS/records/DPRIME_SPATIAL_EMPIRICAL.json (409 bytes)
+./DPRIME_CCO12_4GPU_RESULTS/records/DPRIME_SPATIAL_OAS.json (402 bytes)
+./DPRIME_CCO12_4GPU_RESULTS/records/DPRIME_SPATIAL_TYLER.json (403 bytes)
+./DPRIME_CCO12_4GPU_RESULTS/records/DPRIME_STATIONARY_APGD_FIXED3.json (414 bytes)
+./DPRIME_CCO12_4GPU_RESULTS/records/DPRIME_STATIONARY_PGD_FIXED3.json (412 bytes)
+./DPRIME_CCO12_4GPU_RESULTS/records/DPRIME_TEMPORAL_AR4.json (403 bytes)
+./DPRIME_CCO12_4GPU_RESULTS/records/DPRIME_TEMPORAL_VANROSSUM.json (410 bytes)
+./DPRIME_CCO12_4GPU_RESULTS/records/DPRIME_TEMPORAL_WHITE.json (406 bytes)
+./DPRIME_CCO12_4GPU_RESULTS/records/DPRIME_TRADES_AUTO_INSTANCE.json (412 bytes)
+./DPRIME_CCO12_4GPU_RESULTS/records/DPRIME_TRIAL_MASK.json (401 bytes)
+./DPRIME_CCO12_4GPU_RESULTS/records/DPRIME_TRIAL_MASK_PGD.json (406 bytes)
+./DPRIME_CCO12_4GPU_RESULTS/records/PGD_L2_EPS3.json (296 bytes)
+./DPRIME_CCO12_4GPU_RESULTS/records/PGD_LINF_EPS3.json (299 bytes)
+./DPRIME_CCO12_4GPU_RESULTS/results.csv (4476 bytes)
+./DPRIME_CCO12_4GPU_RESULTS/run_config.json (15790 bytes)
+./DPRIME_CCO12_ABLATION_4MODELS/records/MADRY_AUTO_INSTANCE.json (451 bytes)
+./DPRIME_CCO12_ABLATION_4MODELS/records/MADRY_FIXED1.json (443 bytes)
+./DPRIME_CCO12_ABLATION_4MODELS/records/TRADES_AUTO_INSTANCE.json (452 bytes)
+./DPRIME_CCO12_ABLATION_4MODELS/records/TRADES_FIXED1.json (445 bytes)
+./DPRIME_CCO12_ABLATION_4MODELS/reports/MADRY_AUTO_INSTANCE.json (5741 bytes)
+./DPRIME_CCO12_ABLATION_4MODELS/reports/MADRY_FIXED1.json (3844 bytes)
+./DPRIME_CCO12_ABLATION_4MODELS/reports/TRADES_AUTO_INSTANCE.json (5783 bytes)
+./DPRIME_CCO12_ABLATION_4MODELS/reports/TRADES_FIXED1.json (3847 bytes)
+./DPRIME_CCO12_ABLATION_4MODELS/results.csv (1030 bytes)
+./DPRIME_CCO12_ABLATION_4MODELS/run_config.json (3292 bytes)
+./DPRIME_CCO12_EXP3_SEED42/records/CLEAN.json (290 bytes)
+./DPRIME_CCO12_EXP3_SEED42/records/MADRY_D0.json (651 bytes)
+./DPRIME_CCO12_EXP3_SEED42/records/MADRY_D1.json (555 bytes)
+./DPRIME_CCO12_EXP3_SEED42/records/MADRY_D3.json (554 bytes)
+./DPRIME_CCO12_EXP3_SEED42/records/MADRY_D8.json (554 bytes)
+./DPRIME_CCO12_EXP3_SEED42/records/PGD_L2_EPS3.json (295 bytes)
+./DPRIME_CCO12_EXP3_SEED42/records/TRADES_D0.json (653 bytes)
+./DPRIME_CCO12_EXP3_SEED42/records/TRADES_D1.json (555 bytes)
+./DPRIME_CCO12_EXP3_SEED42/records/TRADES_D3.json (556 bytes)
+./DPRIME_CCO12_EXP3_SEED42/records/TRADES_D8.json (555 bytes)
+./DPRIME_CCO12_EXP3_SEED42/records/TRADES_ISO_D1.json (560 bytes)
+./DPRIME_CCO12_EXP3_SEED42/records/TRADES_ISO_D3.json (559 bytes)
+./DPRIME_CCO12_EXP3_SEED42/reports/MADRY_D0.json (4303 bytes)
+./DPRIME_CCO12_EXP3_SEED42/reports/MADRY_D1.json (4282 bytes)
+./DPRIME_CCO12_EXP3_SEED42/reports/MADRY_D3.json (4280 bytes)
+./DPRIME_CCO12_EXP3_SEED42/reports/MADRY_D8.json (4282 bytes)
+./DPRIME_CCO12_EXP3_SEED42/reports/TRADES_D0.json (4304 bytes)
+./DPRIME_CCO12_EXP3_SEED42/reports/TRADES_D1.json (4282 bytes)
+./DPRIME_CCO12_EXP3_SEED42/reports/TRADES_D3.json (4281 bytes)
+./DPRIME_CCO12_EXP3_SEED42/reports/TRADES_D8.json (4282 bytes)
+./DPRIME_CCO12_EXP3_SEED42/reports/TRADES_ISO_D1.json (4250 bytes)
+./DPRIME_CCO12_EXP3_SEED42/reports/TRADES_ISO_D3.json (4251 bytes)
+./DPRIME_CCO12_EXP3_SEED42/results.csv (3868 bytes)
+./DPRIME_CCO12_EXP3_SEED42/run_config.json (7893 bytes)
+./DPRIME_CCO12_EXP3_SEED43/records/CLEAN.json (291 bytes)
+./DPRIME_CCO12_EXP3_SEED43/records/MADRY_D0.json (652 bytes)
+./DPRIME_CCO12_EXP3_SEED43/records/MADRY_D1.json (555 bytes)
+./DPRIME_CCO12_EXP3_SEED43/records/MADRY_D3.json (555 bytes)
+./DPRIME_CCO12_EXP3_SEED43/records/MADRY_D8.json (555 bytes)
+./DPRIME_CCO12_EXP3_SEED43/records/PGD_L2_EPS3.json (296 bytes)
+./DPRIME_CCO12_EXP3_SEED43/records/TRADES_D0.json (654 bytes)
+./DPRIME_CCO12_EXP3_SEED43/records/TRADES_D1.json (555 bytes)
+./DPRIME_CCO12_EXP3_SEED43/records/TRADES_D3.json (554 bytes)
+./DPRIME_CCO12_EXP3_SEED43/records/TRADES_D8.json (554 bytes)
+./DPRIME_CCO12_EXP3_SEED43/records/TRADES_ISO_D1.json (559 bytes)
+./DPRIME_CCO12_EXP3_SEED43/records/TRADES_ISO_D3.json (560 bytes)
+./DPRIME_CCO12_EXP3_SEED43/reports/MADRY_D0.json (4303 bytes)
+./DPRIME_CCO12_EXP3_SEED43/reports/MADRY_D1.json (4280 bytes)
+./DPRIME_CCO12_EXP3_SEED43/reports/MADRY_D3.json (4279 bytes)
+./DPRIME_CCO12_EXP3_SEED43/reports/MADRY_D8.json (4283 bytes)
+./DPRIME_CCO12_EXP3_SEED43/reports/TRADES_D0.json (4304 bytes)
+./DPRIME_CCO12_EXP3_SEED43/reports/TRADES_D1.json (4281 bytes)
+./DPRIME_CCO12_EXP3_SEED43/reports/TRADES_D3.json (4277 bytes)
+./DPRIME_CCO12_EXP3_SEED43/reports/TRADES_D8.json (4280 bytes)
+./DPRIME_CCO12_EXP3_SEED43/reports/TRADES_ISO_D1.json (4260 bytes)
+./DPRIME_CCO12_EXP3_SEED43/reports/TRADES_ISO_D3.json (4252 bytes)
+./DPRIME_CCO12_EXP3_SEED43/results.csv (3871 bytes)
+./DPRIME_CCO12_EXP3_SEED43/run_config.json (7893 bytes)
+./DPRIME_CCO12_EXP3_SEED44/records/CLEAN.json (290 bytes)
+./DPRIME_CCO12_EXP3_SEED44/records/MADRY_D0.json (652 bytes)
+./DPRIME_CCO12_EXP3_SEED44/records/MADRY_D1.json (554 bytes)
+./DPRIME_CCO12_EXP3_SEED44/records/MADRY_D3.json (554 bytes)
+./DPRIME_CCO12_EXP3_SEED44/records/MADRY_D8.json (554 bytes)
+./DPRIME_CCO12_EXP3_SEED44/records/PGD_L2_EPS3.json (295 bytes)
+./DPRIME_CCO12_EXP3_SEED44/records/TRADES_D0.json (653 bytes)
+./DPRIME_CCO12_EXP3_SEED44/records/TRADES_D1.json (556 bytes)
+./DPRIME_CCO12_EXP3_SEED44/records/TRADES_D3.json (554 bytes)
+./DPRIME_CCO12_EXP3_SEED44/records/TRADES_D8.json (556 bytes)
+./DPRIME_CCO12_EXP3_SEED44/records/TRADES_ISO_D1.json (560 bytes)
+./DPRIME_CCO12_EXP3_SEED44/records/TRADES_ISO_D3.json (560 bytes)
+./DPRIME_CCO12_EXP3_SEED44/reports/MADRY_D0.json (4303 bytes)
+./DPRIME_CCO12_EXP3_SEED44/reports/MADRY_D1.json (4280 bytes)
+./DPRIME_CCO12_EXP3_SEED44/reports/MADRY_D3.json (4280 bytes)
+./DPRIME_CCO12_EXP3_SEED44/reports/MADRY_D8.json (4281 bytes)
+./DPRIME_CCO12_EXP3_SEED44/reports/TRADES_D0.json (4304 bytes)
+./DPRIME_CCO12_EXP3_SEED44/reports/TRADES_D1.json (4282 bytes)
+./DPRIME_CCO12_EXP3_SEED44/reports/TRADES_D3.json (4281 bytes)
+./DPRIME_CCO12_EXP3_SEED44/reports/TRADES_D8.json (4292 bytes)
+./DPRIME_CCO12_EXP3_SEED44/reports/TRADES_ISO_D1.json (4260 bytes)
+./DPRIME_CCO12_EXP3_SEED44/reports/TRADES_ISO_D3.json (4251 bytes)
+./DPRIME_CCO12_EXP3_SEED44/results.csv (3869 bytes)
+./DPRIME_CCO12_EXP3_SEED44/run_config.json (7893 bytes)
+./DPRIME_CCO12_FINAL_CONTROLS/SEED42/results.csv (791 bytes)
+./DPRIME_CCO12_FINAL_CONTROLS/SEED42/run_config.json (2365 bytes)
+./DPRIME_CCO12_FINAL_CONTROLS/SEED43/results.csv (789 bytes)
+./DPRIME_CCO12_FINAL_CONTROLS/SEED43/run_config.json (2365 bytes)
+./DPRIME_CCO12_FINAL_CONTROLS/SEED44/results.csv (791 bytes)
+./DPRIME_CCO12_FINAL_CONTROLS/SEED44/run_config.json (2365 bytes)
+./DPRIME_EXP5/detectability_seed42.csv (49020 bytes)
+./DPRIME_EXP9_AUTOSIG_SUPERVISED/summary.csv (31713 bytes)
+./DPRIME_EXP9_AUTOSIG_TIMEONLY/summary.csv (19872 bytes)
+./DPRIME_EXP9_E1_EPOCHS340/summary.csv (4502 bytes)
+./DPRIME_EXP9_E2B_ITER6000/summary.csv (1186 bytes)
+./DPRIME_EXP9_E2_TRUNC9174/summary.csv (1163 bytes)
+./Fake_dataset_result/Fake_dataset_all_seeds_results.csv (2724 bytes)
+./JIGSAWNET_C-CO13_20260923_200634/results.json (38294 bytes)
+./JIGSAW_CEBRA_C-CO16_20260921_122320/infonce_only/R2.json (1247 bytes)
+./JIGSAW_CEBRA_C-CO16_20260921_122320/infonce_only/config.json (979 bytes)
+./JIGSAW_CEBRA_C-CO16_20260921_122320/infonce_only/history.json (1280 bytes)
+./JIGSAW_CEBRA_C-CO16_20260921_122320/infonce_only/puzzle.json (4941 bytes)
+./JIGSAW_CEBRA_C-CO16_20260921_122320/infonce_only/validation_history.json (3200 bytes)
+./JIGSAW_CEBRA_C-CO16_20260921_122320/ladder_2_tiles/R2.json (1245 bytes)
+./JIGSAW_CEBRA_C-CO16_20260921_122320/ladder_2_tiles/config.json (973 bytes)
+./JIGSAW_CEBRA_C-CO16_20260921_122320/ladder_2_tiles/history.json (1312 bytes)
+./JIGSAW_CEBRA_C-CO16_20260921_122320/ladder_2_tiles/puzzle.json (4837 bytes)
+./JIGSAW_CEBRA_C-CO16_20260921_122320/ladder_2_tiles/validation_history.json (3057 bytes)
+./JIGSAW_CEBRA_C-CO16_20260921_122320/mobilenet_trunk/R2.json (1252 bytes)
+./JIGSAW_CEBRA_C-CO16_20260921_122320/mobilenet_trunk/config.json (989 bytes)
+./JIGSAW_CEBRA_C-CO16_20260921_122320/mobilenet_trunk/history.json (1278 bytes)
+./JIGSAW_CEBRA_C-CO16_20260921_122320/mobilenet_trunk/puzzle.json (4976 bytes)
+./JIGSAW_CEBRA_C-CO16_20260921_122320/mobilenet_trunk/validation_history.json (3198 bytes)
+./JIGSAW_CEBRA_C-CO16_20260921_122320/proposed/R2.json (1248 bytes)
+./JIGSAW_CEBRA_C-CO16_20260921_122320/proposed/config.json (947 bytes)
+./JIGSAW_CEBRA_C-CO16_20260921_122320/proposed/history.json (1277 bytes)
+./JIGSAW_CEBRA_C-CO16_20260921_122320/proposed/puzzle.json (4963 bytes)
+./JIGSAW_CEBRA_C-CO16_20260921_122320/proposed/validation_history.json (3211 bytes)
+./JIGSAW_CEBRA_C-CO16_20260921_122320/puzzle_only/R2.json (1247 bytes)
+./JIGSAW_CEBRA_C-CO16_20260921_122320/puzzle_only/config.json (1012 bytes)
+./JIGSAW_CEBRA_C-CO16_20260921_122320/puzzle_only/history.json (1314 bytes)
+./JIGSAW_CEBRA_C-CO16_20260921_122320/puzzle_only/puzzle.json (4941 bytes)
+./JIGSAW_CEBRA_C-CO16_20260921_122320/puzzle_only/validation_history.json (3193 bytes)
+./JIGSAW_CEBRA_C-CO16_20260921_122320/random_encoder/R2.json (1243 bytes)
+./JIGSAW_CEBRA_C-CO16_20260921_122320/random_encoder/config.json (976 bytes)
+./JIGSAW_CEBRA_C-CO16_20260921_122320/random_encoder/history.json (2 bytes)
+./JIGSAW_CEBRA_C-CO16_20260921_122320/random_encoder/puzzle.json (4958 bytes)
+./JIGSAW_CEBRA_C-CO16_20260921_122320/random_encoder/validation_history.json (2 bytes)
+./JIGSAW_CEBRA_C-CO16_20260921_122320/raw_window_baseline.json (231 bytes)
+./JIGSAW_CEBRA_C-CO16_20260921_122320/shortcut_open/R2.json (1248 bytes)
+./JIGSAW_CEBRA_C-CO16_20260921_122320/shortcut_open/config.json (1066 bytes)
+./JIGSAW_CEBRA_C-CO16_20260921_122320/shortcut_open/history.json (1312 bytes)
+./JIGSAW_CEBRA_C-CO16_20260921_122320/shortcut_open/puzzle.json (4947 bytes)
+./JIGSAW_CEBRA_C-CO16_20260921_122320/shortcut_open/validation_history.json (3206 bytes)
+./JIGSAW_CEBRA_C-CO16_20260921_122320/summary.csv (3817 bytes)
+./JIGSAW_CEBRA_C-CO16_20260921_122320/summary.json (8533 bytes)
+./JIGSAW_CEBRA_C-CO16_20260921_122453/infonce_only/R2.json (1258 bytes)
+./JIGSAW_CEBRA_C-CO16_20260921_122453/infonce_only/config.json (980 bytes)
+./JIGSAW_CEBRA_C-CO16_20260921_122453/infonce_only/history.json (26299 bytes)
+./JIGSAW_CEBRA_C-CO16_20260921_122453/infonce_only/puzzle.json (4960 bytes)
+./JIGSAW_CEBRA_C-CO16_20260921_122453/infonce_only/validation_history.json (10684 bytes)
+./JIGSAW_CEBRA_C-CO16_20260921_122453/ladder_2_tiles/R2.json (1242 bytes)
+./JIGSAW_CEBRA_C-CO16_20260921_122453/ladder_2_tiles/config.json (974 bytes)
+./JIGSAW_CEBRA_C-CO16_20260921_122453/ladder_2_tiles/history.json (26346 bytes)
+./JIGSAW_CEBRA_C-CO16_20260921_122453/ladder_2_tiles/puzzle.json (4809 bytes)
+./JIGSAW_CEBRA_C-CO16_20260921_122453/ladder_2_tiles/validation_history.json (10190 bytes)
+./JIGSAW_CEBRA_C-CO16_20260921_122453/mobilenet_trunk/R2.json (1248 bytes)
+./JIGSAW_CEBRA_C-CO16_20260921_122453/mobilenet_trunk/config.json (990 bytes)
+./JIGSAW_CEBRA_C-CO16_20260921_122453/mobilenet_trunk/history.json (26345 bytes)
+./JIGSAW_CEBRA_C-CO16_20260921_122453/mobilenet_trunk/puzzle.json (4918 bytes)
+./JIGSAW_CEBRA_C-CO16_20260921_122453/mobilenet_trunk/validation_history.json (10714 bytes)
+./JIGSAW_CEBRA_C-CO16_20260921_122453/proposed/R2.json (1255 bytes)
+./JIGSAW_CEBRA_C-CO16_20260921_122453/proposed/config.json (948 bytes)
+./JIGSAW_CEBRA_C-CO16_20260921_122453/proposed/history.json (26350 bytes)
+./JIGSAW_CEBRA_C-CO16_20260921_122453/proposed/puzzle.json (4938 bytes)
+./JIGSAW_CEBRA_C-CO16_20260921_122453/proposed/validation_history.json (10718 bytes)
+./JIGSAW_CEBRA_C-CO16_20260921_122453/puzzle_only/R2.json (1243 bytes)
+./JIGSAW_CEBRA_C-CO16_20260921_122453/puzzle_only/config.json (1013 bytes)
+./JIGSAW_CEBRA_C-CO16_20260921_122453/puzzle_only/history.json (26266 bytes)
+./JIGSAW_CEBRA_C-CO16_20260921_122453/puzzle_only/puzzle.json (4996 bytes)
+./JIGSAW_CEBRA_C-CO16_20260921_122453/puzzle_only/validation_history.json (10701 bytes)
+./JIGSAW_CEBRA_C-CO16_20260921_122453/random_encoder/R2.json (1240 bytes)
+./JIGSAW_CEBRA_C-CO16_20260921_122453/random_encoder/config.json (976 bytes)
+./JIGSAW_CEBRA_C-CO16_20260921_122453/random_encoder/history.json (2 bytes)
+./JIGSAW_CEBRA_C-CO16_20260921_122453/random_encoder/puzzle.json (4958 bytes)
+./JIGSAW_CEBRA_C-CO16_20260921_122453/random_encoder/validation_history.json (2 bytes)
+./JIGSAW_CEBRA_C-CO16_20260921_122453/raw_window_baseline.json (230 bytes)
+./JIGSAW_CEBRA_C-CO16_20260921_122453/shortcut_open/R2.json (1250 bytes)
+./JIGSAW_CEBRA_C-CO16_20260921_122453/shortcut_open/config.json (1067 bytes)
+./JIGSAW_CEBRA_C-CO16_20260921_122453/shortcut_open/history.json (26401 bytes)
+./JIGSAW_CEBRA_C-CO16_20260921_122453/shortcut_open/puzzle.json (4923 bytes)
+./JIGSAW_CEBRA_C-CO16_20260921_122453/shortcut_open/validation_history.json (10698 bytes)
+./JIGSAW_CEBRA_C-CO16_20260921_122453/summary.csv (3846 bytes)
+./JIGSAW_CEBRA_C-CO16_20260921_122453/summary.json (8562 bytes)
+./NEURAL_JIGSAW_C-CO16_SWEEP/center_20260921_085704_088190/R2.json (561 bytes)
+./NEURAL_JIGSAW_C-CO16_SWEEP/center_20260921_085704_088190/checkpoint_selection.json (111 bytes)
+./NEURAL_JIGSAW_C-CO16_SWEEP/center_20260921_085704_088190/history.json (330444 bytes)
+./NEURAL_JIGSAW_C-CO16_SWEEP/center_20260921_085704_088190/puzzle_accuracy_train.json (527 bytes)
+./NEURAL_JIGSAW_C-CO16_SWEEP/center_20260921_085704_088190/puzzle_accuracy_validation.json (533 bytes)
+./NEURAL_JIGSAW_C-CO16_SWEEP/center_20260921_085704_088190/run_config.json (606 bytes)
+./NEURAL_JIGSAW_C-CO16_SWEEP/center_20260921_085704_088190/timing.json (40 bytes)
+./NEURAL_JIGSAW_C-CO16_SWEEP/center_20260921_090605_506909/R2.json (570 bytes)
+./NEURAL_JIGSAW_C-CO16_SWEEP/center_20260921_090605_506909/checkpoint_selection.json (106 bytes)
+./NEURAL_JIGSAW_C-CO16_SWEEP/center_20260921_090605_506909/history.json (178 bytes)
+./NEURAL_JIGSAW_C-CO16_SWEEP/center_20260921_090605_506909/puzzle_accuracy_train.json (530 bytes)
+./NEURAL_JIGSAW_C-CO16_SWEEP/center_20260921_090605_506909/puzzle_accuracy_validation.json (533 bytes)
+./NEURAL_JIGSAW_C-CO16_SWEEP/center_20260921_090605_506909/run_config.json (602 bytes)
+./NEURAL_JIGSAW_C-CO16_SWEEP/center_20260921_090605_506909/timing.json (41 bytes)
+./NEURAL_JIGSAW_C-CO16_SWEEP/off_20260921_083623_079594/run_config.json (615 bytes)
+./NEURAL_JIGSAW_C-CO16_SWEEP/off_20260921_084150_229715/run_config.json (615 bytes)
+./NEURAL_JIGSAW_C-CO16_SWEEP/off_20260921_084320_437791/run_config.json (615 bytes)
+./NEURAL_JIGSAW_C-CO16_SWEEP/off_20260921_084533_068262/checkpoint_selection.json (109 bytes)
+./NEURAL_JIGSAW_C-CO16_SWEEP/off_20260921_084533_068262/history.json (494407 bytes)
+./NEURAL_JIGSAW_C-CO16_SWEEP/off_20260921_084533_068262/puzzle_accuracy_train.json (526 bytes)
+./NEURAL_JIGSAW_C-CO16_SWEEP/off_20260921_084533_068262/puzzle_accuracy_validation.json (529 bytes)
+./NEURAL_JIGSAW_C-CO16_SWEEP/off_20260921_084533_068262/run_config.json (613 bytes)
+./NEURAL_JIGSAW_C-CO16_SWEEP/off_20260921_085317_856953/R2.json (556 bytes)
+./NEURAL_JIGSAW_C-CO16_SWEEP/off_20260921_085317_856953/checkpoint_selection.json (109 bytes)
+./NEURAL_JIGSAW_C-CO16_SWEEP/off_20260921_085317_856953/history.json (329086 bytes)
+./NEURAL_JIGSAW_C-CO16_SWEEP/off_20260921_085317_856953/puzzle_accuracy_train.json (526 bytes)
+./NEURAL_JIGSAW_C-CO16_SWEEP/off_20260921_085317_856953/puzzle_accuracy_validation.json (529 bytes)
+./NEURAL_JIGSAW_C-CO16_SWEEP/off_20260921_085317_856953/run_config.json (600 bytes)
+./NEURAL_JIGSAW_C-CO16_SWEEP/off_20260921_085317_856953/timing.json (40 bytes)
+./NEURAL_JIGSAW_C-CO16_SWEEP/off_20260921_090600_398477/R2.json (548 bytes)
+./NEURAL_JIGSAW_C-CO16_SWEEP/off_20260921_090600_398477/checkpoint_selection.json (104 bytes)
+./NEURAL_JIGSAW_C-CO16_SWEEP/off_20260921_090600_398477/history.json (177 bytes)
+./NEURAL_JIGSAW_C-CO16_SWEEP/off_20260921_090600_398477/puzzle_accuracy_train.json (526 bytes)
+./NEURAL_JIGSAW_C-CO16_SWEEP/off_20260921_090600_398477/puzzle_accuracy_validation.json (507 bytes)
+./NEURAL_JIGSAW_C-CO16_SWEEP/off_20260921_090600_398477/run_config.json (596 bytes)
+./NEURAL_JIGSAW_C-CO16_SWEEP/off_20260921_090600_398477/timing.json (40 bytes)
+./NEURAL_JIGSAW_C-CO16_SWEEP/sweep_summary.csv (989 bytes)
+./NEURAL_JIGSAW_C-CO16_SWEEP/sweep_summary.json (1741 bytes)
+./NEURAL_JIGSAW_C-CO16_SWEEP/zscore_20260921_090051_221441/R2.json (565 bytes)
+./NEURAL_JIGSAW_C-CO16_SWEEP/zscore_20260921_090051_221441/checkpoint_selection.json (112 bytes)
+./NEURAL_JIGSAW_C-CO16_SWEEP/zscore_20260921_090051_221441/history.json (329559 bytes)
+./NEURAL_JIGSAW_C-CO16_SWEEP/zscore_20260921_090051_221441/puzzle_accuracy_train.json (529 bytes)
+./NEURAL_JIGSAW_C-CO16_SWEEP/zscore_20260921_090051_221441/puzzle_accuracy_validation.json (534 bytes)
+./NEURAL_JIGSAW_C-CO16_SWEEP/zscore_20260921_090051_221441/run_config.json (606 bytes)
+./NEURAL_JIGSAW_C-CO16_SWEEP/zscore_20260921_090051_221441/timing.json (41 bytes)
+./NEURAL_JIGSAW_C-CO16_SWEEP/zscore_20260921_090608_127555/R2.json (574 bytes)
+./NEURAL_JIGSAW_C-CO16_SWEEP/zscore_20260921_090608_127555/checkpoint_selection.json (104 bytes)
+./NEURAL_JIGSAW_C-CO16_SWEEP/zscore_20260921_090608_127555/history.json (177 bytes)
+./NEURAL_JIGSAW_C-CO16_SWEEP/zscore_20260921_090608_127555/puzzle_accuracy_train.json (526 bytes)
+./NEURAL_JIGSAW_C-CO16_SWEEP/zscore_20260921_090608_127555/puzzle_accuracy_validation.json (534 bytes)
+./NEURAL_JIGSAW_C-CO16_SWEEP/zscore_20260921_090608_127555/run_config.json (602 bytes)
+./NEURAL_JIGSAW_C-CO16_SWEEP/zscore_20260921_090608_127555/timing.json (41 bytes)
+./NTT_CCO12_RESULTS/C-CO12_20261010_073021_393663/comparisons.json (1501 bytes)
+./NTT_CCO12_RESULTS/C-CO12_20261010_073021_393663/completed.json (78 bytes)
+./NTT_CCO12_RESULTS/C-CO12_20261010_073021_393663/controls.csv (1966 bytes)
+./NTT_CCO12_RESULTS/C-CO12_20261010_073021_393663/controls_summary.json (7117 bytes)
+./NTT_CCO12_RESULTS/C-CO12_20261010_073021_393663/dataset_audit.json (1123 bytes)
+./NTT_CCO12_RESULTS/C-CO12_20261010_073021_393663/results.csv (27645 bytes)
+./NTT_CCO12_RESULTS/C-CO12_20261010_073021_393663/run_config.json (3021 bytes)
+./NTT_CCO12_RESULTS/C-CO12_20261010_073021_393663/shortcut_audit.json (654 bytes)
+./NTT_CCO12_RESULTS/C-CO12_20261010_073021_393663/summary.json (16619 bytes)
+./NTT_CCO12_RESULTS/C-CO12_20261010_074247_208611/comparisons.json (1000 bytes)
+./NTT_CCO12_RESULTS/C-CO12_20261010_074247_208611/controls.csv (1233 bytes)
+./NTT_CCO12_RESULTS/C-CO12_20261010_074247_208611/controls_summary.json (6456 bytes)
+./NTT_CCO12_RESULTS/C-CO12_20261010_074247_208611/dataset_audit.json (1123 bytes)
+./NTT_CCO12_RESULTS/C-CO12_20261010_074247_208611/results.csv (19235 bytes)
+./NTT_CCO12_RESULTS/C-CO12_20261010_074247_208611/run_config.json (3021 bytes)
+./NTT_CCO12_RESULTS/C-CO12_20261010_074247_208611/shortcut_audit.json (654 bytes)
+./NTT_CCO12_RESULTS/C-CO12_20261010_074247_208611/summary.json (15250 bytes)
+./NTT_CCO12_RESULTS/C-CO12_20261010_080227_521876/comparisons.json (1000 bytes)
+./NTT_CCO12_RESULTS/C-CO12_20261010_080227_521876/completed.json (78 bytes)
+./NTT_CCO12_RESULTS/C-CO12_20261010_080227_521876/controls.csv (1337 bytes)
+./NTT_CCO12_RESULTS/C-CO12_20261010_080227_521876/controls_summary.json (6688 bytes)
+./NTT_CCO12_RESULTS/C-CO12_20261010_080227_521876/dataset_audit.json (1123 bytes)
+./NTT_CCO12_RESULTS/C-CO12_20261010_080227_521876/results.csv (18680 bytes)
+./NTT_CCO12_RESULTS/C-CO12_20261010_080227_521876/run_config.json (3011 bytes)
+./NTT_CCO12_RESULTS/C-CO12_20261010_080227_521876/shortcut_audit.json (654 bytes)
+./NTT_CCO12_RESULTS/C-CO12_20261010_080227_521876/summary.json (15568 bytes)
+./NTT_CCO36_ABLATION_RESULTS/C-CO36_20261010_103657_235504/comparisons.json (2 bytes)
+./NTT_CCO36_ABLATION_RESULTS/C-CO36_20261010_103657_235504/completed.json (78 bytes)
+./NTT_CCO36_ABLATION_RESULTS/C-CO36_20261010_103657_235504/controls.csv (1058 bytes)
+./NTT_CCO36_ABLATION_RESULTS/C-CO36_20261010_103657_235504/controls_summary.json (3536 bytes)
+./NTT_CCO36_ABLATION_RESULTS/C-CO36_20261010_103657_235504/dataset_audit.json (1110 bytes)
+./NTT_CCO36_ABLATION_RESULTS/C-CO36_20261010_103657_235504/results.csv (17350 bytes)
+./NTT_CCO36_ABLATION_RESULTS/C-CO36_20261010_103657_235504/run_config.json (2999 bytes)
+./NTT_CCO36_ABLATION_RESULTS/C-CO36_20261010_103657_235504/shortcut_audit.json (663 bytes)
+./NTT_CCO36_ABLATION_RESULTS/C-CO36_20261010_103657_235504/summary.json (10074 bytes)
+./NTT_CCO36_RESULTS/C-CO36_20261010_101036_953960/comparisons.json (1002 bytes)
+./NTT_CCO36_RESULTS/C-CO36_20261010_101036_953960/controls.csv (955 bytes)
+./NTT_CCO36_RESULTS/C-CO36_20261010_101036_953960/controls_summary.json (5875 bytes)
+./NTT_CCO36_RESULTS/C-CO36_20261010_101036_953960/dataset_audit.json (1110 bytes)
+./NTT_CCO36_RESULTS/C-CO36_20261010_101036_953960/results.csv (16311 bytes)
+./NTT_CCO36_RESULTS/C-CO36_20261010_101036_953960/run_config.json (3021 bytes)
+./NTT_CCO36_RESULTS/C-CO36_20261010_101036_953960/shortcut_audit.json (663 bytes)
+./NTT_CCO36_RESULTS/C-CO36_20261010_101036_953960/summary.json (14055 bytes)
+./NTT_CCO36_RESULTS/C-CO36_20261010_101623_881118/comparisons.json (1501 bytes)
+./NTT_CCO36_RESULTS/C-CO36_20261010_101623_881118/completed.json (78 bytes)
+./NTT_CCO36_RESULTS/C-CO36_20261010_101623_881118/controls.csv (1955 bytes)
+./NTT_CCO36_RESULTS/C-CO36_20261010_101623_881118/controls_summary.json (7108 bytes)
+./NTT_CCO36_RESULTS/C-CO36_20261010_101623_881118/dataset_audit.json (1110 bytes)
+./NTT_CCO36_RESULTS/C-CO36_20261010_101623_881118/results.csv (27321 bytes)
+./NTT_CCO36_RESULTS/C-CO36_20261010_101623_881118/run_config.json (3021 bytes)
+./NTT_CCO36_RESULTS/C-CO36_20261010_101623_881118/shortcut_audit.json (663 bytes)
+./NTT_CCO36_RESULTS/C-CO36_20261010_101623_881118/summary.json (16621 bytes)
+./PUZZLE_C-CO16_RESULTS/20260920_083056_842531/run_config.json (1302 bytes)
+./PUZZLE_C-CO16_RESULTS/20260920_083804_926512/R2.csv (376 bytes)
+./PUZZLE_C-CO16_RESULTS/20260920_083804_926512/R2.json (561 bytes)
+./PUZZLE_C-CO16_RESULTS/20260920_083804_926512/pca_info.json (228 bytes)
+./PUZZLE_C-CO16_RESULTS/20260920_083804_926512/puzzle_accuracy_validation.json (7557 bytes)
+./PUZZLE_C-CO16_RESULTS/20260920_083804_926512/puzzle_history.json (2761005 bytes)
+./PUZZLE_C-CO16_RESULTS/20260920_083804_926512/run_config.json (1302 bytes)
+./PUZZLE_C-CO16_RESULTS/20260920_083804_926512/timing.json (95 bytes)
+./PUZZLE_C-CO16_RESULTS/20260920_084514_397464/R2.csv (379 bytes)
+./PUZZLE_C-CO16_RESULTS/20260920_084514_397464/R2.json (564 bytes)
+./PUZZLE_C-CO16_RESULTS/20260920_084514_397464/pca_info.json (227 bytes)
+./PUZZLE_C-CO16_RESULTS/20260920_084514_397464/puzzle_accuracy_validation.json (7597 bytes)
+./PUZZLE_C-CO16_RESULTS/20260920_084514_397464/puzzle_history.json (2070246 bytes)
+./PUZZLE_C-CO16_RESULTS/20260920_084514_397464/run_config.json (1304 bytes)
+./PUZZLE_C-CO16_RESULTS/20260920_084514_397464/timing.json (95 bytes)
+./ROBUST_EVAL/C-CO12_decoder_mse_20261004_075858_821949/eval_config.json (11493 bytes)
+./ROBUST_EVAL/C-CO12_decoder_mse_20261004_075858_821949/results.csv (65787 bytes)
+./ROBUST_EVAL/C-CO12_decoder_mse_20261004_075858_821949/results.json (126594 bytes)
+./ROBUST_EVAL/C-CO12_decoder_mse_20261004_075858_821949/summary.json (20688 bytes)
+./RRESULT/ADV_JF.csv (15692 bytes)
+./RRESULT/ADV_JFINV.csv (11494 bytes)
+./RRESULT/CLEAN_JF.csv (12015 bytes)
+./RRESULT/CLEAN_JFINV.csv (11477 bytes)
+./RRESULT/summary.csv (61 bytes)
+./Robustness_C-CO12_CLEAN_vs_ACORN/robustness_summary.csv (342 bytes)
+./SIGNAL_BUDGET_TESTS/SUMMARY.txt (23044 bytes)
+./SIGNAL_BUDGET_TESTS/runs.csv (147912 bytes)
+./SIGNAL_BUDGET_TESTS/session_signal.csv (9535 bytes)
+./SIGNAL_BUDGET_TESTS/session_signal.json (17557 bytes)
+./SIGNAL_BUDGET_TESTS/testA_collapse.csv (1120 bytes)
+./SIGNAL_BUDGET_TESTS/testA_comparisons.csv (326 bytes)
+./SIGNAL_BUDGET_TESTS/testA_sessions.csv (6936 bytes)
+./SIGNAL_BUDGET_TESTS/testA_within_arm.csv (3745 bytes)
+./SIGNAL_BUDGET_TESTS/testB_auto.csv (1509 bytes)
+./SIGNAL_BUDGET_TESTS/testB_pooled.csv (3169 bytes)
+./SIGNAL_BUDGET_TESTS/testB_supervised.csv (7392 bytes)
+./SIGNAL_BUDGET_TESTS/testB_supervised_summary.csv (1076 bytes)
+./SIGNAL_BUDGET_TESTS/testC_margin.csv (3342 bytes)
+./SOLO_FIXED_J-CO0_20260929_125543/results.json (114303 bytes)
+./STRONG_EVAL_strong/SUMMARY.txt (5837 bytes)
+./STRONG_EVAL_strong/paired_vs_pgd6.csv (1726 bytes)
+./STRONG_EVAL_strong/strong_vs_v1.csv (101796 bytes)
+./STRONG_EVAL_strong/summary_by_arm.csv (2296 bytes)
+./TopK_Drop_Both_C-CO12/topk_drop_summary.csv (293 bytes)
+./TopK_Drop_TrainOnly_C-CO12/topk_drop_summary.csv (298 bytes)
+./acorn_cyclegan_results.csv (835 bytes)
+./acorn_cyclegan_summary.json (523 bytes)
+./adaptive_epsilon_C-CO12_8models.csv (7780 bytes)
+./attribution_benchmark_results.csv (5921 bytes)
+./cebra_C-RT9/results.json (403 bytes)
+./epsilon_comparison_multisession_56runs.csv (57539 bytes)
+./evaluate_euclidean_tanh.csv (37833 bytes)
+./evaluate_euclidean_tanh_Lorenzo.csv (31754 bytes)
+./gain_vs_fixed_C-CO12_24runs.csv (24065 bytes)
+./mi_analysis/C-CO12_nb16.json (39827 bytes)
+./mi_analysis_all/C-CO0_nb24.json (39992 bytes)
+./mi_analysis_all/C-CO10_nb30.json (39850 bytes)
+./mi_analysis_all/C-CO11_nb32.json (39852 bytes)
+./mi_analysis_all/C-CO12_nb30.json (39865 bytes)
+./mi_analysis_all/C-CO13_nb25.json (39872 bytes)
+./mi_analysis_all/C-CO14_nb17.json (32745 bytes)
+./mi_analysis_all/C-CO15_nb15.json (33040 bytes)
+./mi_analysis_all/C-CO16_nb17.json (32611 bytes)
+./mi_analysis_all/C-CO17_nb18.json (32641 bytes)
+./mi_analysis_all/C-CO18_nb16.json (32534 bytes)
+./mi_analysis_all/C-CO19_nb15.json (32654 bytes)
+./mi_analysis_all/C-CO1_nb14.json (33377 bytes)
+./mi_analysis_all/C-CO20_nb22.json (40443 bytes)
+./mi_analysis_all/C-CO21_nb21.json (32640 bytes)
+./mi_analysis_all/C-CO22_nb19.json (32658 bytes)
+./mi_analysis_all/C-CO23_nb20.json (32674 bytes)
+./mi_analysis_all/C-CO24_nb23.json (39905 bytes)
+./mi_analysis_all/C-CO25_nb21.json (32633 bytes)
+./mi_analysis_all/C-CO26_nb21.json (32635 bytes)
+./mi_analysis_all/C-CO27_nb13.json (32618 bytes)
+./mi_analysis_all/C-CO28_nb21.json (32571 bytes)
+./mi_analysis_all/C-CO29_nb21.json (32649 bytes)
+./mi_analysis_all/C-CO2_nb21.json (32612 bytes)
+./mi_analysis_all/C-CO30_nb23.json (39875 bytes)
+./mi_analysis_all/C-CO31_nb21.json (32607 bytes)
+./mi_analysis_all/C-CO32_nb15.json (32659 bytes)
+./mi_analysis_all/C-CO33_nb19.json (32609 bytes)
+./mi_analysis_all/C-CO34_nb19.json (32592 bytes)
+./mi_analysis_all/C-CO35_nb20.json (32631 bytes)
+./mi_analysis_all/C-CO36_nb24.json (39852 bytes)
+./mi_analysis_all/C-CO37_nb19.json (32543 bytes)
+./mi_analysis_all/C-CO38_nb19.json (32656 bytes)
+./mi_analysis_all/C-CO39_nb84.json (40398 bytes)
+./mi_analysis_all/C-CO3_nb17.json (32719 bytes)
+./mi_analysis_all/C-CO40_nb84.json (40348 bytes)
+./mi_analysis_all/C-CO41_nb123.json (40347 bytes)
+./mi_analysis_all/C-CO42_nb107.json (40126 bytes)
+./mi_analysis_all/C-CO43_nb103.json (40081 bytes)
+./mi_analysis_all/C-CO44_nb107.json (40381 bytes)
+./mi_analysis_all/C-CO45_nb104.json (41039 bytes)
+./mi_analysis_all/C-CO46_nb66.json (39938 bytes)
+./mi_analysis_all/C-CO47_nb86.json (40103 bytes)
+./mi_analysis_all/C-CO48_nb89.json (40133 bytes)
+./mi_analysis_all/C-CO49_nb72.json (39873 bytes)
+./mi_analysis_all/C-CO4_nb14.json (32716 bytes)
+./mi_analysis_all/C-CO50_nb84.json (40022 bytes)
+./mi_analysis_all/C-CO51_nb78.json (39877 bytes)
+./mi_analysis_all/C-CO52_nb101.json (40093 bytes)
+./mi_analysis_all/C-CO5_nb16.json (32823 bytes)
+./mi_analysis_all/C-CO6_nb18.json (32760 bytes)
+./mi_analysis_all/C-CO7_nb22.json (39982 bytes)
+./mi_analysis_all/C-CO8_nb23.json (40067 bytes)
+./mi_analysis_all/C-CO9_nb26.json (40113 bytes)
+./mi_analysis_all/C-RT0_nb26.json (40366 bytes)
+./mi_analysis_all/C-RT10_nb22.json (33091 bytes)
+./mi_analysis_all/C-RT11_nb26.json (40029 bytes)
+./mi_analysis_all/C-RT12_nb27.json (40488 bytes)
+./mi_analysis_all/C-RT13_nb26.json (39968 bytes)
+./mi_analysis_all/C-RT14_nb23.json (40040 bytes)
+./mi_analysis_all/C-RT1_nb25.json (40983 bytes)
+./mi_analysis_all/C-RT2_nb30.json (40643 bytes)
+./mi_analysis_all/C-RT3_nb27.json (40716 bytes)
+./mi_analysis_all/C-RT4_nb23.json (40178 bytes)
+./mi_analysis_all/C-RT5_nb22.json (40697 bytes)
+./mi_analysis_all/C-RT6_nb22.json (33308 bytes)
+./mi_analysis_all/C-RT7_nb21.json (33120 bytes)
+./mi_analysis_all/C-RT8_nb23.json (40603 bytes)
+./mi_analysis_all/C-RT9_nb20.json (33204 bytes)
+./mi_analysis_all/J-CO0_nb13.json (32667 bytes)
+./mi_analysis_all/J-CO1_nb6.json (25473 bytes)
+./mi_analysis_all/J-CO2_nb7.json (25502 bytes)
+./mi_analysis_all/M-CO0_nb40.json (40330 bytes)
+./mi_analysis_all/M-CO10_nb20.json (33011 bytes)
+./mi_analysis_all/M-CO11_nb24.json (39883 bytes)
+./mi_analysis_all/M-CO12_nb31.json (39946 bytes)
+./mi_analysis_all/M-CO13_nb17.json (32689 bytes)
+./mi_analysis_all/M-CO14_nb19.json (32996 bytes)
+./mi_analysis_all/M-CO15_nb13.json (33007 bytes)
+./mi_analysis_all/M-CO16_nb14.json (32757 bytes)
+./mi_analysis_all/M-CO17_nb19.json (32733 bytes)
+./mi_analysis_all/M-CO18_nb20.json (32793 bytes)
+./mi_analysis_all/M-CO19_nb18.json (32691 bytes)
+./mi_analysis_all/M-CO1_nb51.json (40421 bytes)
+./mi_analysis_all/M-CO20_nb21.json (32641 bytes)
+./mi_analysis_all/M-CO21_nb21.json (32753 bytes)
+./mi_analysis_all/M-CO2_nb56.json (40190 bytes)
+./mi_analysis_all/M-CO3_nb41.json (40610 bytes)
+./mi_analysis_all/M-CO4_nb40.json (39852 bytes)
+./mi_analysis_all/M-CO5_nb45.json (39907 bytes)
+./mi_analysis_all/M-CO6_nb32.json (39956 bytes)
+./mi_analysis_all/M-CO7_nb9.json (25354 bytes)
+./mi_analysis_all/M-CO8_nb9.json (25449 bytes)
+./mi_analysis_all/M-CO9_nb50.json (40104 bytes)
+./mi_analysis_all/M-RT0_nb58.json (40121 bytes)
+./mi_analysis_all/M-RT1_nb57.json (39912 bytes)
+./mi_analysis_all/M-RT2_nb56.json (39914 bytes)
+./mi_analysis_all/M-RT3_nb41.json (40189 bytes)
+./mi_analysis_all/M-RT4_nb44.json (40141 bytes)
+./mi_analysis_all/M-RT5_nb42.json (40054 bytes)
+./mi_analysis_all/T-CO0_nb19.json (32983 bytes)
+./mi_analysis_all/T-CO1_nb21.json (32895 bytes)
+./mi_analysis_all/T-CO2_nb16.json (32729 bytes)
+./mi_analysis_all/T-CO3_nb19.json (32974 bytes)
+./mi_analysis_all/T-CO4_nb23.json (40026 bytes)
+./mi_analysis_all/T-CO5_nb21.json (32824 bytes)
+./mi_analysis_all/T-RT0_nb18.json (33255 bytes)
+./mi_analysis_all/T-RT1_nb22.json (40380 bytes)
+./mi_analysis_all/T-RT2_nb13.json (33208 bytes)
+./mi_analysis_all/T-RT3_nb26.json (40110 bytes)
+./mi_analysis_all/T-RT4_nb19.json (33107 bytes)
+./mi_analysis_all/T-RT5_nb24.json (40117 bytes)
+./mi_analysis_nb32/C-CO12_nb32.json (32592 bytes)
+./outputs/X021920_topk_results.csv (618 bytes)
+./outputs/decoder_ACORN_topJf__ACORN_confusion.csv (57 bytes)
+./outputs/decoder_ACORN_topJf__CEBRA_confusion.csv (57 bytes)
+./outputs/decoder_ACORN_topJfinv__ACORN_confusion.csv (57 bytes)
+./outputs/decoder_ACORN_topJfinv__CEBRA_confusion.csv (57 bytes)
+./outputs/decoder_CEBRA_topJf__ACORN_confusion.csv (57 bytes)
+./outputs/decoder_CEBRA_topJf__CEBRA_confusion.csv (57 bytes)
+./outputs/decoder_CEBRA_topJfinv__ACORN_confusion.csv (57 bytes)
+./outputs/decoder_CEBRA_topJfinv__CEBRA_confusion.csv (57 bytes)
+./outputs/decoder_FULL__ACORN_confusion.csv (57 bytes)
+./outputs/decoder_FULL__CEBRA_confusion.csv (57 bytes)
+./outputs/synthetic_auroc_detailed.csv (2750 bytes)
+./outputs/synthetic_auroc_summary.csv (583 bytes)
+./outputs_multi_session/CEBRA_vs_ACORN_multisession_gru_accuracy.csv (70 bytes)
+./outputs_multi_session/session_comparison_multi_vs_single.csv (1453 bytes)
+./perich_context_screen/aggregate.csv (7135 bytes)
+./perich_context_screen/summary.csv (9638 bytes)
+./rank_crt2_v2_b256/summary.csv (271 bytes)
+./rank_pilot_2500/summary.csv (303 bytes)
+./rank_runs/summary.csv (399 bytes)
+./rank_v2_s0/summary.csv (552 bytes)
+./select_euclidean_tanh.csv (17121 bytes)
+./select_euclidean_tanh_Lorenzo.csv (13373 bytes)
+./xcebra_ratinabox_acorn/results.csv (3738 bytes)
+./xcebra_ratinabox_acorn_REAL/results.csv (7148 bytes)
+./xcebra_ratinabox_sweep/calibration.csv (2320 bytes)
+./xcebra_ratinabox_sweep/results.csv (119075 bytes)
+
+========== WORKER COUNTS ==========
+worker0.out: 108
+worker1.out: 108
+worker2.out: 108
+worker3.out: 108
+
+========== ERRORS ==========
+No matching errors found
+mirzaei@haas034:~/sam/result/Aggregate$
