@@ -1,569 +1,5 @@
-for robustness AUC:
-I have no name!@sam-0-0:/workspace$ cat /data/hossein/mm_project/SYNTH_BENCH_ALL/synth_all_extended_report.txt
-/data/hossein/mm_project/SYNTH_BENCH_ALL: 580 successful runs, 0 errors; sessions 16, seeds [np.int64(42)]
-
-0  sessions: separations (estimated in each metric; true = exact) and the median d'_est / d'_true of random patterns
- session  alpha  amplitude  eps_beh_true  beh_r2  eps_beh_diff  eps_beh_sp  eps_beh_ref  eps_beh_true_est  dist_diff  dist_sp  dist_iso
-   A0_R0   0.00      0.595          25.0   0.143        24.611      13.095        8.340            24.697      1.000    0.980     0.924
-   A0_R1   0.00      0.605          25.0   0.141        24.516      13.101        8.393            24.562      0.999    0.978     0.923
-   A0_R2   0.00      0.623          25.0   0.142        24.559      13.110        8.233            24.583      1.001    0.980     0.925
-   A0_R3   0.00      0.626          25.0   0.143        24.700      13.193        8.369            24.751      0.999    0.978     0.922
-A0p25_R0   0.25      0.550          25.0   0.124        24.528      13.053        8.527            24.712      1.001    0.978     0.861
-A0p25_R1   0.25      0.568          25.0   0.126        24.522      13.110        8.542            24.598      1.000    0.977     0.854
-A0p25_R2   0.25      0.584          25.0   0.127        24.540      13.082        8.351            24.553      1.003    0.978     0.858
-A0p25_R3   0.25      0.578          25.0   0.124        24.729      13.166        8.540            24.782      1.000    0.976     0.862
- A0p5_R0   0.50      0.470          25.0   0.092        24.565      13.019        8.802            24.722      1.001    0.975     0.746
- A0p5_R1   0.50      0.483          25.0   0.093        24.533      13.107        8.770            24.615      1.000    0.973     0.727
- A0p5_R2   0.50      0.500          25.0   0.096        24.545      13.029        8.569            24.542      1.003    0.974     0.742
- A0p5_R3   0.50      0.497          25.0   0.094        24.744      13.142        8.791            24.790      1.000    0.971     0.752
-   A1_R0   1.00      0.275          25.0   0.033        24.255      12.583        9.159            24.409      0.999    0.959     0.450
-   A1_R1   1.00      0.261          25.0   0.028        24.143      12.681        9.056            24.292      0.998    0.957     0.401
-   A1_R2   1.00      0.293          25.0   0.035        24.114      12.390        8.768            24.213      1.000    0.951     0.443
-   A1_R3   1.00      0.300          25.0   0.036        24.399      12.732        9.144            24.482      0.999    0.956     0.470
-
-==================== supervised
-1  per arm (true = ideal-observer metric; auc_ideal = Phi(true eps1/2 / sqrt 2))
-                            runs  clean_r2  true_half  auc_ideal  kappa_true  ref_half  ref_kappa  iso_half  fails  budget  loss_gain
-alpha arm                                                                                                                            
-0.00  CLEAN                    4     0.921      3.295      0.990       0.132     1.554      0.187     3.043      0     NaN        NaN
-      MADRY_ISO_D0.1           4     0.921      3.397      0.992       0.136     1.588      0.191     3.137      0   0.100      0.149
-      MADRY_ISO_D0.3           4     0.922      3.516      0.993       0.141     1.614      0.194     3.248      0   0.300      0.176
-      MADRY_ISO_D0.5           4     0.923      3.677      0.995       0.147     1.658      0.200     3.397      0   0.500      0.210
-      MADRY_ISO_D0.7           4     0.923      3.779      0.996       0.151     1.676      0.202     3.490      0   0.700      0.246
-      MADRY_ISO_D1             4     0.923      3.943      0.997       0.158     1.721      0.207     3.637      0   1.000      0.303
-      MADRY_ISO_D2             4     0.918      4.251      0.999       0.170     1.816      0.219     3.928      0   2.000      0.492
-      MADRY_ISO_D4             4     0.917      4.626      0.999       0.185     1.905      0.229     4.273      0   4.000      0.814
-      MADRY_ISO_D8             4     0.932      5.019      1.000       0.201     1.804      0.217     4.636      0   8.000      1.522
-      MADRY_SPDIFF_AUTOBEH     4     0.925      5.095      1.000       0.204     1.869      0.225     4.706      0   7.746      1.409
-      MADRY_SPDIFF_D8          4     0.927      5.066      1.000       0.203     1.854      0.223     4.679      0   8.000      1.441
-      MADRY_SPDIFF_GAUSS       4     0.932      4.297      0.999       0.172     1.707      0.206     3.969      0  42.426      0.087
-      MADRY_SP_D8              4     0.927      4.099      0.998       0.164     1.643      0.198     3.780      0   8.000      2.441
-      PGD_L2_EPS0.1            4     0.920      3.433      0.992       0.137     1.595      0.192     3.171      0     NaN        NaN
-      PGD_L2_EPS0.3            4     0.922      3.571      0.994       0.143     1.632      0.197     3.299      0     NaN        NaN
-      PGD_L2_EPS0.5            4     0.922      3.699      0.995       0.148     1.666      0.201     3.418      0     NaN        NaN
-      PGD_L2_EPS0.7            4     0.923      3.831      0.997       0.153     1.699      0.205     3.538      0     NaN        NaN
-      PGD_L2_EPS1              4     0.923      4.017      0.998       0.161     1.747      0.210     3.705      0     NaN        NaN
-      PGD_L2_EPS2              4     0.919      4.288      0.999       0.172     1.829      0.220     3.963      0     NaN        NaN
-      PGD_L2_EPS3              4     0.914      4.466      0.999       0.179     1.888      0.227     4.128      0     NaN        NaN
-      PGD_L2_EPS6              4     0.910      4.875      1.000       0.195     1.929      0.232     4.503      0     NaN        NaN
-0.25  CLEAN                    4     0.921      3.300      0.990       0.132     1.593      0.189     2.833      0     NaN        NaN
-      MADRY_ISO_D8             4     0.928      4.586      0.999       0.183     1.770      0.210     4.363      0   8.000      1.596
-      MADRY_SPDIFF_AUTOBEH     4     0.926      5.078      1.000       0.203     1.909      0.226     4.236      0   7.746      1.410
-      MADRY_SPDIFF_D8          4     0.928      5.049      1.000       0.202     1.885      0.223     4.206      0   8.000      1.444
-      MADRY_SPDIFF_GAUSS       4     0.932      4.256      0.999       0.170     1.741      0.206     3.561      0  42.426      0.088
-      MADRY_SP_D8              4     0.927      4.093      0.998       0.164     1.683      0.199     3.438      0   8.000      2.441
-      PGD_L2_EPS6              4     0.899      4.354      0.999       0.174     1.914      0.227     4.262      0     NaN        NaN
-0.50  CLEAN                    4     0.923      3.339      0.991       0.134     1.645      0.190     2.426      0     NaN        NaN
-      MADRY_ISO_D0.1           4     0.921      3.417      0.992       0.137     1.674      0.193     2.518      0   0.100      0.155
-      MADRY_ISO_D0.3           4     0.921      3.515      0.993       0.141     1.708      0.197     2.685      0   0.300      0.193
-      MADRY_ISO_D0.5           4     0.920      3.618      0.995       0.145     1.747      0.201     2.855      0   0.500      0.236
-      MADRY_ISO_D0.7           4     0.919      3.664      0.995       0.147     1.769      0.203     2.951      0   0.700      0.282
-      MADRY_ISO_D1             4     0.916      3.684      0.995       0.147     1.793      0.206     3.083      0   1.000      0.351
-      MADRY_ISO_D2             4     0.904      3.688      0.995       0.148     1.836      0.212     3.329      0   2.000      0.562
-      MADRY_ISO_D4             4     0.894      3.646      0.995       0.146     1.851      0.213     3.581      0   4.000      0.965
-      MADRY_ISO_D8             4     0.919      4.008      0.998       0.160     1.714      0.198     3.728      0   8.000      1.725
-      MADRY_SPDIFF_AUTOBEH     4     0.928      5.040      1.000       0.202     1.940      0.223     3.373      0   7.746      1.406
-      MADRY_SPDIFF_D8          4     0.929      5.010      1.000       0.200     1.922      0.221     3.341      0   8.000      1.439
-      MADRY_SPDIFF_GAUSS       4     0.932      4.243      0.999       0.170     1.787      0.206     2.906      0  42.426      0.086
-      MADRY_SP_D8              4     0.927      4.056      0.998       0.162     1.727      0.199     2.809      0   8.000      2.437
-      PGD_L2_EPS0.1            4     0.922      3.456      0.993       0.138     1.683      0.194     2.544      0     NaN        NaN
-      PGD_L2_EPS0.3            4     0.921      3.541      0.994       0.142     1.714      0.197     2.703      0     NaN        NaN
-      PGD_L2_EPS0.5            4     0.920      3.628      0.995       0.145     1.753      0.202     2.850      0     NaN        NaN
-      PGD_L2_EPS0.7            4     0.919      3.633      0.995       0.145     1.762      0.202     2.929      0     NaN        NaN
-      PGD_L2_EPS1              4     0.915      3.684      0.995       0.147     1.796      0.206     3.072      0     NaN        NaN
-      PGD_L2_EPS2              4     0.903      3.670      0.995       0.147     1.835      0.211     3.319      0     NaN        NaN
-      PGD_L2_EPS3              4     0.891      3.561      0.994       0.142     1.841      0.212     3.406      0     NaN        NaN
-      PGD_L2_EPS6              4     0.876      3.475      0.993       0.139     1.835      0.210     3.724      0     NaN        NaN
-1.00  CLEAN                    4     0.919      3.213      0.988       0.129     1.705      0.190     1.266      0     NaN        NaN
-      MADRY_ISO_D0.1           4     0.917      3.254      0.989       0.130     1.758      0.195     1.397      0   0.100      0.176
-      MADRY_ISO_D0.3           4     0.910      3.181      0.988       0.127     1.765      0.196     1.619      0   0.300      0.249
-      MADRY_ISO_D0.5           4     0.903      3.132      0.986       0.125     1.768      0.197     1.769      0   0.500      0.324
-      MADRY_ISO_D0.7           4     0.893      3.014      0.983       0.121     1.743      0.195     1.850      0   0.700      0.397
-      MADRY_ISO_D1             4     0.882      2.871      0.979       0.115     1.731      0.191     1.908      0   1.000      0.495
-      MADRY_ISO_D2             4     0.852      2.358      0.952       0.094     1.597      0.179     1.958      0   2.000      0.772
-      MADRY_ISO_D4             4     0.797      1.639      0.877       0.066     1.262      0.141     1.998      0   4.000      1.346
-      MADRY_ISO_D8             4     0.903      2.959      0.982       0.118     1.574      0.174     1.120      0   8.000      2.155
-      MADRY_SPDIFF_AUTOBEH     4     0.930      4.799      1.000       0.192     2.023      0.226     1.525      0   7.746      1.408
-      MADRY_SPDIFF_D16         4     0.910      2.558      0.965       0.102     1.465      0.164     1.071      0  16.000      2.311
-      MADRY_SPDIFF_D32         4     0.920      3.191      0.988       0.128     1.699      0.190     1.271      0  32.000      2.138
-      MADRY_SPDIFF_D4          4     0.921      4.430      0.999       0.177     2.057      0.230     1.525      0   4.000      0.808
-      MADRY_SPDIFF_D8          4     0.930      4.780      1.000       0.191     2.005      0.224     1.502      0   8.000      1.439
-      MADRY_SPDIFF_GAUSS       4     0.929      4.149      0.998       0.166     1.909      0.213     1.398      0  42.426      0.085
-      MADRY_SP_D16             4     0.919      3.108      0.986       0.124     1.634      0.182     1.173      0  16.000      2.162
-      MADRY_SP_D4              4     0.886      3.526      0.994       0.141     2.092      0.234     1.409      0   4.000      1.326
-      MADRY_SP_D8              4     0.926      3.903      0.997       0.156     1.798      0.201     1.371      0   8.000      2.434
-      PGD_L2_EPS0.1            4     0.916      3.258      0.989       0.130     1.759      0.196     1.417      0     NaN        NaN
-      PGD_L2_EPS0.3            4     0.910      3.224      0.988       0.129     1.783      0.199     1.645      0     NaN        NaN
-      PGD_L2_EPS0.5            4     0.902      3.114      0.986       0.125     1.773      0.198     1.777      0     NaN        NaN
-      PGD_L2_EPS0.7            4     0.893      2.996      0.983       0.120     1.744      0.195     1.850      0     NaN        NaN
-      PGD_L2_EPS1              4     0.881      2.842      0.978       0.114     1.725      0.192     1.911      0     NaN        NaN
-      PGD_L2_EPS2              4     0.841      2.183      0.939       0.087     1.534      0.172     1.911      0     NaN        NaN
-      PGD_L2_EPS3              4     0.804      1.715      0.887       0.069     1.315      0.147     1.860      0     NaN        NaN
-      PGD_L2_EPS6              4     0.800      1.635      0.876       0.065     1.220      0.135     2.155      0     NaN        NaN
-
-2  paired ratios (sessions = independent data draws; CI = session bootstrap)
-  alpha 0       DIFF8 / ISO8   true_half 1.011 [1.007, 1.014] sessions up 4/4
-  alpha 0       DIFF8 / ISO8   iso_half  1.011 [1.007, 1.014] sessions up 4/4
-  alpha 0    AUTO_BEH / PGD6   true_half 1.036 [1.022, 1.051] sessions up 4/4
-  alpha 0    AUTO_BEH / ISO8   true_half 1.013 [1.010, 1.017] sessions up 4/4
-  alpha 0    AUTO_BEH / GAUSS  true_half 1.177 [1.163, 1.193] sessions up 4/4
-  alpha 0         SP8 / DIFF8  true_half 0.813 [0.806, 0.820] sessions up 0/4
-  alpha 0        PGD6 / CLEAN  true_half 1.492 [1.478, 1.505] sessions up 4/4
-  alpha 0        ISO8 / CLEAN  true_half 1.526 [1.516, 1.537] sessions up 4/4
-  alpha 0       DIFF8 / CLEAN  true_half 1.544 [1.526, 1.558] sessions up 4/4
-  alpha 0    AUTO_BEH / CLEAN  true_half 1.546 [1.537, 1.555] sessions up 4/4
-  alpha 0.25    DIFF8 / ISO8   true_half 1.090 [1.064, 1.129] sessions up 4/4
-  alpha 0.25    DIFF8 / ISO8   iso_half  0.973 [0.964, 0.981] sessions up 0/4
-  alpha 0.25 AUTO_BEH / PGD6   true_half 1.151 [1.122, 1.181] sessions up 4/4
-  alpha 0.25 AUTO_BEH / ISO8   true_half 1.092 [1.071, 1.127] sessions up 4/4
-  alpha 0.25 AUTO_BEH / GAUSS  true_half 1.182 [1.170, 1.193] sessions up 4/4
-  alpha 0.25      SP8 / DIFF8  true_half 0.817 [0.806, 0.831] sessions up 0/4
-  alpha 0.25     PGD6 / CLEAN  true_half 1.326 [1.300, 1.353] sessions up 4/4
-  alpha 0.25     ISO8 / CLEAN  true_half 1.397 [1.360, 1.427] sessions up 4/4
-  alpha 0.25    DIFF8 / CLEAN  true_half 1.523 [1.511, 1.537] sessions up 4/4
-  alpha 0.25 AUTO_BEH / CLEAN  true_half 1.526 [1.512, 1.539] sessions up 4/4
-  alpha 0.5     DIFF8 / ISO8   true_half 1.236 [1.198, 1.275] sessions up 4/4
-  alpha 0.5     DIFF8 / ISO8   iso_half  0.907 [0.887, 0.922] sessions up 0/4
-  alpha 0.5  AUTO_BEH / PGD6   true_half 1.423 [1.374, 1.474] sessions up 4/4
-  alpha 0.5  AUTO_BEH / ISO8   true_half 1.239 [1.203, 1.278] sessions up 4/4
-  alpha 0.5  AUTO_BEH / GAUSS  true_half 1.183 [1.177, 1.191] sessions up 4/4
-  alpha 0.5       SP8 / DIFF8  true_half 0.824 [0.809, 0.838] sessions up 0/4
-  alpha 0.5      PGD6 / CLEAN  true_half 1.057 [1.030, 1.085] sessions up 4/4
-  alpha 0.5      ISO8 / CLEAN  true_half 1.214 [1.188, 1.240] sessions up 4/4
-  alpha 0.5     DIFF8 / CLEAN  true_half 1.500 [1.486, 1.515] sessions up 4/4
-  alpha 0.5  AUTO_BEH / CLEAN  true_half 1.505 [1.491, 1.518] sessions up 4/4
-  alpha 1       DIFF8 / ISO8   true_half 1.694 [1.504, 2.048] sessions up 4/4
-  alpha 1       DIFF8 / ISO8   iso_half  1.212 [0.831, 1.484] sessions up 3/4
-  alpha 1    AUTO_BEH / PGD6   true_half 2.911 [2.728, 3.118] sessions up 4/4
-  alpha 1    AUTO_BEH / ISO8   true_half 1.709 [1.520, 2.074] sessions up 4/4
-  alpha 1    AUTO_BEH / GAUSS  true_half 1.155 [1.146, 1.164] sessions up 4/4
-  alpha 1         SP8 / DIFF8  true_half 0.832 [0.813, 0.850] sessions up 0/4
-  alpha 1        PGD6 / CLEAN  true_half 0.513 [0.477, 0.553] sessions up 0/4
-  alpha 1        ISO8 / CLEAN  true_half 0.875 [0.725, 0.979] sessions up 0/4
-  alpha 1       DIFF8 / CLEAN  true_half 1.481 [1.468, 1.501] sessions up 4/4
-  alpha 1    AUTO_BEH / CLEAN  true_half 1.495 [1.475, 1.513] sessions up 4/4
-
-==================== time_only
-1  per arm (true = ideal-observer metric; auc_ideal = Phi(true eps1/2 / sqrt 2))
-                            runs  clean_r2  true_half  auc_ideal  kappa_true  ref_half  ref_kappa  iso_half  fails  budget  loss_gain
-alpha arm                                                                                                                            
-0.00  CLEAN                    4     0.919      4.318      0.999       0.173     1.566      0.189     3.991      0     NaN        NaN
-      MADRY_ISO_D0.1           4     0.921      4.421      0.999       0.177     1.560      0.187     4.085      0   0.100      0.064
-      MADRY_ISO_D0.3           4     0.923      4.484      0.999       0.179     1.572      0.188     4.142      0   0.300      0.078
-      MADRY_ISO_D0.5           4     0.925      4.624      0.999       0.185     1.603      0.191     4.271      0   0.500      0.092
-      MADRY_ISO_D0.7           4     0.927      4.655      0.999       0.186     1.613      0.194     4.301      0   0.700      0.106
-      MADRY_ISO_D1             4     0.928      4.638      0.999       0.186     1.598      0.193     4.282      0   1.000      0.130
-      MADRY_ISO_D2             4     0.930      4.814      1.000       0.193     1.635      0.197     4.440      0   2.000      0.208
-      MADRY_ISO_D4             4     0.936      4.898      1.000       0.196     1.657      0.200     4.523      0   4.000      0.375
-      MADRY_ISO_D8             4     0.939      4.883      1.000       0.195     1.644      0.198     4.510      0   8.000      0.797
-      MADRY_SPDIFF_AUTOSIG     4     0.937      4.955      1.000       0.198     1.681      0.203     4.576      0   5.963      0.525
-      MADRY_SPDIFF_D8          4     0.939      4.945      1.000       0.198     1.679      0.202     4.567      0   8.000      0.727
-      MADRY_SPDIFF_GAUSS       4     0.916      4.816      1.000       0.193     1.635      0.197     4.447      0  42.426      0.051
-      MADRY_SP_D8              4     0.935      4.649      0.999       0.186     1.707      0.206     4.294      0   8.000      1.704
-      PGD_L2_EPS0.1            4     0.923      4.458      0.999       0.178     1.553      0.187     4.119      0     NaN        NaN
-      PGD_L2_EPS0.3            4     0.924      4.520      0.999       0.181     1.583      0.189     4.169      0     NaN        NaN
-      PGD_L2_EPS0.5            4     0.927      4.584      0.999       0.183     1.596      0.192     4.233      0     NaN        NaN
-      PGD_L2_EPS0.7            4     0.927      4.608      0.999       0.184     1.602      0.193     4.257      0     NaN        NaN
-      PGD_L2_EPS1              4     0.929      4.621      0.999       0.185     1.600      0.191     4.264      0     NaN        NaN
-      PGD_L2_EPS2              4     0.930      4.788      1.000       0.192     1.622      0.195     4.421      0     NaN        NaN
-      PGD_L2_EPS3              4     0.932      4.813      1.000       0.193     1.642      0.198     4.445      0     NaN        NaN
-      PGD_L2_EPS6              4     0.939      4.990      1.000       0.200     1.688      0.203     4.606      0     NaN        NaN
-0.25  CLEAN                    4     0.923      4.215      0.999       0.169     1.620      0.192     3.527      0     NaN        NaN
-      MADRY_ISO_D8             4     0.931      4.373      0.999       0.175     1.620      0.192     4.258      0   8.000      0.834
-      MADRY_SPDIFF_AUTOSIG     4     0.937      4.855      1.000       0.194     1.699      0.201     4.004      0   5.981      0.524
-      MADRY_SPDIFF_D8          4     0.939      4.866      1.000       0.195     1.699      0.201     4.019      0   8.000      0.725
-      MADRY_SPDIFF_GAUSS       4     0.919      4.802      1.000       0.192     1.679      0.199     3.978      0  42.426      0.052
-      MADRY_SP_D8              4     0.935      4.641      0.999       0.186     1.742      0.206     3.859      0   8.000      1.703
-      PGD_L2_EPS6              4     0.931      4.431      0.999       0.177     1.623      0.192     4.277      0     NaN        NaN
-0.50  CLEAN                    4     0.903      3.269      0.988       0.131     1.509      0.174     2.580      0     NaN        NaN
-      MADRY_ISO_D0.1           4     0.895      3.072      0.985       0.123     1.435      0.163     2.653      0   0.100      0.066
-      MADRY_ISO_D0.3           4     0.896      3.277      0.989       0.131     1.460      0.167     3.072      0   0.300      0.083
-      MADRY_ISO_D0.5           4     0.900      3.370      0.991       0.135     1.502      0.171     3.265      0   0.500      0.100
-      MADRY_ISO_D0.7           4     0.903      3.476      0.993       0.139     1.528      0.176     3.352      0   0.700      0.117
-      MADRY_ISO_D1             4     0.907      3.535      0.994       0.141     1.557      0.178     3.420      0   1.000      0.143
-      MADRY_ISO_D2             4     0.914      3.682      0.995       0.147     1.582      0.182     3.519      0   2.000      0.230
-      MADRY_ISO_D4             4     0.919      3.910      0.997       0.156     1.625      0.187     3.622      0   4.000      0.404
-      MADRY_ISO_D8             4     0.924      3.861      0.997       0.154     1.598      0.184     3.597      0   8.000      0.854
-      MADRY_SPDIFF_AUTOSIG     4     0.937      4.882      1.000       0.195     1.766      0.203     3.170      0   5.982      0.522
-      MADRY_SPDIFF_D8          4     0.939      4.884      1.000       0.195     1.759      0.203     3.164      0   8.000      0.723
-      MADRY_SPDIFF_GAUSS       4     0.921      4.769      1.000       0.191     1.722      0.198     3.126      0  42.426      0.053
-      MADRY_SP_D8              4     0.935      4.539      0.999       0.182     1.788      0.206     3.021      0   8.000      1.584
-      PGD_L2_EPS0.1            4     0.899      3.132      0.987       0.125     1.458      0.166     2.756      0     NaN        NaN
-      PGD_L2_EPS0.3            4     0.900      3.159      0.987       0.126     1.479      0.168     3.181      0     NaN        NaN
-      PGD_L2_EPS0.5            4     0.901      3.391      0.992       0.136     1.522      0.174     3.271      0     NaN        NaN
-      PGD_L2_EPS0.7            4     0.905      3.477      0.993       0.139     1.553      0.177     3.392      0     NaN        NaN
-      PGD_L2_EPS1              4     0.911      3.650      0.995       0.146     1.573      0.181     3.442      0     NaN        NaN
-      PGD_L2_EPS2              4     0.913      3.619      0.995       0.145     1.586      0.181     3.535      0     NaN        NaN
-      PGD_L2_EPS3              4     0.915      3.876      0.997       0.155     1.635      0.186     3.634      0     NaN        NaN
-      PGD_L2_EPS6              4     0.922      3.973      0.998       0.159     1.638      0.189     3.655      0     NaN        NaN
-1.00  CLEAN                    4     0.913      3.530      0.993       0.141     1.640      0.183     1.383      0     NaN        NaN
-      MADRY_ISO_D0.1           4     0.900      3.295      0.990       0.132     1.583      0.177     1.630      0   0.100      0.067
-      MADRY_ISO_D0.3           4     0.896      3.095      0.986       0.124     1.545      0.173     1.938      0   0.300      0.087
-      MADRY_ISO_D0.5           4     0.894      2.950      0.982       0.118     1.505      0.168     2.045      0   0.500      0.105
-      MADRY_ISO_D0.7           4     0.890      2.742      0.974       0.110     1.472      0.164     2.098      0   0.700      0.125
-      MADRY_ISO_D1             4     0.879      2.486      0.961       0.099     1.399      0.156     2.135      0   1.000      0.156
-      MADRY_ISO_D2             4     0.700      0.711      0.692       0.028     0.495      0.055     1.439      0   2.000      0.256
-      MADRY_ISO_D4             4     0.676      0.680      0.685       0.027     0.496      0.054     1.441      0   4.000      0.416
-      MADRY_ISO_D8             4     0.711      0.963      0.750       0.039     0.741      0.083     1.593      0   8.000      0.925
-      MADRY_SPDIFF_AUTOSIG     4     0.934      4.636      0.999       0.185     1.855      0.207     1.418      0   5.963      0.528
-      MADRY_SPDIFF_D8          4     0.937      4.600      0.999       0.184     1.838      0.205     1.408      0   8.000      0.731
-      MADRY_SPDIFF_GAUSS       4     0.915      4.569      0.999       0.183     1.832      0.205     1.412      0  42.426      0.056
-      MADRY_SP_D8              4     0.934      4.383      0.999       0.175     1.881      0.208     1.374      0   8.000      1.606
-      PGD_L2_EPS0.1            4     0.902      3.326      0.990       0.133     1.599      0.178     1.666      0     NaN        NaN
-      PGD_L2_EPS0.3            4     0.898      3.086      0.985       0.123     1.541      0.172     1.962      0     NaN        NaN
-      PGD_L2_EPS0.5            4     0.895      2.961      0.982       0.118     1.534      0.171     2.073      0     NaN        NaN
-      PGD_L2_EPS0.7            4     0.890      2.768      0.975       0.111     1.480      0.165     2.109      0     NaN        NaN
-      PGD_L2_EPS1              4     0.878      2.616      0.968       0.105     1.404      0.153     2.126      0     NaN        NaN
-      PGD_L2_EPS2              4     0.742      1.332      0.795       0.053     0.832      0.092     1.697      0     NaN        NaN
-      PGD_L2_EPS3              4     0.742      1.369      0.800       0.055     0.861      0.095     1.766      0     NaN        NaN
-      PGD_L2_EPS6              4     0.760      1.359      0.813       0.054     0.926      0.103     1.752      0     NaN        NaN
-
-2  paired ratios (sessions = independent data draws; CI = session bootstrap)
-  alpha 0       DIFF8 / ISO8   true_half 1.003 [0.994, 1.018] sessions up 1/4
-  alpha 0       DIFF8 / ISO8   iso_half  1.003 [0.994, 1.018] sessions up 1/4
-  alpha 0    AUTO_SIG / PGD6   true_half 1.000 [0.992, 1.007] sessions up 2/4
-  alpha 0    AUTO_SIG / ISO8   true_half 1.008 [1.002, 1.019] sessions up 4/4
-  alpha 0    AUTO_SIG / GAUSS  true_half 1.025 [1.010, 1.040] sessions up 4/4
-  alpha 0         SP8 / DIFF8  true_half 0.942 [0.936, 0.948] sessions up 0/4
-  alpha 0        PGD6 / CLEAN  true_half 1.146 [1.127, 1.159] sessions up 4/4
-  alpha 0        ISO8 / CLEAN  true_half 1.137 [1.122, 1.152] sessions up 4/4
-  alpha 0       DIFF8 / CLEAN  true_half 1.140 [1.125, 1.150] sessions up 4/4
-  alpha 0    AUTO_SIG / CLEAN  true_half 1.146 [1.134, 1.157] sessions up 4/4
-  alpha 0.25    DIFF8 / ISO8   true_half 1.117 [1.078, 1.168] sessions up 4/4
-  alpha 0.25    DIFF8 / ISO8   iso_half  0.955 [0.943, 0.968] sessions up 0/4
-  alpha 0.25 AUTO_SIG / PGD6   true_half 1.103 [1.065, 1.168] sessions up 4/4
-  alpha 0.25 AUTO_SIG / ISO8   true_half 1.111 [1.077, 1.159] sessions up 4/4
-  alpha 0.25 AUTO_SIG / GAUSS  true_half 1.006 [0.998, 1.014] sessions up 3/4
-  alpha 0.25      SP8 / DIFF8  true_half 0.945 [0.930, 0.955] sessions up 0/4
-  alpha 0.25     PGD6 / CLEAN  true_half 1.040 [0.968, 1.096] sessions up 3/4
-  alpha 0.25     ISO8 / CLEAN  true_half 1.033 [0.975, 1.074] sessions up 3/4
-  alpha 0.25    DIFF8 / CLEAN  true_half 1.154 [1.130, 1.179] sessions up 4/4
-  alpha 0.25 AUTO_SIG / CLEAN  true_half 1.147 [1.117, 1.179] sessions up 4/4
-  alpha 0.5     DIFF8 / ISO8   true_half 1.241 [1.212, 1.268] sessions up 4/4
-  alpha 0.5     DIFF8 / ISO8   iso_half  0.886 [0.851, 0.916] sessions up 0/4
-  alpha 0.5  AUTO_SIG / PGD6   true_half 1.212 [1.179, 1.240] sessions up 4/4
-  alpha 0.5  AUTO_SIG / ISO8   true_half 1.243 [1.211, 1.274] sessions up 4/4
-  alpha 0.5  AUTO_SIG / GAUSS  true_half 1.012 [0.993, 1.030] sessions up 3/4
-  alpha 0.5       SP8 / DIFF8  true_half 0.929 [0.925, 0.934] sessions up 0/4
-  alpha 0.5      PGD6 / CLEAN  true_half 1.232 [1.134, 1.339] sessions up 4/4
-  alpha 0.5      ISO8 / CLEAN  true_half 1.201 [1.109, 1.302] sessions up 4/4
-  alpha 0.5     DIFF8 / CLEAN  true_half 1.490 [1.378, 1.612] sessions up 4/4
-  alpha 0.5  AUTO_SIG / CLEAN  true_half 1.494 [1.381, 1.615] sessions up 4/4
-  alpha 1       DIFF8 / ISO8   true_half 4.535 [2.826, 7.251] sessions up 4/4
-  alpha 1       DIFF8 / ISO8   iso_half  0.895 [0.737, 1.135] sessions up 1/4
-  alpha 1    AUTO_SIG / PGD6   true_half 3.674 [2.216, 6.091] sessions up 4/4
-  alpha 1    AUTO_SIG / ISO8   true_half 4.559 [2.830, 7.323] sessions up 4/4
-  alpha 1    AUTO_SIG / GAUSS  true_half 1.010 [1.002, 1.019] sessions up 3/4
-  alpha 1         SP8 / DIFF8  true_half 0.935 [0.915, 0.960] sessions up 0/4
-  alpha 1        PGD6 / CLEAN  true_half 0.357 [0.214, 0.595] sessions up 0/4
-  alpha 1        ISO8 / CLEAN  true_half 0.288 [0.178, 0.467] sessions up 0/4
-  alpha 1       DIFF8 / CLEAN  true_half 1.306 [1.288, 1.324] sessions up 4/4
-  alpha 1    AUTO_SIG / CLEAN  true_half 1.312 [1.300, 1.324] sessions up 4/4
-
-3  budget: true eps1/2 relative to the session's best budget vs x_beh
-                         x_beh  x_exact  true_half    rel  clean_r2  fails
-metric arm                                                                
-DIFF   MADRY_SPDIFF_D16  0.661    0.643      2.558  0.562     0.910      0
-       MADRY_SPDIFF_D32  1.322    1.286      3.191  0.673     0.920      0
-       MADRY_SPDIFF_D4   0.165    0.161      4.430  0.937     0.921      0
-       MADRY_SPDIFF_D8   0.326    0.321      5.018  1.000     0.929      0
-SP     MADRY_SP_D16      1.267    1.193      3.108  0.663     0.919      0
-       MADRY_SP_D4       0.317    0.298      3.526  0.735     0.886      0
-       MADRY_SP_D8       0.611    0.591      4.081  0.819     0.927      0
-  best x_beh per session: [0.325, 0.326, 0.326, 0.324, 0.326, 0.326, 0.326, 0.324, 0.326, 0.326, 0.326, 0.323, 0.33, 0.331, 0.332, 0.328] (predicted in [0.25, 0.45])
-  x_beh >= 0.5: 0/28 runs below half the peak (predicted: all)
-
-5  isotropic budget sweep (PGD = raw L2 PGD, ISO = L2-APGD in noise-SD units); ORACLE_ISO = the best isotropic arm of each session, picked on the true metric
-
-  supervised: true eps1/2 (median)
-alpha                  0.00   0.25   0.50   1.00
-arm                                             
-MADRY_ISO_D0.1        3.397    NaN  3.417  3.254
-MADRY_ISO_D0.3        3.516    NaN  3.515  3.181
-MADRY_ISO_D0.5        3.677    NaN  3.618  3.132
-MADRY_ISO_D0.7        3.779    NaN  3.664  3.014
-MADRY_ISO_D1          3.943    NaN  3.684  2.871
-MADRY_ISO_D2          4.251    NaN  3.688  2.358
-MADRY_ISO_D4          4.626    NaN  3.646  1.639
-MADRY_ISO_D8          5.019  4.586  4.008  2.959
-MADRY_SPDIFF_AUTOBEH  5.095  5.078  5.040  4.799
-MADRY_SPDIFF_D8       5.066  5.049  5.010  4.780
-PGD_L2_EPS0.1         3.433    NaN  3.456  3.258
-PGD_L2_EPS0.3         3.571    NaN  3.541  3.224
-PGD_L2_EPS0.5         3.699    NaN  3.628  3.114
-PGD_L2_EPS0.7         3.831    NaN  3.633  2.996
-PGD_L2_EPS1           4.017    NaN  3.684  2.842
-PGD_L2_EPS2           4.288    NaN  3.670  2.183
-PGD_L2_EPS3           4.466    NaN  3.561  1.715
-PGD_L2_EPS6           4.875  4.354  3.475  1.635
-
-  supervised: clean R2 (mean)
-alpha                  0.00   0.25   0.50   1.00
-arm                                             
-MADRY_ISO_D0.1        0.921    NaN  0.921  0.917
-MADRY_ISO_D0.3        0.922    NaN  0.921  0.910
-MADRY_ISO_D0.5        0.923    NaN  0.920  0.903
-MADRY_ISO_D0.7        0.923    NaN  0.919  0.893
-MADRY_ISO_D1          0.923    NaN  0.916  0.882
-MADRY_ISO_D2          0.918    NaN  0.904  0.852
-MADRY_ISO_D4          0.917    NaN  0.894  0.797
-MADRY_ISO_D8          0.932  0.928  0.919  0.903
-MADRY_SPDIFF_AUTOBEH  0.925  0.926  0.928  0.930
-MADRY_SPDIFF_D8       0.927  0.928  0.929  0.930
-PGD_L2_EPS0.1         0.920    NaN  0.922  0.916
-PGD_L2_EPS0.3         0.922    NaN  0.921  0.910
-PGD_L2_EPS0.5         0.922    NaN  0.920  0.902
-PGD_L2_EPS0.7         0.923    NaN  0.919  0.893
-PGD_L2_EPS1           0.923    NaN  0.915  0.881
-PGD_L2_EPS2           0.919    NaN  0.903  0.841
-PGD_L2_EPS3           0.914    NaN  0.891  0.804
-PGD_L2_EPS6           0.910  0.899  0.876  0.800
-
-  supervised: isotropic-metric eps1/2 (median)
-alpha                  0.00   0.25   0.50   1.00
-arm                                             
-MADRY_ISO_D0.1        3.137    NaN  2.518  1.397
-MADRY_ISO_D0.3        3.248    NaN  2.685  1.619
-MADRY_ISO_D0.5        3.397    NaN  2.855  1.769
-MADRY_ISO_D0.7        3.490    NaN  2.951  1.850
-MADRY_ISO_D1          3.637    NaN  3.083  1.908
-MADRY_ISO_D2          3.928    NaN  3.329  1.958
-MADRY_ISO_D4          4.273    NaN  3.581  1.998
-MADRY_ISO_D8          4.636  4.363  3.728  1.120
-MADRY_SPDIFF_AUTOBEH  4.706  4.236  3.373  1.525
-MADRY_SPDIFF_D8       4.679  4.206  3.341  1.502
-PGD_L2_EPS0.1         3.171    NaN  2.544  1.417
-PGD_L2_EPS0.3         3.299    NaN  2.703  1.645
-PGD_L2_EPS0.5         3.418    NaN  2.850  1.777
-PGD_L2_EPS0.7         3.538    NaN  2.929  1.850
-PGD_L2_EPS1           3.705    NaN  3.072  1.911
-PGD_L2_EPS2           3.963    NaN  3.319  1.911
-PGD_L2_EPS3           4.128    NaN  3.406  1.860
-PGD_L2_EPS6           4.503  4.262  3.724  2.155
-
-  supervised: best isotropic arm per session:
-    alpha 0: {'MADRY_ISO_D8': 4}
-    alpha 0.25: {'MADRY_ISO_D8': 4}
-    alpha 0.5: {'MADRY_ISO_D8': 4}
-    alpha 1: {'PGD_L2_EPS0.1': 2, 'MADRY_ISO_D0.1': 2}
-    alpha 0     MADRY_SPDIFF_AUTOBEH / ORACLE_ISO            true_half 1.013 [1.010, 1.017] sessions up 4/4
-    alpha 0     MADRY_SPDIFF_AUTOBEH / ORACLE_ISO            iso_half  1.013 [1.010, 1.018] sessions up 4/4
-    alpha 0     MADRY_SPDIFF_AUTOBEH - ORACLE_ISO            clean R2 -0.0068
-    alpha 0     MADRY_SPDIFF_AUTOBEH / MADRY_ISO_D8          true_half 1.013 [1.010, 1.017] sessions up 4/4
-    alpha 0     MADRY_SPDIFF_AUTOBEH / MADRY_ISO_D8          iso_half  1.013 [1.010, 1.018] sessions up 4/4
-    alpha 0     MADRY_SPDIFF_AUTOBEH - MADRY_ISO_D8          clean R2 -0.0068
-    alpha 0          MADRY_SPDIFF_D8 / ORACLE_ISO            true_half 1.011 [1.007, 1.014] sessions up 4/4
-    alpha 0          MADRY_SPDIFF_D8 / ORACLE_ISO            iso_half  1.011 [1.007, 1.014] sessions up 4/4
-    alpha 0          MADRY_SPDIFF_D8 - ORACLE_ISO            clean R2 -0.0047
-    alpha 0          MADRY_SPDIFF_D8 / MADRY_ISO_D8          true_half 1.011 [1.007, 1.014] sessions up 4/4
-    alpha 0          MADRY_SPDIFF_D8 / MADRY_ISO_D8          iso_half  1.011 [1.007, 1.014] sessions up 4/4
-    alpha 0          MADRY_SPDIFF_D8 - MADRY_ISO_D8          clean R2 -0.0047
-    alpha 0.25  MADRY_SPDIFF_AUTOBEH / ORACLE_ISO            true_half 1.092 [1.071, 1.127] sessions up 4/4
-    alpha 0.25  MADRY_SPDIFF_AUTOBEH / ORACLE_ISO            iso_half  0.975 [0.971, 0.980] sessions up 0/4
-    alpha 0.25  MADRY_SPDIFF_AUTOBEH - ORACLE_ISO            clean R2 -0.0022
-    alpha 0.25  MADRY_SPDIFF_AUTOBEH / MADRY_ISO_D8          true_half 1.092 [1.071, 1.127] sessions up 4/4
-    alpha 0.25  MADRY_SPDIFF_AUTOBEH / MADRY_ISO_D8          iso_half  0.975 [0.971, 0.980] sessions up 0/4
-    alpha 0.25  MADRY_SPDIFF_AUTOBEH - MADRY_ISO_D8          clean R2 -0.0022
-    alpha 0.25       MADRY_SPDIFF_D8 / ORACLE_ISO            true_half 1.090 [1.064, 1.129] sessions up 4/4
-    alpha 0.25       MADRY_SPDIFF_D8 / ORACLE_ISO            iso_half  0.973 [0.964, 0.981] sessions up 0/4
-    alpha 0.25       MADRY_SPDIFF_D8 - ORACLE_ISO            clean R2 +0.0003
-    alpha 0.25       MADRY_SPDIFF_D8 / MADRY_ISO_D8          true_half 1.090 [1.064, 1.129] sessions up 4/4
-    alpha 0.25       MADRY_SPDIFF_D8 / MADRY_ISO_D8          iso_half  0.973 [0.964, 0.981] sessions up 0/4
-    alpha 0.25       MADRY_SPDIFF_D8 - MADRY_ISO_D8          clean R2 +0.0003
-    alpha 0.5   MADRY_SPDIFF_AUTOBEH / ORACLE_ISO            true_half 1.239 [1.203, 1.278] sessions up 4/4
-    alpha 0.5   MADRY_SPDIFF_AUTOBEH / ORACLE_ISO            iso_half  0.912 [0.895, 0.925] sessions up 0/4
-    alpha 0.5   MADRY_SPDIFF_AUTOBEH - ORACLE_ISO            clean R2 +0.0082
-    alpha 0.5   MADRY_SPDIFF_AUTOBEH / MADRY_ISO_D8          true_half 1.239 [1.203, 1.278] sessions up 4/4
-    alpha 0.5   MADRY_SPDIFF_AUTOBEH / MADRY_ISO_D8          iso_half  0.912 [0.895, 0.925] sessions up 0/4
-    alpha 0.5   MADRY_SPDIFF_AUTOBEH - MADRY_ISO_D8          clean R2 +0.0082
-    alpha 0.5        MADRY_SPDIFF_D8 / ORACLE_ISO            true_half 1.236 [1.198, 1.275] sessions up 4/4
-    alpha 0.5        MADRY_SPDIFF_D8 / ORACLE_ISO            iso_half  0.907 [0.887, 0.922] sessions up 0/4
-    alpha 0.5        MADRY_SPDIFF_D8 - ORACLE_ISO            clean R2 +0.0100
-    alpha 0.5        MADRY_SPDIFF_D8 / MADRY_ISO_D8          true_half 1.236 [1.198, 1.275] sessions up 4/4
-    alpha 0.5        MADRY_SPDIFF_D8 / MADRY_ISO_D8          iso_half  0.907 [0.887, 0.922] sessions up 0/4
-    alpha 0.5        MADRY_SPDIFF_D8 - MADRY_ISO_D8          clean R2 +0.0100
-    alpha 1     MADRY_SPDIFF_AUTOBEH / ORACLE_ISO            true_half 1.462 [1.441, 1.480] sessions up 4/4
-    alpha 1     MADRY_SPDIFF_AUTOBEH / ORACLE_ISO            iso_half  1.078 [1.026, 1.116] sessions up 4/4
-    alpha 1     MADRY_SPDIFF_AUTOBEH - ORACLE_ISO            clean R2 +0.0133
-    alpha 1     MADRY_SPDIFF_AUTOBEH / PGD_L2_EPS0.1         true_half 1.466 [1.443, 1.481] sessions up 4/4
-    alpha 1     MADRY_SPDIFF_AUTOBEH / PGD_L2_EPS0.1         iso_half  1.077 [1.023, 1.115] sessions up 3/4
-    alpha 1     MADRY_SPDIFF_AUTOBEH - PGD_L2_EPS0.1         clean R2 +0.0131
-    alpha 1          MADRY_SPDIFF_D8 / ORACLE_ISO            true_half 1.449 [1.426, 1.464] sessions up 4/4
-    alpha 1          MADRY_SPDIFF_D8 / ORACLE_ISO            iso_half  1.066 [1.016, 1.107] sessions up 3/4
-    alpha 1          MADRY_SPDIFF_D8 - ORACLE_ISO            clean R2 +0.0141
-    alpha 1          MADRY_SPDIFF_D8 / PGD_L2_EPS0.1         true_half 1.453 [1.426, 1.470] sessions up 4/4
-    alpha 1          MADRY_SPDIFF_D8 / PGD_L2_EPS0.1         iso_half  1.065 [1.013, 1.106] sessions up 3/4
-    alpha 1          MADRY_SPDIFF_D8 - PGD_L2_EPS0.1         clean R2 +0.0140
-
-  time_only: true eps1/2 (median)
-alpha                  0.00   0.25   0.50   1.00
-arm                                             
-MADRY_ISO_D0.1        4.421    NaN  3.072  3.295
-MADRY_ISO_D0.3        4.484    NaN  3.277  3.095
-MADRY_ISO_D0.5        4.624    NaN  3.370  2.950
-MADRY_ISO_D0.7        4.655    NaN  3.476  2.742
-MADRY_ISO_D1          4.638    NaN  3.535  2.486
-MADRY_ISO_D2          4.814    NaN  3.682  0.711
-MADRY_ISO_D4          4.898    NaN  3.910  0.680
-MADRY_ISO_D8          4.883  4.373  3.861  0.963
-MADRY_SPDIFF_AUTOSIG  4.955  4.855  4.882  4.636
-MADRY_SPDIFF_D8       4.945  4.866  4.884  4.600
-PGD_L2_EPS0.1         4.458    NaN  3.132  3.326
-PGD_L2_EPS0.3         4.520    NaN  3.159  3.086
-PGD_L2_EPS0.5         4.584    NaN  3.391  2.961
-PGD_L2_EPS0.7         4.608    NaN  3.477  2.768
-PGD_L2_EPS1           4.621    NaN  3.650  2.616
-PGD_L2_EPS2           4.788    NaN  3.619  1.332
-PGD_L2_EPS3           4.813    NaN  3.876  1.369
-PGD_L2_EPS6           4.990  4.431  3.973  1.359
-
-  time_only: clean R2 (mean)
-alpha                  0.00   0.25   0.50   1.00
-arm                                             
-MADRY_ISO_D0.1        0.921    NaN  0.895  0.900
-MADRY_ISO_D0.3        0.923    NaN  0.896  0.896
-MADRY_ISO_D0.5        0.925    NaN  0.900  0.894
-MADRY_ISO_D0.7        0.927    NaN  0.903  0.890
-MADRY_ISO_D1          0.928    NaN  0.907  0.879
-MADRY_ISO_D2          0.930    NaN  0.914  0.700
-MADRY_ISO_D4          0.936    NaN  0.919  0.676
-MADRY_ISO_D8          0.939  0.931  0.924  0.711
-MADRY_SPDIFF_AUTOSIG  0.937  0.937  0.937  0.934
-MADRY_SPDIFF_D8       0.939  0.939  0.939  0.937
-PGD_L2_EPS0.1         0.923    NaN  0.899  0.902
-PGD_L2_EPS0.3         0.924    NaN  0.900  0.898
-PGD_L2_EPS0.5         0.927    NaN  0.901  0.895
-PGD_L2_EPS0.7         0.927    NaN  0.905  0.890
-PGD_L2_EPS1           0.929    NaN  0.911  0.878
-PGD_L2_EPS2           0.930    NaN  0.913  0.742
-PGD_L2_EPS3           0.932    NaN  0.915  0.742
-PGD_L2_EPS6           0.939  0.931  0.922  0.760
-
-  time_only: isotropic-metric eps1/2 (median)
-alpha                  0.00   0.25   0.50   1.00
-arm                                             
-MADRY_ISO_D0.1        4.085    NaN  2.653  1.630
-MADRY_ISO_D0.3        4.142    NaN  3.072  1.938
-MADRY_ISO_D0.5        4.271    NaN  3.265  2.045
-MADRY_ISO_D0.7        4.301    NaN  3.352  2.098
-MADRY_ISO_D1          4.282    NaN  3.420  2.135
-MADRY_ISO_D2          4.440    NaN  3.519  1.439
-MADRY_ISO_D4          4.523    NaN  3.622  1.441
-MADRY_ISO_D8          4.510  4.258  3.597  1.593
-MADRY_SPDIFF_AUTOSIG  4.576  4.004  3.170  1.418
-MADRY_SPDIFF_D8       4.567  4.019  3.164  1.408
-PGD_L2_EPS0.1         4.119    NaN  2.756  1.666
-PGD_L2_EPS0.3         4.169    NaN  3.181  1.962
-PGD_L2_EPS0.5         4.233    NaN  3.271  2.073
-PGD_L2_EPS0.7         4.257    NaN  3.392  2.109
-PGD_L2_EPS1           4.264    NaN  3.442  2.126
-PGD_L2_EPS2           4.421    NaN  3.535  1.697
-PGD_L2_EPS3           4.445    NaN  3.634  1.766
-PGD_L2_EPS6           4.606  4.277  3.655  1.752
-
-  time_only: best isotropic arm per session:
-    alpha 0: {'MADRY_ISO_D8': 2, 'PGD_L2_EPS6': 2}
-    alpha 0.25: {'PGD_L2_EPS6': 3, 'MADRY_ISO_D8': 1}
-    alpha 0.5: {'PGD_L2_EPS6': 4}
-    alpha 1: {'MADRY_ISO_D0.1': 2, 'MADRY_ISO_D0.3': 1, 'PGD_L2_EPS0.1': 1}
-    alpha 0     MADRY_SPDIFF_AUTOSIG / ORACLE_ISO            true_half 0.997 [0.992, 1.002] sessions up 2/4
-    alpha 0     MADRY_SPDIFF_AUTOSIG / ORACLE_ISO            iso_half  0.997 [0.992, 1.002] sessions up 2/4
-    alpha 0     MADRY_SPDIFF_AUTOSIG - ORACLE_ISO            clean R2 -0.0022
-    alpha 0     MADRY_SPDIFF_AUTOSIG / PGD_L2_EPS6           true_half 1.000 [0.992, 1.007] sessions up 2/4
-    alpha 0     MADRY_SPDIFF_AUTOSIG / PGD_L2_EPS6           iso_half  1.000 [0.992, 1.008] sessions up 2/4
-    alpha 0     MADRY_SPDIFF_AUTOSIG - PGD_L2_EPS6           clean R2 -0.0017
-    alpha 0          MADRY_SPDIFF_D8 / ORACLE_ISO            true_half 0.992 [0.987, 0.995] sessions up 0/4
-    alpha 0          MADRY_SPDIFF_D8 / ORACLE_ISO            iso_half  0.992 [0.987, 0.995] sessions up 0/4
-    alpha 0          MADRY_SPDIFF_D8 - ORACLE_ISO            clean R2 -0.0003
-    alpha 0          MADRY_SPDIFF_D8 / PGD_L2_EPS6           true_half 0.995 [0.988, 0.999] sessions up 0/4
-    alpha 0          MADRY_SPDIFF_D8 / PGD_L2_EPS6           iso_half  0.995 [0.988, 0.999] sessions up 0/4
-    alpha 0          MADRY_SPDIFF_D8 - PGD_L2_EPS6           clean R2 +0.0001
-    alpha 0.25  MADRY_SPDIFF_AUTOSIG / ORACLE_ISO            true_half 1.099 [1.065, 1.153] sessions up 4/4
-    alpha 0.25  MADRY_SPDIFF_AUTOSIG / ORACLE_ISO            iso_half  0.952 [0.941, 0.963] sessions up 0/4
-    alpha 0.25  MADRY_SPDIFF_AUTOSIG - ORACLE_ISO            clean R2 +0.0058
-    alpha 0.25  MADRY_SPDIFF_AUTOSIG / PGD_L2_EPS6           true_half 1.103 [1.065, 1.168] sessions up 4/4
-    alpha 0.25  MADRY_SPDIFF_AUTOSIG / PGD_L2_EPS6           iso_half  0.948 [0.930, 0.963] sessions up 0/4
-    alpha 0.25  MADRY_SPDIFF_AUTOSIG - PGD_L2_EPS6           clean R2 +0.0063
-    alpha 0.25       MADRY_SPDIFF_D8 / ORACLE_ISO            true_half 1.105 [1.066, 1.167] sessions up 4/4
-    alpha 0.25       MADRY_SPDIFF_D8 / ORACLE_ISO            iso_half  0.958 [0.947, 0.969] sessions up 0/4
-    alpha 0.25       MADRY_SPDIFF_D8 - ORACLE_ISO            clean R2 +0.0076
-    alpha 0.25       MADRY_SPDIFF_D8 / PGD_L2_EPS6           true_half 1.109 [1.066, 1.182] sessions up 4/4
-    alpha 0.25       MADRY_SPDIFF_D8 / PGD_L2_EPS6           iso_half  0.954 [0.940, 0.969] sessions up 0/4
-    alpha 0.25       MADRY_SPDIFF_D8 - PGD_L2_EPS6           clean R2 +0.0081
-    alpha 0.5   MADRY_SPDIFF_AUTOSIG / ORACLE_ISO            true_half 1.212 [1.179, 1.240] sessions up 4/4
-    alpha 0.5   MADRY_SPDIFF_AUTOSIG / ORACLE_ISO            iso_half  0.874 [0.840, 0.903] sessions up 0/4
-    alpha 0.5   MADRY_SPDIFF_AUTOSIG - ORACLE_ISO            clean R2 +0.0149
-    alpha 0.5   MADRY_SPDIFF_AUTOSIG / PGD_L2_EPS6           true_half 1.212 [1.179, 1.240] sessions up 4/4
-    alpha 0.5   MADRY_SPDIFF_AUTOSIG / PGD_L2_EPS6           iso_half  0.874 [0.840, 0.903] sessions up 0/4
-    alpha 0.5   MADRY_SPDIFF_AUTOSIG - PGD_L2_EPS6           clean R2 +0.0149
-    alpha 0.5        MADRY_SPDIFF_D8 / ORACLE_ISO            true_half 1.210 [1.177, 1.238] sessions up 4/4
-    alpha 0.5        MADRY_SPDIFF_D8 / ORACLE_ISO            iso_half  0.872 [0.840, 0.899] sessions up 0/4
-    alpha 0.5        MADRY_SPDIFF_D8 - ORACLE_ISO            clean R2 +0.0170
-    alpha 0.5        MADRY_SPDIFF_D8 / PGD_L2_EPS6           true_half 1.210 [1.177, 1.238] sessions up 4/4
-    alpha 0.5        MADRY_SPDIFF_D8 / PGD_L2_EPS6           iso_half  0.872 [0.840, 0.899] sessions up 0/4
-    alpha 0.5        MADRY_SPDIFF_D8 - PGD_L2_EPS6           clean R2 +0.0170
-    alpha 1     MADRY_SPDIFF_AUTOSIG / ORACLE_ISO            true_half 1.373 [1.335, 1.407] sessions up 4/4
-    alpha 1     MADRY_SPDIFF_AUTOSIG / ORACLE_ISO            iso_half  0.846 [0.789, 0.907] sessions up 0/4
-    alpha 1     MADRY_SPDIFF_AUTOSIG - ORACLE_ISO            clean R2 +0.0324
-    alpha 1     MADRY_SPDIFF_AUTOSIG / PGD_L2_EPS0.1         true_half 1.401 [1.354, 1.457] sessions up 4/4
-    alpha 1     MADRY_SPDIFF_AUTOSIG / PGD_L2_EPS0.1         iso_half  0.869 [0.813, 0.924] sessions up 0/4
-    alpha 1     MADRY_SPDIFF_AUTOSIG - PGD_L2_EPS0.1         clean R2 +0.0325
-    alpha 1          MADRY_SPDIFF_D8 / ORACLE_ISO            true_half 1.366 [1.326, 1.406] sessions up 4/4
-    alpha 1          MADRY_SPDIFF_D8 / ORACLE_ISO            iso_half  0.840 [0.787, 0.897] sessions up 0/4
-    alpha 1          MADRY_SPDIFF_D8 - ORACLE_ISO            clean R2 +0.0346
-    alpha 1          MADRY_SPDIFF_D8 / PGD_L2_EPS0.1         true_half 1.394 [1.347, 1.452] sessions up 4/4
-    alpha 1          MADRY_SPDIFF_D8 / PGD_L2_EPS0.1         iso_half  0.863 [0.813, 0.912] sessions up 0/4
-    alpha 1          MADRY_SPDIFF_D8 - PGD_L2_EPS0.1         clean R2 +0.0347
-
-4  pre-registered hypotheses
-   inconclusive  H1 supervised PGD6 > CLEAN (all alpha)  ratio 1.018 [0.825, 1.236], sessions 12/16
-      SUPPORTED  H1 supervised ISO8 > CLEAN (all alpha)  ratio 1.227 [1.089, 1.361], sessions 12/16
-      SUPPORTED  H1 supervised DIFF8 > CLEAN (all alpha)  ratio 1.512 [1.498, 1.526], sessions 16/16
-      SUPPORTED  H1 supervised AUTO_BEH > CLEAN (all alpha)  ratio 1.518 [1.505, 1.530], sessions 16/16
-      SUPPORTED  H2 supervised DIFF8/ISO8 = 1 at alpha 0 (control)  ratio 1.011 [1.007, 1.014], sessions 4/4
-      SUPPORTED  H2 supervised DIFF8/ISO8 > 1 at alpha 1  ratio 1.694 [1.504, 2.048], sessions 4/4
-      SUPPORTED  H2 supervised DIFF8/ISO8 grows with alpha: 0: 1.011, 0.25: 1.090, 0.5: 1.236, 1: 1.694
-   inconclusive  H3 supervised DIFF8/ISO8 <= 1 in the isotropic metric (alpha > 0)  ratio 1.022 [0.903, 1.171], sessions 3/12
-      SUPPORTED  H4 supervised SP8 < DIFF8  ratio 0.821 [0.813, 0.830], sessions 0/16
-      SUPPORTED  H5 supervised AUTO > GAUSS  ratio 1.174 [1.166, 1.182], sessions 16/16
-  not supported  H6 supervised CLEAN ref kappa 0.187 vs Perich 0.080
-  not supported  H6 supervised PGD6 ref kappa 0.216 vs Perich 0.124
-  not supported  H6 supervised DIFF8 ref kappa 0.222 vs Perich 0.151
-  not supported  H6 supervised AUTO_BEH ref kappa 0.225 vs Perich 0.150
-  not supported  H6 supervised GAUSS ref kappa 0.207 vs Perich 0.103
-   inconclusive  H1 time_only PGD6 > CLEAN (all alpha)  ratio 0.851 [0.628, 1.093], sessions 11/16
-   inconclusive  H1 time_only ISO8 > CLEAN (all alpha)  ratio 0.798 [0.567, 1.062], sessions 11/16
-      SUPPORTED  H1 time_only DIFF8 > CLEAN (all alpha)  ratio 1.265 [1.198, 1.343], sessions 16/16
-      SUPPORTED  H1 time_only AUTO_SIG > CLEAN (all alpha)  ratio 1.267 [1.199, 1.346], sessions 16/16
-      SUPPORTED  H2 time_only DIFF8/ISO8 = 1 at alpha 0 (control)  ratio 1.003 [0.994, 1.018], sessions 1/4
-      SUPPORTED  H2 time_only DIFF8/ISO8 > 1 at alpha 1  ratio 4.535 [2.826, 7.251], sessions 4/4
-      SUPPORTED  H2 time_only DIFF8/ISO8 grows with alpha: 0: 1.003, 0.25: 1.117, 0.5: 1.241, 1: 4.535
-      SUPPORTED  H3 time_only DIFF8/ISO8 <= 1 in the isotropic metric (alpha > 0)  ratio 0.911 [0.844, 0.989], sessions 1/12
-      SUPPORTED  H5 time_only AUTO > GAUSS  ratio 1.013 [1.006, 1.021], sessions 13/16
-  not supported  H6 time_only CLEAN ref kappa 0.185 vs Perich 0.035
-  not supported  H6 time_only PGD6 ref kappa 0.186 vs Perich 0.116
-  not supported  H6 time_only DIFF8 ref kappa 0.203 vs Perich 0.139
-  not supported  H6 time_only AUTO_SIG ref kappa 0.203 vs Perich 0.133
-  not supported  H6 time_only GAUSS ref kappa 0.199 vs Perich 0.106
-      SUPPORTED  H7 supervised AUTO = best isotropic budget (oracle) at alpha 0  ratio 1.013 [1.010, 1.017], sessions 4/4
-      SUPPORTED  H7 supervised AUTO > best isotropic budget (oracle) at alpha 0.25  ratio 1.092 [1.071, 1.127], sessions 4/4
-      SUPPORTED  H7 supervised AUTO > best isotropic budget (oracle) at alpha 0.5  ratio 1.239 [1.203, 1.278], sessions 4/4
-      SUPPORTED  H7 supervised AUTO > best isotropic budget (oracle) at alpha 1  ratio 1.462 [1.441, 1.480], sessions 4/4
-      SUPPORTED  H7 supervised best fixed isotropic budget shrinks with alpha: 0: 8, 0.25: 8, 0.5: 8, 1: 0.1
-      SUPPORTED  H7 time_only AUTO = best isotropic budget (oracle) at alpha 0  ratio 0.997 [0.992, 1.002], sessions 2/4
-      SUPPORTED  H7 time_only AUTO > best isotropic budget (oracle) at alpha 0.25  ratio 1.099 [1.065, 1.153], sessions 4/4
-      SUPPORTED  H7 time_only AUTO > best isotropic budget (oracle) at alpha 0.5  ratio 1.212 [1.179, 1.240], sessions 4/4
-      SUPPORTED  H7 time_only AUTO > best isotropic budget (oracle) at alpha 1  ratio 1.373 [1.335, 1.407], sessions 4/4
-      SUPPORTED  H7 time_only best fixed isotropic budget shrinks with alpha: 0: 6, 0.25: 6, 0.5: 6, 1: 0.1
-
-
-
-
-
-for  understand relation between neurons and latent AUC:
-I have no name!@sam-0-0:/workspace$ 
-I have no name!@sam-0-0:/workspace$ cat /data/hossein/mm_project/SYNTH_ATTRIBUTION/attribution_report.txt
-/data/hossein/mm_project/SYNTH_ATTRIBUTION: 112 successful runs, 0 errors; sessions 8
+mirzaei@haas034:~/sam/result/Aggregate$ cat attribution_sweep_report.txt
+/data/hossein/mm_project/SYNTH_ATTRIBUTION: 400 successful runs, 0 errors; sessions 8
 
 0  exact surrogate encoders (E: minimum Euclidean norm, W: noise-whitened) scored with each inverse: AUROC (expected 1 for E-inv and W-inv_true; W-inv_noise is the ceiling of the practical inverse)
 session  alpha  surrogate_E_inv  surrogate_E_inv_noise  surrogate_E_inv_true  surrogate_W_inv  surrogate_W_inv_noise  surrogate_W_inv_true
@@ -583,17 +19,53 @@ alpha arm
 0.0   CLEAN                    4     0.763   0.308   0.503  0.676      0.676     0.676  0.757    0.574          0.574      0.855        0.855      2.683
       MADRY_ISO_D8             4     0.884   0.604   0.821  0.872      0.872     0.872  0.903    0.595          0.595      0.960        0.960      5.237
       MADRY_SPDIFF_AUTOBEH     4     0.881   0.571   0.806  0.862      0.862     0.862  0.899    0.580          0.580      0.956        0.956      5.245
+      MADRY_SPDIFF_D0.1        4     0.772   0.288   0.466  0.738      0.737     0.738  0.741    0.612          0.613      0.886        0.886      2.719
+      MADRY_SPDIFF_D0.3        4     0.795   0.294   0.483  0.738      0.738     0.738  0.762    0.617          0.618      0.884        0.883      2.863
+      MADRY_SPDIFF_D0.5        4     0.812   0.309   0.577  0.731      0.731     0.731  0.787    0.579          0.579      0.885        0.885      3.114
+      MADRY_SPDIFF_D0.7        4     0.827   0.325   0.592  0.724      0.724     0.724  0.805    0.594          0.594      0.879        0.879      3.358
+      MADRY_SPDIFF_D0.9        4     0.834   0.338   0.595  0.755      0.753     0.755  0.802    0.596          0.594      0.902        0.901      3.624
       MADRY_SPDIFF_D8          4     0.882   0.581   0.809  0.870      0.870     0.870  0.887    0.591          0.591      0.959        0.959      5.248
       MADRY_SPDIFF_GAUSS       4     0.829   0.346   0.606  0.795      0.795     0.795  0.731    0.623          0.623      0.918        0.918      4.035
       MADRY_SP_D8              4     0.877   0.650   0.863  0.896      0.897     0.896  0.794    0.701          0.702      0.965        0.965      5.069
+      PGD_L2_EPS0.1            4     0.779   0.289   0.485  0.732      0.732     0.732  0.732    0.607          0.608      0.879        0.879      2.797
+      PGD_L2_EPS0.3            4     0.798   0.297   0.498  0.740      0.740     0.740  0.742    0.610          0.611      0.879        0.879      2.965
+      PGD_L2_EPS0.5            4     0.816   0.309   0.594  0.727      0.727     0.727  0.789    0.613          0.612      0.878        0.878      3.214
+      PGD_L2_EPS0.7            4     0.830   0.325   0.596  0.785      0.784     0.785  0.803    0.628          0.627      0.912        0.911      3.437
+      PGD_L2_EPS0.9            4     0.837   0.339   0.666  0.718      0.718     0.718  0.835    0.612          0.612      0.876        0.876      3.662
       PGD_L2_EPS6              4     0.875   0.493   0.751  0.845      0.844     0.845  0.850    0.615          0.614      0.945        0.945      5.470
+      PGD_LINF_EPS0.003        4     0.779   0.295   0.435  0.721      0.721     0.721  0.714    0.624          0.625      0.875        0.875      2.796
+      PGD_LINF_EPS0.01         4     0.791   0.300   0.502  0.739      0.739     0.739  0.748    0.631          0.631      0.884        0.883      2.896
+      PGD_LINF_EPS0.03         4     0.818   0.318   0.593  0.779      0.778     0.779  0.801    0.647          0.647      0.908        0.907      3.185
+      PGD_LINF_EPS0.1          4     0.841   0.375   0.671  0.709      0.709     0.709  0.779    0.665          0.665      0.869        0.869      3.516
+      PGD_LINF_EPS0.3          4     0.815   0.459   0.701  0.651      0.673     0.651  0.656    0.659          0.649      0.826        0.832      2.892
+      PGD_LINF_EPS0.5          4     0.743   0.433   0.647  0.696      0.692     0.696  0.611    0.405          0.446      0.868        0.867      2.000
+      PGD_LINF_EPS0.7          4     0.746   0.422   0.680  0.718      0.665     0.718  0.638    0.433          0.444      0.880        0.862      1.988
+      PGD_LINF_EPS0.9          4     0.703   0.328   0.633  0.697      0.626     0.697  0.617    0.440          0.432      0.871        0.847      1.665
 1.0   CLEAN                    4     0.682   0.320   0.172  0.584      0.522     0.522  0.592    0.532          0.481      0.814        0.767      2.287
       MADRY_ISO_D8             4     0.427   0.193   0.252  0.392      0.359     0.359  0.655    0.583          0.484      0.702        0.681      0.743
       MADRY_SPDIFF_AUTOBEH     4     0.874   0.543   0.759  0.740      0.790     0.787  0.647    0.603          0.577      0.889        0.911      4.427
+      MADRY_SPDIFF_D0.1        4     0.704   0.290   0.287  0.599      0.532     0.531  0.601    0.543          0.485      0.811        0.781      2.101
+      MADRY_SPDIFF_D0.3        4     0.739   0.305   0.401  0.616      0.556     0.555  0.608    0.565          0.500      0.829        0.791      2.577
+      MADRY_SPDIFF_D0.5        4     0.742   0.314   0.443  0.657      0.590     0.588  0.615    0.565          0.497      0.847        0.812      2.752
+      MADRY_SPDIFF_D0.7        4     0.835   0.351   0.598  0.631      0.591     0.589  0.636    0.560          0.486      0.836        0.812      3.383
+      MADRY_SPDIFF_D0.9        4     0.839   0.350   0.599  0.630      0.593     0.592  0.635    0.564          0.487      0.837        0.811      3.513
       MADRY_SPDIFF_D8          4     0.873   0.551   0.764  0.741      0.809     0.804  0.650    0.602          0.577      0.889        0.923      4.430
       MADRY_SPDIFF_GAUSS       4     0.777   0.355   0.323  0.690      0.680     0.679  0.585    0.593          0.543      0.871        0.851      3.351
       MADRY_SP_D8              4     0.868   0.621   0.847  0.762      0.763     0.760  0.637    0.643          0.623      0.909        0.897      4.373
+      PGD_L2_EPS0.1            4     0.702   0.306   0.330  0.581      0.541     0.540  0.602    0.526          0.488      0.809        0.779      1.978
+      PGD_L2_EPS0.3            4     0.826   0.338   0.620  0.599      0.528     0.527  0.690    0.557          0.483      0.819        0.779      3.071
+      PGD_L2_EPS0.5            4     0.830   0.362   0.600  0.660      0.562     0.561  0.712    0.571          0.489      0.856        0.803      3.147
+      PGD_L2_EPS0.7            4     0.829   0.383   0.639  0.675      0.558     0.558  0.738    0.571          0.484      0.865        0.803      3.198
+      PGD_L2_EPS0.9            4     0.828   0.399   0.644  0.657      0.535     0.535  0.768    0.581          0.481      0.851        0.788      3.270
       PGD_L2_EPS6              4     0.473   0.247   0.300  0.411      0.375     0.376  0.664    0.586          0.489      0.720        0.692      0.829
+      PGD_LINF_EPS0.003        4     0.731   0.294   0.372  0.606      0.547     0.547  0.603    0.546          0.491      0.820        0.790      2.530
+      PGD_LINF_EPS0.01         4     0.791   0.320   0.493  0.634      0.565     0.565  0.640    0.579          0.501      0.841        0.796      3.070
+      PGD_LINF_EPS0.03         4     0.829   0.364   0.656  0.693      0.595     0.596  0.703    0.624          0.510      0.863        0.808      3.134
+      PGD_LINF_EPS0.1          4     0.663   0.326   0.475  0.612      0.537     0.536  0.622    0.587          0.503      0.817        0.778      1.936
+      PGD_LINF_EPS0.3          4    -0.070   0.054  -0.213  0.481      0.470     0.470  0.520    0.481          0.475      0.734        0.733      0.031
+      PGD_LINF_EPS0.5          4    -0.107   0.039  -0.259  0.548      0.490     0.491  0.507    0.482          0.467      0.794        0.761      0.031
+      PGD_LINF_EPS0.7          4    -0.107   0.034  -0.269  0.520      0.461     0.461  0.497    0.510          0.467      0.766        0.739      0.031
+      PGD_LINF_EPS0.9          4    -0.112   0.029  -0.259  0.541      0.490     0.490  0.500    0.521          0.469      0.777        0.750      0.031
 
 2  paired AUROC differences (sessions = data draws; CI = session bootstrap)
   alpha 0    inv           PGD6 - CLEAN  +0.1687 [+0.0666, +0.2707] sessions up 4/4
@@ -666,17 +138,53 @@ alpha arm
 0.0   CLEAN                    4     0.669   0.264   0.331  0.653      0.651     0.653  0.677    0.539          0.538      0.844        0.843      2.235
       MADRY_ISO_D8             4     0.883   0.575   0.837  0.865      0.865     0.865  0.915    0.573          0.574      0.958        0.958      5.201
       MADRY_SPDIFF_AUTOSIG     4     0.878   0.459   0.772  0.856      0.857     0.856  0.855    0.599          0.600      0.952        0.952      5.143
+      MADRY_SPDIFF_D0.1        4     0.620   0.231   0.249  0.625      0.625     0.625  0.653    0.545          0.547      0.816        0.817      2.098
+      MADRY_SPDIFF_D0.3        4     0.664   0.250   0.262  0.601      0.600     0.601  0.682    0.495          0.495      0.820        0.819      2.241
+      MADRY_SPDIFF_D0.5        4     0.677   0.261   0.192  0.616      0.616     0.616  0.648    0.489          0.488      0.823        0.822      2.472
+      MADRY_SPDIFF_D0.7        4     0.679   0.271   0.209  0.633      0.633     0.633  0.654    0.485          0.484      0.838        0.838      2.588
+      MADRY_SPDIFF_D0.9        4     0.673   0.279   0.239  0.661      0.662     0.661  0.644    0.495          0.496      0.843        0.843      2.620
       MADRY_SPDIFF_D8          4     0.883   0.553   0.832  0.855      0.855     0.855  0.901    0.567          0.567      0.952        0.952      5.157
       MADRY_SPDIFF_GAUSS       4     0.552   0.269   0.077  0.723      0.724     0.723  0.437    0.520          0.521      0.873        0.873      2.074
       MADRY_SP_D8              4     0.880   0.644   0.819  0.858      0.858     0.858  0.926    0.589          0.590      0.952        0.952      5.231
+      PGD_L2_EPS0.1            4     0.626   0.241   0.241  0.600      0.600     0.600  0.660    0.528          0.527      0.811        0.812      2.082
+      PGD_L2_EPS0.3            4     0.630   0.255   0.130  0.603      0.603     0.603  0.627    0.501          0.502      0.814        0.814      2.330
+      PGD_L2_EPS0.5            4     0.632   0.260   0.220  0.662      0.662     0.662  0.609    0.525          0.526      0.850        0.850      2.509
+      PGD_L2_EPS0.7            4     0.679   0.276   0.276  0.648      0.650     0.648  0.660    0.495          0.497      0.845        0.846      2.732
+      PGD_L2_EPS0.9            4     0.676   0.285   0.274  0.680      0.681     0.680  0.640    0.504          0.504      0.859        0.860      2.659
       PGD_L2_EPS6              4     0.877   0.452   0.784  0.844      0.844     0.844  0.874    0.589          0.589      0.946        0.945      5.105
+      PGD_LINF_EPS0.003        4     0.669   0.241   0.236  0.603      0.602     0.603  0.687    0.520          0.520      0.804        0.804      2.036
+      PGD_LINF_EPS0.01         4     0.676   0.245   0.270  0.603      0.603     0.603  0.687    0.545          0.545      0.803        0.803      2.159
+      PGD_LINF_EPS0.03         4     0.662   0.268   0.274  0.643      0.644     0.643  0.650    0.587          0.587      0.830        0.830      2.258
+      PGD_LINF_EPS0.1          4     0.637   0.288   0.405  0.527      0.531     0.527  0.528    0.505          0.508      0.756        0.757      1.744
+      PGD_LINF_EPS0.3          4     0.654   0.312   0.462  0.554      0.562     0.554  0.567    0.542          0.539      0.790        0.793      1.462
+      PGD_LINF_EPS0.5          4     0.633   0.360   0.503  0.526      0.532     0.526  0.577    0.511          0.513      0.780        0.782      1.341
+      PGD_LINF_EPS0.7          4     0.635   0.371   0.527  0.656      0.673     0.656  0.579    0.430          0.481      0.844        0.853      1.305
+      PGD_LINF_EPS0.9          4     0.793   0.332   0.570  0.703      0.704     0.703  0.747    0.552          0.553      0.874        0.874      2.498
 1.0   CLEAN                    4     0.485   0.209   0.043  0.597      0.542     0.541  0.534    0.507          0.464      0.817        0.792      1.273
       MADRY_ISO_D8             4     0.134   0.090  -0.014  0.341      0.379     0.377  0.605    0.497          0.468      0.691        0.691      0.140
       MADRY_SPDIFF_AUTOSIG     4     0.872   0.451   0.744  0.717      0.787     0.785  0.646    0.595          0.541      0.876        0.918      4.330
+      MADRY_SPDIFF_D0.1        4     0.507   0.212  -0.064  0.578      0.526     0.526  0.532    0.510          0.470      0.792        0.773      1.180
+      MADRY_SPDIFF_D0.3        4     0.575   0.239  -0.162  0.626      0.561     0.562  0.524    0.517          0.470      0.837        0.800      1.947
+      MADRY_SPDIFF_D0.5        4     0.669   0.273   0.308  0.593      0.548     0.549  0.594    0.501          0.478      0.816        0.791      2.731
+      MADRY_SPDIFF_D0.7        4     0.700   0.307   0.323  0.552      0.526     0.525  0.602    0.492          0.483      0.793        0.778      2.857
+      MADRY_SPDIFF_D0.9        4     0.767   0.332   0.388  0.618      0.593     0.593  0.642    0.537          0.485      0.823        0.815      3.469
       MADRY_SPDIFF_D8          4     0.873   0.501   0.766  0.749      0.803     0.798  0.640    0.602          0.587      0.893        0.919      4.360
       MADRY_SPDIFF_GAUSS       4     0.606   0.316  -0.174  0.643      0.608     0.607  0.517    0.520          0.486      0.839        0.830      2.462
       MADRY_SP_D8              4     0.875   0.599   0.780  0.721      0.719     0.716  0.666    0.607          0.576      0.876        0.869      4.439
+      PGD_L2_EPS0.1            4     0.478   0.202  -0.209  0.607      0.553     0.552  0.471    0.497          0.472      0.810        0.795      1.283
+      PGD_L2_EPS0.3            4     0.369   0.144   0.050  0.507      0.459     0.462  0.485    0.498          0.457      0.758        0.735      0.559
+      PGD_L2_EPS0.5            4     0.270   0.118  -0.008  0.451      0.428     0.429  0.464    0.493          0.464      0.722        0.718      0.323
+      PGD_L2_EPS0.7            4     0.222   0.105  -0.065  0.424      0.417     0.416  0.497    0.483          0.454      0.699        0.708      0.277
+      PGD_L2_EPS0.9            4     0.203   0.100  -0.066  0.441      0.428     0.427  0.490    0.494          0.468      0.708        0.712      0.240
       PGD_L2_EPS6              4     0.184   0.119   0.009  0.292      0.377     0.376  0.609    0.475          0.472      0.660        0.687      0.237
+      PGD_LINF_EPS0.003        4     0.487   0.209  -0.040  0.609      0.551     0.551  0.542    0.500          0.466      0.817        0.798      1.279
+      PGD_LINF_EPS0.01         4     0.471   0.190   0.058  0.578      0.527     0.527  0.498    0.484          0.451      0.803        0.779      0.919
+      PGD_LINF_EPS0.03         4     0.204   0.105  -0.085  0.347      0.389     0.388  0.374    0.400          0.433      0.664        0.686      0.194
+      PGD_LINF_EPS0.1          4    -0.023   0.055  -0.192  0.417      0.434     0.433  0.500    0.481          0.469      0.700        0.709      0.031
+      PGD_LINF_EPS0.3          4    -0.106   0.042  -0.251  0.490      0.464     0.464  0.468    0.463          0.460      0.756        0.736      0.031
+      PGD_LINF_EPS0.5          4    -0.105   0.037  -0.242  0.551      0.503     0.502  0.501    0.493          0.478      0.793        0.764      0.031
+      PGD_LINF_EPS0.7          4    -0.092   0.033  -0.236  0.439      0.445     0.445  0.518    0.494          0.479      0.737        0.726      0.031
+      PGD_LINF_EPS0.9          4    -0.086   0.027  -0.227  0.519      0.499     0.500  0.538    0.497          0.472      0.765        0.764      0.031
 
 2  paired AUROC differences (sessions = data draws; CI = session bootstrap)
   alpha 0    inv           PGD6 - CLEAN  +0.1914 [+0.1289, +0.2665] sessions up 4/4
@@ -742,6 +250,120 @@ alpha arm
   alpha 1       CLEAN: inv_true - inv -0.0553 [-0.1041, -0.0065] sessions up 0/4
   alpha 1       CLEAN: inv_noise - inv -0.0544 [-0.1047, -0.0041] sessions up 1/4
 
+4  budget sweep: AUROC against the training budget (PGD-L2 / PGD-Linf: raw input units, Linf per entry; DIFF: d' in the noise metric); 'best' = the better of inv and inv_true for every run, 'matched' = inv for PGD, inv_true for DIFF
+
+  supervised: best_inverse (mean over sessions)
+budget_value    0.003  0.010  0.030  0.100  0.300  0.500  0.700  0.900  6.000  8.000
+alpha family                                                                        
+0.0   DIFF        NaN    NaN    NaN  0.738  0.738  0.731  0.724  0.755    NaN  0.870
+      ISO         NaN    NaN    NaN    NaN    NaN    NaN    NaN    NaN    NaN  0.872
+      PGD-L2      NaN    NaN    NaN  0.732  0.740  0.727  0.785  0.718  0.845    NaN
+      PGD-Linf  0.721  0.739  0.779  0.709  0.651  0.696  0.718  0.697    NaN    NaN
+1.0   DIFF        NaN    NaN    NaN  0.599  0.616  0.657  0.635  0.633    NaN  0.804
+      ISO         NaN    NaN    NaN    NaN    NaN    NaN    NaN    NaN    NaN  0.392
+      PGD-L2      NaN    NaN    NaN  0.592  0.599  0.660  0.675  0.657  0.415    NaN
+      PGD-Linf  0.606  0.634  0.693  0.616  0.494  0.548  0.521  0.541    NaN    NaN
+
+  supervised: matched_inverse (mean over sessions)
+budget_value    0.003  0.010  0.030  0.100  0.300  0.500  0.700  0.900  6.000  8.000
+alpha family                                                                        
+0.0   DIFF        NaN    NaN    NaN  0.738  0.738  0.731  0.724  0.755    NaN  0.870
+      ISO         NaN    NaN    NaN    NaN    NaN    NaN    NaN    NaN    NaN  0.872
+      PGD-L2      NaN    NaN    NaN  0.732  0.740  0.727  0.785  0.718  0.845    NaN
+      PGD-Linf  0.721  0.739  0.779  0.709  0.651  0.696  0.718  0.697    NaN    NaN
+1.0   DIFF        NaN    NaN    NaN  0.531  0.555  0.588  0.589  0.592    NaN  0.804
+      ISO         NaN    NaN    NaN    NaN    NaN    NaN    NaN    NaN    NaN  0.392
+      PGD-L2      NaN    NaN    NaN  0.581  0.599  0.660  0.675  0.657  0.411    NaN
+      PGD-Linf  0.606  0.634  0.693  0.612  0.481  0.548  0.520  0.541    NaN    NaN
+
+  supervised: clean_r2 (mean over sessions)
+budget_value    0.003  0.010  0.030  0.100  0.300  0.500  0.700  0.900  6.000  8.000
+alpha family                                                                        
+0.0   DIFF        NaN    NaN    NaN  0.772  0.795  0.812  0.827  0.834    NaN  0.882
+      ISO         NaN    NaN    NaN    NaN    NaN    NaN    NaN    NaN    NaN  0.884
+      PGD-L2      NaN    NaN    NaN  0.779  0.798  0.816  0.830  0.837  0.875    NaN
+      PGD-Linf  0.779  0.791  0.818  0.841  0.815  0.743  0.746  0.703    NaN    NaN
+1.0   DIFF        NaN    NaN    NaN  0.704  0.739  0.742  0.835  0.839    NaN  0.873
+      ISO         NaN    NaN    NaN    NaN    NaN    NaN    NaN    NaN    NaN  0.427
+      PGD-L2      NaN    NaN    NaN  0.702  0.826  0.830  0.829  0.828  0.473    NaN
+      PGD-Linf  0.731  0.791  0.829  0.663 -0.070 -0.107 -0.107 -0.112    NaN    NaN
+
+  supervised: best PGD arm per session (oracle on the AUROC):
+    alpha 0: {'PGD_L2_EPS6': 2, 'PGD_L2_EPS0.1': 1, 'PGD_L2_EPS0.5': 1}
+    alpha 1: {'PGD_LINF_EPS0.1': 2, 'PGD_L2_EPS0.9': 1, 'PGD_LINF_EPS0.03': 1}
+    alpha 0       AUTO_BEH - ORACLE_PGD  +0.0108 [-0.0007, +0.0194] sessions up 3/4
+    alpha 0          DIFF8 - ORACLE_PGD  +0.0192 [+0.0074, +0.0304] sessions up 4/4
+    alpha 0    ORACLE_DIFF - ORACLE_PGD  +0.0192 [+0.0074, +0.0304] sessions up 4/4
+    alpha 0    DIFF0.1 - PGD-L2 0.1 (matched)  +0.0058 [-0.0292, +0.0408] sessions up 2/4
+    alpha 0    DIFF0.3 - PGD-L2 0.3 (matched)  -0.0019 [-0.0535, +0.0779] sessions up 1/4
+    alpha 0    DIFF0.5 - PGD-L2 0.5 (matched)  +0.0037 [-0.0452, +0.0820] sessions up 1/4
+    alpha 0    DIFF0.7 - PGD-L2 0.7 (matched)  -0.0607 [-0.0878, -0.0335] sessions up 0/4
+    alpha 0    DIFF0.9 - PGD-L2 0.9 (matched)  +0.0369 [-0.0760, +0.1359] sessions up 3/4
+    alpha 1       AUTO_BEH - ORACLE_PGD  +0.0683 [+0.0014, +0.1151] sessions up 3/4
+    alpha 1          DIFF8 - ORACLE_PGD  +0.0854 [+0.0408, +0.1116] sessions up 4/4
+    alpha 1    ORACLE_DIFF - ORACLE_PGD  +0.0854 [+0.0408, +0.1116] sessions up 4/4
+    alpha 1    DIFF0.1 - PGD-L2 0.1 (matched)  -0.0497 [-0.1504, +0.0494] sessions up 2/4
+    alpha 1    DIFF0.3 - PGD-L2 0.3 (matched)  -0.0438 [-0.0954, +0.0078] sessions up 1/4
+    alpha 1    DIFF0.5 - PGD-L2 0.5 (matched)  -0.0725 [-0.1145, -0.0305] sessions up 0/4
+    alpha 1    DIFF0.7 - PGD-L2 0.7 (matched)  -0.0861 [-0.1635, -0.0184] sessions up 1/4
+    alpha 1    DIFF0.9 - PGD-L2 0.9 (matched)  -0.0659 [-0.1543, +0.0109] sessions up 1/4
+
+  time_only: best_inverse (mean over sessions)
+budget_value    0.003  0.010  0.030  0.100  0.300  0.500  0.700  0.900  6.000  8.000
+alpha family                                                                        
+0.0   DIFF        NaN    NaN    NaN  0.625  0.601  0.616  0.633  0.661    NaN  0.855
+      ISO         NaN    NaN    NaN    NaN    NaN    NaN    NaN    NaN    NaN  0.865
+      PGD-L2      NaN    NaN    NaN  0.600  0.603  0.662  0.648  0.680  0.844    NaN
+      PGD-Linf  0.603  0.603  0.643  0.527  0.554  0.526  0.656  0.703    NaN    NaN
+1.0   DIFF        NaN    NaN    NaN  0.578  0.626  0.601  0.564  0.618    NaN  0.798
+      ISO         NaN    NaN    NaN    NaN    NaN    NaN    NaN    NaN    NaN  0.389
+      PGD-L2      NaN    NaN    NaN  0.614  0.518  0.476  0.444  0.469  0.387    NaN
+      PGD-Linf  0.609  0.578  0.388  0.435  0.504  0.555  0.459  0.531    NaN    NaN
+
+  time_only: matched_inverse (mean over sessions)
+budget_value    0.003  0.010  0.030  0.100  0.300  0.500  0.700  0.900  6.000  8.000
+alpha family                                                                        
+0.0   DIFF        NaN    NaN    NaN  0.625  0.601  0.616  0.633  0.661    NaN  0.855
+      ISO         NaN    NaN    NaN    NaN    NaN    NaN    NaN    NaN    NaN  0.865
+      PGD-L2      NaN    NaN    NaN  0.600  0.603  0.662  0.648  0.680  0.844    NaN
+      PGD-Linf  0.603  0.603  0.643  0.527  0.554  0.526  0.656  0.703    NaN    NaN
+1.0   DIFF        NaN    NaN    NaN  0.526  0.562  0.549  0.525  0.593    NaN  0.798
+      ISO         NaN    NaN    NaN    NaN    NaN    NaN    NaN    NaN    NaN  0.341
+      PGD-L2      NaN    NaN    NaN  0.607  0.507  0.451  0.424  0.441  0.292    NaN
+      PGD-Linf  0.609  0.578  0.347  0.417  0.490  0.551  0.439  0.519    NaN    NaN
+
+  time_only: clean_r2 (mean over sessions)
+budget_value    0.003  0.010  0.030  0.100  0.300  0.500  0.700  0.900  6.000  8.000
+alpha family                                                                        
+0.0   DIFF        NaN    NaN    NaN  0.620  0.664  0.677  0.679  0.673    NaN  0.883
+      ISO         NaN    NaN    NaN    NaN    NaN    NaN    NaN    NaN    NaN  0.883
+      PGD-L2      NaN    NaN    NaN  0.626  0.630  0.632  0.679  0.676  0.877    NaN
+      PGD-Linf  0.669  0.676  0.662  0.637  0.654  0.633  0.635  0.793    NaN    NaN
+1.0   DIFF        NaN    NaN    NaN  0.507  0.575  0.669  0.700  0.767    NaN  0.873
+      ISO         NaN    NaN    NaN    NaN    NaN    NaN    NaN    NaN    NaN  0.134
+      PGD-L2      NaN    NaN    NaN  0.478  0.369  0.270  0.222  0.203  0.184    NaN
+      PGD-Linf  0.487  0.471  0.204 -0.023 -0.106 -0.105 -0.092 -0.086    NaN    NaN
+
+  time_only: best PGD arm per session (oracle on the AUROC):
+    alpha 0: {'PGD_L2_EPS6': 4}
+    alpha 1: {'PGD_L2_EPS0.1': 2, 'PGD_LINF_EPS0.5': 1, 'PGD_LINF_EPS0.003': 1}
+    alpha 0       AUTO_SIG - ORACLE_PGD  +0.0121 [+0.0059, +0.0177] sessions up 4/4
+    alpha 0          DIFF8 - ORACLE_PGD  +0.0110 [+0.0006, +0.0246] sessions up 4/4
+    alpha 0    ORACLE_DIFF - ORACLE_PGD  +0.0110 [+0.0006, +0.0246] sessions up 4/4
+    alpha 0    DIFF0.1 - PGD-L2 0.1 (matched)  +0.0248 [-0.0461, +0.0714] sessions up 3/4
+    alpha 0    DIFF0.3 - PGD-L2 0.3 (matched)  -0.0020 [-0.0534, +0.0359] sessions up 3/4
+    alpha 0    DIFF0.5 - PGD-L2 0.5 (matched)  -0.0457 [-0.1540, +0.0628] sessions up 1/4
+    alpha 0    DIFF0.7 - PGD-L2 0.7 (matched)  -0.0148 [-0.0932, +0.0637] sessions up 2/4
+    alpha 0    DIFF0.9 - PGD-L2 0.9 (matched)  -0.0182 [-0.0681, +0.0316] sessions up 2/4
+    alpha 1       AUTO_SIG - ORACLE_PGD  +0.1181 [+0.0807, +0.1581] sessions up 4/4
+    alpha 1          DIFF8 - ORACLE_PGD  +0.1313 [+0.0856, +0.1916] sessions up 4/4
+    alpha 1    ORACLE_DIFF - ORACLE_PGD  +0.1313 [+0.0856, +0.1916] sessions up 4/4
+    alpha 1    DIFF0.1 - PGD-L2 0.1 (matched)  -0.0811 [-0.1622, -0.0001] sessions up 1/4
+    alpha 1    DIFF0.3 - PGD-L2 0.3 (matched)  +0.0554 [-0.0352, +0.1491] sessions up 3/4
+    alpha 1    DIFF0.5 - PGD-L2 0.5 (matched)  +0.0979 [-0.0233, +0.2190] sessions up 3/4
+    alpha 1    DIFF0.7 - PGD-L2 0.7 (matched)  +0.1013 [+0.0680, +0.1667] sessions up 4/4
+    alpha 1    DIFF0.9 - PGD-L2 0.9 (matched)  +0.1525 [+0.0655, +0.2399] sessions up 4/4
+
 3  pre-registered hypotheses
    inconclusive  HA1 supervised PGD6 > CLEAN (matched inverse, all alpha)  diff -0.0021 [-0.1335, +0.1344], sessions 4/8
    inconclusive  HA1 supervised ISO8 > CLEAN (matched inverse, all alpha)  diff +0.0023 [-0.1421, +0.1519], sessions 4/8
@@ -769,4 +391,1441 @@ alpha arm
   not supported  HA3 time_only alpha 1 PGD6: inv >= inv_true  diff -0.0842 [-0.1530, +0.0065], sessions 1/4
   not supported  HA3 time_only alpha 1 ISO8: inv >= inv_true  diff -0.0361 [-0.0911, +0.0188], sessions 1/4
       SUPPORTED  HA2 time_only alpha 0: the two inverses agree (max |diff| 0.0000)
-I have no name!@sam-0-0:/workspace$ 
+      SUPPORTED  HA4 supervised alpha 0: AUTO within 0.03 of the best PGD (oracle)  diff +0.0108 [-0.0007, +0.0194], sessions 3/4
+   inconclusive  HA5 supervised alpha 1 DIFF0.1 > PGD-L2 0.1  diff -0.0497 [-0.1504, +0.0494], sessions 2/4
+   inconclusive  HA5 supervised alpha 1 DIFF0.3 > PGD-L2 0.3  diff -0.0438 [-0.0954, +0.0078], sessions 1/4
+   CONTRADICTED  HA5 supervised alpha 1 DIFF0.5 > PGD-L2 0.5  diff -0.0725 [-0.1145, -0.0305], sessions 0/4
+   CONTRADICTED  HA5 supervised alpha 1 DIFF0.7 > PGD-L2 0.7  diff -0.0861 [-0.1635, -0.0184], sessions 1/4
+   inconclusive  HA5 supervised alpha 1 DIFF0.9 > PGD-L2 0.9  diff -0.0659 [-0.1543, +0.0109], sessions 1/4
+      SUPPORTED  HA4 supervised alpha 1: AUTO > best PGD (oracle)  diff +0.0683 [+0.0014, +0.1151], sessions 3/4
+      SUPPORTED  HA4 time_only alpha 0: AUTO within 0.03 of the best PGD (oracle)  diff +0.0121 [+0.0059, +0.0177], sessions 4/4
+   CONTRADICTED  HA5 time_only alpha 1 DIFF0.1 > PGD-L2 0.1  diff -0.0811 [-0.1622, -0.0001], sessions 1/4
+   inconclusive  HA5 time_only alpha 1 DIFF0.3 > PGD-L2 0.3  diff +0.0554 [-0.0352, +0.1491], sessions 3/4
+   inconclusive  HA5 time_only alpha 1 DIFF0.5 > PGD-L2 0.5  diff +0.0979 [-0.0233, +0.2190], sessions 3/4
+      SUPPORTED  HA5 time_only alpha 1 DIFF0.7 > PGD-L2 0.7  diff +0.1013 [+0.0680, +0.1667], sessions 4/4
+      SUPPORTED  HA5 time_only alpha 1 DIFF0.9 > PGD-L2 0.9  diff +0.1525 [+0.0655, +0.2399], sessions 4/4
+      SUPPORTED  HA4 time_only alpha 1: AUTO > best PGD (oracle)  diff +0.1181 [+0.0807, +0.1581], sessions 4/4
+mirzaei@haas034:~/sam/result/Aggregate$ 
+
+
+
+
+
+mirzaei@haas034:~$ runai logs sam-synth -p upmwmathis-mirzaei -f
+SWEEP CODE OK
+/home/mirzaei/sam/result/Aggregate/Acorn-dprime/cebra/helper.py:35: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  import pkg_resources
+XA0_R0: eps_beh true 25.00 (DIFF est 24.16) | surrogate AUROC E (min-norm): inv 1.000 inv_true 1.000 | W (whitened): inv 1.000 inv_true 1.000 inv_noise 0.998
+XA0_R1: eps_beh true 25.00 (DIFF est 24.58) | surrogate AUROC E (min-norm): inv 1.000 inv_true 1.000 | W (whitened): inv 1.000 inv_true 1.000 inv_noise 0.993
+XA0_R2: eps_beh true 25.00 (DIFF est 24.41) | surrogate AUROC E (min-norm): inv 1.000 inv_true 1.000 | W (whitened): inv 1.000 inv_true 1.000 inv_noise 0.986
+XA0_R3: eps_beh true 25.00 (DIFF est 24.36) | surrogate AUROC E (min-norm): inv 1.000 inv_true 1.000 | W (whitened): inv 1.000 inv_true 1.000 inv_noise 0.998
+XA1_R0: eps_beh true 25.00 (DIFF est 23.61) | surrogate AUROC E (min-norm): inv 1.000 inv_true 0.698 | W (whitened): inv 0.863 inv_true 1.000 inv_noise 0.922
+XA1_R1: eps_beh true 25.00 (DIFF est 24.00) | surrogate AUROC E (min-norm): inv 1.000 inv_true 0.660 | W (whitened): inv 0.859 inv_true 1.000 inv_noise 0.971
+XA1_R2: eps_beh true 25.00 (DIFF est 23.74) | surrogate AUROC E (min-norm): inv 1.000 inv_true 0.706 | W (whitened): inv 0.798 inv_true 1.000 inv_noise 0.941
+XA1_R3: eps_beh true 25.00 (DIFF est 23.78) | surrogate AUROC E (min-norm): inv 1.000 inv_true 0.620 | W (whitened): inv 0.815 inv_true 1.000 inv_noise 0.974
+Pre-registered 288 jobs -> /data/hossein/mm_project/SYNTH_ATTRIBUTION/ATTRIBUTION_PREDICTIONS.json
+288 jobs: 8 sessions x 2 modes x arms
+/home/mirzaei/sam/result/Aggregate/Acorn-dprime/cebra/helper.py:35: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  import pkg_resources
+XA0_R0: eps_beh true 25.00 (DIFF est 24.16) | surrogate AUROC E (min-norm): inv 1.000 inv_true 1.000 | W (whitened): inv 1.000 inv_true 1.000 inv_noise 0.998
+XA0_R1: eps_beh true 25.00 (DIFF est 24.58) | surrogate AUROC E (min-norm): inv 1.000 inv_true 1.000 | W (whitened): inv 1.000 inv_true 1.000 inv_noise 0.993
+XA0_R2: eps_beh true 25.00 (DIFF est 24.41) | surrogate AUROC E (min-norm): inv 1.000 inv_true 1.000 | W (whitened): inv 1.000 inv_true 1.000 inv_noise 0.986
+XA0_R3: eps_beh true 25.00 (DIFF est 24.36) | surrogate AUROC E (min-norm): inv 1.000 inv_true 1.000 | W (whitened): inv 1.000 inv_true 1.000 inv_noise 0.998
+XA1_R0: eps_beh true 25.00 (DIFF est 23.61) | surrogate AUROC E (min-norm): inv 1.000 inv_true 0.698 | W (whitened): inv 0.863 inv_true 1.000 inv_noise 0.922
+XA1_R1: eps_beh true 25.00 (DIFF est 24.00) | surrogate AUROC E (min-norm): inv 1.000 inv_true 0.660 | W (whitened): inv 0.859 inv_true 1.000 inv_noise 0.971
+XA1_R2: eps_beh true 25.00 (DIFF est 23.74) | surrogate AUROC E (min-norm): inv 1.000 inv_true 0.706 | W (whitened): inv 0.798 inv_true 1.000 inv_noise 0.941
+XA1_R3: eps_beh true 25.00 (DIFF est 23.78) | surrogate AUROC E (min-norm): inv 1.000 inv_true 0.620 | W (whitened): inv 0.815 inv_true 1.000 inv_noise 0.974
+288 jobs: 8 sessions x 2 modes x arms
+288/288 jobs to run on 4 worker(s); output=/data/hossein/mm_project/SYNTH_ATTRIBUTION
+[0] START XA0_R0__supervised__s42__PGD_L2_EPS0.1
+[1] START XA0_R0__supervised__s42__PGD_L2_EPS0.3
+[2] START XA0_R0__supervised__s42__PGD_L2_EPS0.5
+[3] START XA0_R0__supervised__s42__PGD_L2_EPS0.7
+[3] DONE XA0_R0__supervised__s42__PGD_L2_EPS0.7
+[3] START XA0_R0__supervised__s42__PGD_L2_EPS0.9
+[2] DONE XA0_R0__supervised__s42__PGD_L2_EPS0.5
+[2] START XA0_R0__supervised__s42__PGD_LINF_EPS0.003
+[0] DONE XA0_R0__supervised__s42__PGD_L2_EPS0.1
+[0] START XA0_R0__supervised__s42__PGD_LINF_EPS0.01
+[1] DONE XA0_R0__supervised__s42__PGD_L2_EPS0.3
+[1] START XA0_R0__supervised__s42__PGD_LINF_EPS0.03
+[2] DONE XA0_R0__supervised__s42__PGD_LINF_EPS0.003
+[2] START XA0_R0__supervised__s42__PGD_LINF_EPS0.1
+[3] DONE XA0_R0__supervised__s42__PGD_L2_EPS0.9
+[3] START XA0_R0__supervised__s42__PGD_LINF_EPS0.3
+[0] DONE XA0_R0__supervised__s42__PGD_LINF_EPS0.01
+[0] START XA0_R0__supervised__s42__PGD_LINF_EPS0.5
+[1] DONE XA0_R0__supervised__s42__PGD_LINF_EPS0.03
+[1] START XA0_R0__supervised__s42__PGD_LINF_EPS0.7
+[3] DONE XA0_R0__supervised__s42__PGD_LINF_EPS0.3
+[3] START XA0_R0__supervised__s42__PGD_LINF_EPS0.9
+[2] DONE XA0_R0__supervised__s42__PGD_LINF_EPS0.1
+[2] START XA0_R0__supervised__s42__MADRY_SPDIFF_D0.1
+[0] DONE XA0_R0__supervised__s42__PGD_LINF_EPS0.5
+[0] START XA0_R0__supervised__s42__MADRY_SPDIFF_D0.3
+[1] DONE XA0_R0__supervised__s42__PGD_LINF_EPS0.7
+[1] START XA0_R0__supervised__s42__MADRY_SPDIFF_D0.5
+[3] DONE XA0_R0__supervised__s42__PGD_LINF_EPS0.9
+[3] START XA0_R0__supervised__s42__MADRY_SPDIFF_D0.7
+[0] DONE XA0_R0__supervised__s42__MADRY_SPDIFF_D0.3
+[0] START XA0_R0__supervised__s42__MADRY_SPDIFF_D0.9
+[2] DONE XA0_R0__supervised__s42__MADRY_SPDIFF_D0.1
+[2] START XA0_R0__time_only__s42__PGD_L2_EPS0.1
+[1] DONE XA0_R0__supervised__s42__MADRY_SPDIFF_D0.5
+[1] START XA0_R0__time_only__s42__PGD_L2_EPS0.3
+[3] DONE XA0_R0__supervised__s42__MADRY_SPDIFF_D0.7
+[3] START XA0_R0__time_only__s42__PGD_L2_EPS0.5
+[2] DONE XA0_R0__time_only__s42__PGD_L2_EPS0.1
+[2] START XA0_R0__time_only__s42__PGD_L2_EPS0.7
+[1] DONE XA0_R0__time_only__s42__PGD_L2_EPS0.3
+[1] START XA0_R0__time_only__s42__PGD_L2_EPS0.9
+[0] DONE XA0_R0__supervised__s42__MADRY_SPDIFF_D0.9
+[0] START XA0_R0__time_only__s42__PGD_LINF_EPS0.003
+[3] DONE XA0_R0__time_only__s42__PGD_L2_EPS0.5
+[3] START XA0_R0__time_only__s42__PGD_LINF_EPS0.01
+[2] DONE XA0_R0__time_only__s42__PGD_L2_EPS0.7
+[2] START XA0_R0__time_only__s42__PGD_LINF_EPS0.03
+[1] DONE XA0_R0__time_only__s42__PGD_L2_EPS0.9
+[1] START XA0_R0__time_only__s42__PGD_LINF_EPS0.1
+[0] DONE XA0_R0__time_only__s42__PGD_LINF_EPS0.003
+[0] START XA0_R0__time_only__s42__PGD_LINF_EPS0.3
+[3] DONE XA0_R0__time_only__s42__PGD_LINF_EPS0.01
+[3] START XA0_R0__time_only__s42__PGD_LINF_EPS0.5
+[2] DONE XA0_R0__time_only__s42__PGD_LINF_EPS0.03
+[2] START XA0_R0__time_only__s42__PGD_LINF_EPS0.7
+[1] DONE XA0_R0__time_only__s42__PGD_LINF_EPS0.1
+[1] START XA0_R0__time_only__s42__PGD_LINF_EPS0.9
+[0] DONE XA0_R0__time_only__s42__PGD_LINF_EPS0.3
+[0] START XA0_R0__time_only__s42__MADRY_SPDIFF_D0.1
+[3] DONE XA0_R0__time_only__s42__PGD_LINF_EPS0.5
+[3] START XA0_R0__time_only__s42__MADRY_SPDIFF_D0.3
+[2] DONE XA0_R0__time_only__s42__PGD_LINF_EPS0.7
+[2] START XA0_R0__time_only__s42__MADRY_SPDIFF_D0.5
+[1] DONE XA0_R0__time_only__s42__PGD_LINF_EPS0.9
+[1] START XA0_R0__time_only__s42__MADRY_SPDIFF_D0.7
+[0] DONE XA0_R0__time_only__s42__MADRY_SPDIFF_D0.1
+[0] START XA0_R0__time_only__s42__MADRY_SPDIFF_D0.9
+[3] DONE XA0_R0__time_only__s42__MADRY_SPDIFF_D0.3
+[3] START XA0_R1__supervised__s42__PGD_L2_EPS0.1
+[2] DONE XA0_R0__time_only__s42__MADRY_SPDIFF_D0.5
+[2] START XA0_R1__supervised__s42__PGD_L2_EPS0.3
+[1] DONE XA0_R0__time_only__s42__MADRY_SPDIFF_D0.7
+[1] START XA0_R1__supervised__s42__PGD_L2_EPS0.5
+[0] DONE XA0_R0__time_only__s42__MADRY_SPDIFF_D0.9
+[0] START XA0_R1__supervised__s42__PGD_L2_EPS0.7
+[3] DONE XA0_R1__supervised__s42__PGD_L2_EPS0.1
+[3] START XA0_R1__supervised__s42__PGD_L2_EPS0.9
+[2] DONE XA0_R1__supervised__s42__PGD_L2_EPS0.3
+[2] START XA0_R1__supervised__s42__PGD_LINF_EPS0.003
+[1] DONE XA0_R1__supervised__s42__PGD_L2_EPS0.5
+[1] START XA0_R1__supervised__s42__PGD_LINF_EPS0.01
+[0] DONE XA0_R1__supervised__s42__PGD_L2_EPS0.7
+[0] START XA0_R1__supervised__s42__PGD_LINF_EPS0.03
+[3] DONE XA0_R1__supervised__s42__PGD_L2_EPS0.9
+[3] START XA0_R1__supervised__s42__PGD_LINF_EPS0.1
+[2] DONE XA0_R1__supervised__s42__PGD_LINF_EPS0.003
+[2] START XA0_R1__supervised__s42__PGD_LINF_EPS0.3
+[1] DONE XA0_R1__supervised__s42__PGD_LINF_EPS0.01
+[1] START XA0_R1__supervised__s42__PGD_LINF_EPS0.5
+[0] DONE XA0_R1__supervised__s42__PGD_LINF_EPS0.03
+[0] START XA0_R1__supervised__s42__PGD_LINF_EPS0.7
+[3] DONE XA0_R1__supervised__s42__PGD_LINF_EPS0.1
+[3] START XA0_R1__supervised__s42__PGD_LINF_EPS0.9
+[2] DONE XA0_R1__supervised__s42__PGD_LINF_EPS0.3
+[2] START XA0_R1__supervised__s42__MADRY_SPDIFF_D0.1
+[1] DONE XA0_R1__supervised__s42__PGD_LINF_EPS0.5
+[1] START XA0_R1__supervised__s42__MADRY_SPDIFF_D0.3
+[0] DONE XA0_R1__supervised__s42__PGD_LINF_EPS0.7
+[0] START XA0_R1__supervised__s42__MADRY_SPDIFF_D0.5
+[3] DONE XA0_R1__supervised__s42__PGD_LINF_EPS0.9
+[3] START XA0_R1__supervised__s42__MADRY_SPDIFF_D0.7
+[2] DONE XA0_R1__supervised__s42__MADRY_SPDIFF_D0.1
+[2] START XA0_R1__supervised__s42__MADRY_SPDIFF_D0.9
+[1] DONE XA0_R1__supervised__s42__MADRY_SPDIFF_D0.3
+[1] START XA0_R1__time_only__s42__PGD_L2_EPS0.1
+[0] DONE XA0_R1__supervised__s42__MADRY_SPDIFF_D0.5
+[0] START XA0_R1__time_only__s42__PGD_L2_EPS0.3
+[3] DONE XA0_R1__supervised__s42__MADRY_SPDIFF_D0.7
+[3] START XA0_R1__time_only__s42__PGD_L2_EPS0.5
+[1] DONE XA0_R1__time_only__s42__PGD_L2_EPS0.1
+[1] START XA0_R1__time_only__s42__PGD_L2_EPS0.7
+[2] DONE XA0_R1__supervised__s42__MADRY_SPDIFF_D0.9
+[2] START XA0_R1__time_only__s42__PGD_L2_EPS0.9
+[0] DONE XA0_R1__time_only__s42__PGD_L2_EPS0.3
+[0] START XA0_R1__time_only__s42__PGD_LINF_EPS0.003
+[3] DONE XA0_R1__time_only__s42__PGD_L2_EPS0.5
+[3] START XA0_R1__time_only__s42__PGD_LINF_EPS0.01
+[1] DONE XA0_R1__time_only__s42__PGD_L2_EPS0.7
+[1] START XA0_R1__time_only__s42__PGD_LINF_EPS0.03
+[2] DONE XA0_R1__time_only__s42__PGD_L2_EPS0.9
+[2] START XA0_R1__time_only__s42__PGD_LINF_EPS0.1
+[0] DONE XA0_R1__time_only__s42__PGD_LINF_EPS0.003
+[0] START XA0_R1__time_only__s42__PGD_LINF_EPS0.3
+[3] DONE XA0_R1__time_only__s42__PGD_LINF_EPS0.01
+[3] START XA0_R1__time_only__s42__PGD_LINF_EPS0.5
+[1] DONE XA0_R1__time_only__s42__PGD_LINF_EPS0.03
+[1] START XA0_R1__time_only__s42__PGD_LINF_EPS0.7
+[2] DONE XA0_R1__time_only__s42__PGD_LINF_EPS0.1
+[2] START XA0_R1__time_only__s42__PGD_LINF_EPS0.9
+[0] DONE XA0_R1__time_only__s42__PGD_LINF_EPS0.3
+[0] START XA0_R1__time_only__s42__MADRY_SPDIFF_D0.1
+[3] DONE XA0_R1__time_only__s42__PGD_LINF_EPS0.5
+[3] START XA0_R1__time_only__s42__MADRY_SPDIFF_D0.3
+[1] DONE XA0_R1__time_only__s42__PGD_LINF_EPS0.7
+[1] START XA0_R1__time_only__s42__MADRY_SPDIFF_D0.5
+[2] DONE XA0_R1__time_only__s42__PGD_LINF_EPS0.9
+[2] START XA0_R1__time_only__s42__MADRY_SPDIFF_D0.7
+[0] DONE XA0_R1__time_only__s42__MADRY_SPDIFF_D0.1
+[0] START XA0_R1__time_only__s42__MADRY_SPDIFF_D0.9
+[3] DONE XA0_R1__time_only__s42__MADRY_SPDIFF_D0.3
+[3] START XA0_R2__supervised__s42__PGD_L2_EPS0.1
+[1] DONE XA0_R1__time_only__s42__MADRY_SPDIFF_D0.5
+[1] START XA0_R2__supervised__s42__PGD_L2_EPS0.3
+[2] DONE XA0_R1__time_only__s42__MADRY_SPDIFF_D0.7
+[2] START XA0_R2__supervised__s42__PGD_L2_EPS0.5
+[0] DONE XA0_R1__time_only__s42__MADRY_SPDIFF_D0.9
+[0] START XA0_R2__supervised__s42__PGD_L2_EPS0.7
+[3] DONE XA0_R2__supervised__s42__PGD_L2_EPS0.1
+[3] START XA0_R2__supervised__s42__PGD_L2_EPS0.9
+[1] DONE XA0_R2__supervised__s42__PGD_L2_EPS0.3
+[1] START XA0_R2__supervised__s42__PGD_LINF_EPS0.003
+[2] DONE XA0_R2__supervised__s42__PGD_L2_EPS0.5
+[2] START XA0_R2__supervised__s42__PGD_LINF_EPS0.01
+[0] DONE XA0_R2__supervised__s42__PGD_L2_EPS0.7
+[0] START XA0_R2__supervised__s42__PGD_LINF_EPS0.03
+[3] DONE XA0_R2__supervised__s42__PGD_L2_EPS0.9
+[3] START XA0_R2__supervised__s42__PGD_LINF_EPS0.1
+[1] DONE XA0_R2__supervised__s42__PGD_LINF_EPS0.003
+[1] START XA0_R2__supervised__s42__PGD_LINF_EPS0.3
+[2] DONE XA0_R2__supervised__s42__PGD_LINF_EPS0.01
+[2] START XA0_R2__supervised__s42__PGD_LINF_EPS0.5
+[0] DONE XA0_R2__supervised__s42__PGD_LINF_EPS0.03
+[0] START XA0_R2__supervised__s42__PGD_LINF_EPS0.7
+[3] DONE XA0_R2__supervised__s42__PGD_LINF_EPS0.1
+[3] START XA0_R2__supervised__s42__PGD_LINF_EPS0.9
+[1] DONE XA0_R2__supervised__s42__PGD_LINF_EPS0.3
+[1] START XA0_R2__supervised__s42__MADRY_SPDIFF_D0.1
+[2] DONE XA0_R2__supervised__s42__PGD_LINF_EPS0.5
+[2] START XA0_R2__supervised__s42__MADRY_SPDIFF_D0.3
+[0] DONE XA0_R2__supervised__s42__PGD_LINF_EPS0.7
+[0] START XA0_R2__supervised__s42__MADRY_SPDIFF_D0.5
+[3] DONE XA0_R2__supervised__s42__PGD_LINF_EPS0.9
+[3] START XA0_R2__supervised__s42__MADRY_SPDIFF_D0.7
+[1] DONE XA0_R2__supervised__s42__MADRY_SPDIFF_D0.1
+[1] START XA0_R2__supervised__s42__MADRY_SPDIFF_D0.9
+[2] DONE XA0_R2__supervised__s42__MADRY_SPDIFF_D0.3
+[2] START XA0_R2__time_only__s42__PGD_L2_EPS0.1
+[0] DONE XA0_R2__supervised__s42__MADRY_SPDIFF_D0.5
+[0] START XA0_R2__time_only__s42__PGD_L2_EPS0.3
+[3] DONE XA0_R2__supervised__s42__MADRY_SPDIFF_D0.7
+[3] START XA0_R2__time_only__s42__PGD_L2_EPS0.5
+[2] DONE XA0_R2__time_only__s42__PGD_L2_EPS0.1
+[2] START XA0_R2__time_only__s42__PGD_L2_EPS0.7
+[1] DONE XA0_R2__supervised__s42__MADRY_SPDIFF_D0.9
+[1] START XA0_R2__time_only__s42__PGD_L2_EPS0.9
+[0] DONE XA0_R2__time_only__s42__PGD_L2_EPS0.3
+[0] START XA0_R2__time_only__s42__PGD_LINF_EPS0.003
+[3] DONE XA0_R2__time_only__s42__PGD_L2_EPS0.5
+[3] START XA0_R2__time_only__s42__PGD_LINF_EPS0.01
+[2] DONE XA0_R2__time_only__s42__PGD_L2_EPS0.7
+[2] START XA0_R2__time_only__s42__PGD_LINF_EPS0.03
+[1] DONE XA0_R2__time_only__s42__PGD_L2_EPS0.9
+[1] START XA0_R2__time_only__s42__PGD_LINF_EPS0.1
+[0] DONE XA0_R2__time_only__s42__PGD_LINF_EPS0.003
+[0] START XA0_R2__time_only__s42__PGD_LINF_EPS0.3
+[3] DONE XA0_R2__time_only__s42__PGD_LINF_EPS0.01
+[3] START XA0_R2__time_only__s42__PGD_LINF_EPS0.5
+[2] DONE XA0_R2__time_only__s42__PGD_LINF_EPS0.03
+[2] START XA0_R2__time_only__s42__PGD_LINF_EPS0.7
+[1] DONE XA0_R2__time_only__s42__PGD_LINF_EPS0.1
+[1] START XA0_R2__time_only__s42__PGD_LINF_EPS0.9
+[3] DONE XA0_R2__time_only__s42__PGD_LINF_EPS0.5
+[3] START XA0_R2__time_only__s42__MADRY_SPDIFF_D0.1
+[0] DONE XA0_R2__time_only__s42__PGD_LINF_EPS0.3
+[0] START XA0_R2__time_only__s42__MADRY_SPDIFF_D0.3
+[2] DONE XA0_R2__time_only__s42__PGD_LINF_EPS0.7
+[2] START XA0_R2__time_only__s42__MADRY_SPDIFF_D0.5
+[1] DONE XA0_R2__time_only__s42__PGD_LINF_EPS0.9
+[1] START XA0_R2__time_only__s42__MADRY_SPDIFF_D0.7
+[0] DONE XA0_R2__time_only__s42__MADRY_SPDIFF_D0.3
+[0] START XA0_R2__time_only__s42__MADRY_SPDIFF_D0.9
+[3] DONE XA0_R2__time_only__s42__MADRY_SPDIFF_D0.1
+[3] START XA0_R3__supervised__s42__PGD_L2_EPS0.1
+[2] DONE XA0_R2__time_only__s42__MADRY_SPDIFF_D0.5
+[2] START XA0_R3__supervised__s42__PGD_L2_EPS0.3
+[1] DONE XA0_R2__time_only__s42__MADRY_SPDIFF_D0.7
+[1] START XA0_R3__supervised__s42__PGD_L2_EPS0.5
+[3] DONE XA0_R3__supervised__s42__PGD_L2_EPS0.1
+[3] START XA0_R3__supervised__s42__PGD_L2_EPS0.7
+[0] DONE XA0_R2__time_only__s42__MADRY_SPDIFF_D0.9
+[0] START XA0_R3__supervised__s42__PGD_L2_EPS0.9
+[2] DONE XA0_R3__supervised__s42__PGD_L2_EPS0.3
+[2] START XA0_R3__supervised__s42__PGD_LINF_EPS0.003
+[1] DONE XA0_R3__supervised__s42__PGD_L2_EPS0.5
+[1] START XA0_R3__supervised__s42__PGD_LINF_EPS0.01
+[3] DONE XA0_R3__supervised__s42__PGD_L2_EPS0.7
+[3] START XA0_R3__supervised__s42__PGD_LINF_EPS0.03
+[0] DONE XA0_R3__supervised__s42__PGD_L2_EPS0.9
+[0] START XA0_R3__supervised__s42__PGD_LINF_EPS0.1
+[2] DONE XA0_R3__supervised__s42__PGD_LINF_EPS0.003
+[2] START XA0_R3__supervised__s42__PGD_LINF_EPS0.3
+[1] DONE XA0_R3__supervised__s42__PGD_LINF_EPS0.01
+[1] START XA0_R3__supervised__s42__PGD_LINF_EPS0.5
+[3] DONE XA0_R3__supervised__s42__PGD_LINF_EPS0.03
+[3] START XA0_R3__supervised__s42__PGD_LINF_EPS0.7
+[0] DONE XA0_R3__supervised__s42__PGD_LINF_EPS0.1
+[0] START XA0_R3__supervised__s42__PGD_LINF_EPS0.9
+[2] DONE XA0_R3__supervised__s42__PGD_LINF_EPS0.3
+[2] START XA0_R3__supervised__s42__MADRY_SPDIFF_D0.1
+[1] DONE XA0_R3__supervised__s42__PGD_LINF_EPS0.5
+[1] START XA0_R3__supervised__s42__MADRY_SPDIFF_D0.3
+[3] DONE XA0_R3__supervised__s42__PGD_LINF_EPS0.7
+[3] START XA0_R3__supervised__s42__MADRY_SPDIFF_D0.5
+[0] DONE XA0_R3__supervised__s42__PGD_LINF_EPS0.9
+[0] START XA0_R3__supervised__s42__MADRY_SPDIFF_D0.7
+[2] DONE XA0_R3__supervised__s42__MADRY_SPDIFF_D0.1
+[2] START XA0_R3__supervised__s42__MADRY_SPDIFF_D0.9
+[1] DONE XA0_R3__supervised__s42__MADRY_SPDIFF_D0.3
+[1] START XA0_R3__time_only__s42__PGD_L2_EPS0.1
+[3] DONE XA0_R3__supervised__s42__MADRY_SPDIFF_D0.5
+[3] START XA0_R3__time_only__s42__PGD_L2_EPS0.3
+[0] DONE XA0_R3__supervised__s42__MADRY_SPDIFF_D0.7
+[0] START XA0_R3__time_only__s42__PGD_L2_EPS0.5
+[2] DONE XA0_R3__supervised__s42__MADRY_SPDIFF_D0.9
+[2] START XA0_R3__time_only__s42__PGD_L2_EPS0.7
+[1] DONE XA0_R3__time_only__s42__PGD_L2_EPS0.1
+[1] START XA0_R3__time_only__s42__PGD_L2_EPS0.9
+[3] DONE XA0_R3__time_only__s42__PGD_L2_EPS0.3
+[3] START XA0_R3__time_only__s42__PGD_LINF_EPS0.003
+[0] DONE XA0_R3__time_only__s42__PGD_L2_EPS0.5
+[0] START XA0_R3__time_only__s42__PGD_LINF_EPS0.01
+[2] DONE XA0_R3__time_only__s42__PGD_L2_EPS0.7
+[2] START XA0_R3__time_only__s42__PGD_LINF_EPS0.03
+[1] DONE XA0_R3__time_only__s42__PGD_L2_EPS0.9
+[1] START XA0_R3__time_only__s42__PGD_LINF_EPS0.1
+[3] DONE XA0_R3__time_only__s42__PGD_LINF_EPS0.003
+[3] START XA0_R3__time_only__s42__PGD_LINF_EPS0.3
+[0] DONE XA0_R3__time_only__s42__PGD_LINF_EPS0.01
+[0] START XA0_R3__time_only__s42__PGD_LINF_EPS0.5
+[2] DONE XA0_R3__time_only__s42__PGD_LINF_EPS0.03
+[2] START XA0_R3__time_only__s42__PGD_LINF_EPS0.7
+[1] DONE XA0_R3__time_only__s42__PGD_LINF_EPS0.1
+[1] START XA0_R3__time_only__s42__PGD_LINF_EPS0.9
+[3] DONE XA0_R3__time_only__s42__PGD_LINF_EPS0.3
+[3] START XA0_R3__time_only__s42__MADRY_SPDIFF_D0.1
+[0] DONE XA0_R3__time_only__s42__PGD_LINF_EPS0.5
+[0] START XA0_R3__time_only__s42__MADRY_SPDIFF_D0.3
+[2] DONE XA0_R3__time_only__s42__PGD_LINF_EPS0.7
+[2] START XA0_R3__time_only__s42__MADRY_SPDIFF_D0.5
+[1] DONE XA0_R3__time_only__s42__PGD_LINF_EPS0.9
+[1] START XA0_R3__time_only__s42__MADRY_SPDIFF_D0.7
+[3] DONE XA0_R3__time_only__s42__MADRY_SPDIFF_D0.1
+[3] START XA0_R3__time_only__s42__MADRY_SPDIFF_D0.9
+[0] DONE XA0_R3__time_only__s42__MADRY_SPDIFF_D0.3
+[0] START XA1_R0__supervised__s42__PGD_L2_EPS0.1
+[2] DONE XA0_R3__time_only__s42__MADRY_SPDIFF_D0.5
+[2] START XA1_R0__supervised__s42__PGD_L2_EPS0.3
+[1] DONE XA0_R3__time_only__s42__MADRY_SPDIFF_D0.7
+[1] START XA1_R0__supervised__s42__PGD_L2_EPS0.5
+[3] DONE XA0_R3__time_only__s42__MADRY_SPDIFF_D0.9
+[3] START XA1_R0__supervised__s42__PGD_L2_EPS0.7
+[0] DONE XA1_R0__supervised__s42__PGD_L2_EPS0.1
+[0] START XA1_R0__supervised__s42__PGD_L2_EPS0.9
+[2] DONE XA1_R0__supervised__s42__PGD_L2_EPS0.3
+[2] START XA1_R0__supervised__s42__PGD_LINF_EPS0.003
+[1] DONE XA1_R0__supervised__s42__PGD_L2_EPS0.5
+[1] START XA1_R0__supervised__s42__PGD_LINF_EPS0.01
+[0] DONE XA1_R0__supervised__s42__PGD_L2_EPS0.9
+[0] START XA1_R0__supervised__s42__PGD_LINF_EPS0.03
+[3] DONE XA1_R0__supervised__s42__PGD_L2_EPS0.7
+[3] START XA1_R0__supervised__s42__PGD_LINF_EPS0.1
+[2] DONE XA1_R0__supervised__s42__PGD_LINF_EPS0.003
+[2] START XA1_R0__supervised__s42__PGD_LINF_EPS0.3
+[1] DONE XA1_R0__supervised__s42__PGD_LINF_EPS0.01
+[1] START XA1_R0__supervised__s42__PGD_LINF_EPS0.5
+[0] DONE XA1_R0__supervised__s42__PGD_LINF_EPS0.03
+[0] START XA1_R0__supervised__s42__PGD_LINF_EPS0.7
+[3] DONE XA1_R0__supervised__s42__PGD_LINF_EPS0.1
+[3] START XA1_R0__supervised__s42__PGD_LINF_EPS0.9
+[2] DONE XA1_R0__supervised__s42__PGD_LINF_EPS0.3
+[2] START XA1_R0__supervised__s42__MADRY_SPDIFF_D0.1
+[1] DONE XA1_R0__supervised__s42__PGD_LINF_EPS0.5
+[1] START XA1_R0__supervised__s42__MADRY_SPDIFF_D0.3
+[0] DONE XA1_R0__supervised__s42__PGD_LINF_EPS0.7
+[0] START XA1_R0__supervised__s42__MADRY_SPDIFF_D0.5
+[3] DONE XA1_R0__supervised__s42__PGD_LINF_EPS0.9
+[3] START XA1_R0__supervised__s42__MADRY_SPDIFF_D0.7
+[2] DONE XA1_R0__supervised__s42__MADRY_SPDIFF_D0.1
+[2] START XA1_R0__supervised__s42__MADRY_SPDIFF_D0.9
+[1] DONE XA1_R0__supervised__s42__MADRY_SPDIFF_D0.3
+[1] START XA1_R0__time_only__s42__PGD_L2_EPS0.1
+[3] DONE XA1_R0__supervised__s42__MADRY_SPDIFF_D0.7
+[3] START XA1_R0__time_only__s42__PGD_L2_EPS0.3
+[0] DONE XA1_R0__supervised__s42__MADRY_SPDIFF_D0.5
+[0] START XA1_R0__time_only__s42__PGD_L2_EPS0.5
+[2] DONE XA1_R0__supervised__s42__MADRY_SPDIFF_D0.9
+[2] START XA1_R0__time_only__s42__PGD_L2_EPS0.7
+[1] DONE XA1_R0__time_only__s42__PGD_L2_EPS0.1
+[1] START XA1_R0__time_only__s42__PGD_L2_EPS0.9
+[3] DONE XA1_R0__time_only__s42__PGD_L2_EPS0.3
+[3] START XA1_R0__time_only__s42__PGD_LINF_EPS0.003
+[0] DONE XA1_R0__time_only__s42__PGD_L2_EPS0.5
+[0] START XA1_R0__time_only__s42__PGD_LINF_EPS0.01
+[1] DONE XA1_R0__time_only__s42__PGD_L2_EPS0.9
+[1] START XA1_R0__time_only__s42__PGD_LINF_EPS0.03
+[2] DONE XA1_R0__time_only__s42__PGD_L2_EPS0.7
+[2] START XA1_R0__time_only__s42__PGD_LINF_EPS0.1
+[3] DONE XA1_R0__time_only__s42__PGD_LINF_EPS0.003
+[3] START XA1_R0__time_only__s42__PGD_LINF_EPS0.3
+[0] DONE XA1_R0__time_only__s42__PGD_LINF_EPS0.01
+[0] START XA1_R0__time_only__s42__PGD_LINF_EPS0.5
+[2] DONE XA1_R0__time_only__s42__PGD_LINF_EPS0.1
+[2] START XA1_R0__time_only__s42__PGD_LINF_EPS0.7
+[1] DONE XA1_R0__time_only__s42__PGD_LINF_EPS0.03
+[1] START XA1_R0__time_only__s42__PGD_LINF_EPS0.9
+[0] DONE XA1_R0__time_only__s42__PGD_LINF_EPS0.5
+[0] START XA1_R0__time_only__s42__MADRY_SPDIFF_D0.1
+[3] DONE XA1_R0__time_only__s42__PGD_LINF_EPS0.3
+[3] START XA1_R0__time_only__s42__MADRY_SPDIFF_D0.3
+[2] DONE XA1_R0__time_only__s42__PGD_LINF_EPS0.7
+[2] START XA1_R0__time_only__s42__MADRY_SPDIFF_D0.5
+[1] DONE XA1_R0__time_only__s42__PGD_LINF_EPS0.9
+[1] START XA1_R0__time_only__s42__MADRY_SPDIFF_D0.7
+[3] DONE XA1_R0__time_only__s42__MADRY_SPDIFF_D0.3
+[3] START XA1_R0__time_only__s42__MADRY_SPDIFF_D0.9
+[0] DONE XA1_R0__time_only__s42__MADRY_SPDIFF_D0.1
+[0] START XA1_R1__supervised__s42__PGD_L2_EPS0.1
+[2] DONE XA1_R0__time_only__s42__MADRY_SPDIFF_D0.5
+[2] START XA1_R1__supervised__s42__PGD_L2_EPS0.3
+[1] DONE XA1_R0__time_only__s42__MADRY_SPDIFF_D0.7
+[1] START XA1_R1__supervised__s42__PGD_L2_EPS0.5
+[0] DONE XA1_R1__supervised__s42__PGD_L2_EPS0.1
+[0] START XA1_R1__supervised__s42__PGD_L2_EPS0.7
+[3] DONE XA1_R0__time_only__s42__MADRY_SPDIFF_D0.9
+[3] START XA1_R1__supervised__s42__PGD_L2_EPS0.9
+[2] DONE XA1_R1__supervised__s42__PGD_L2_EPS0.3
+[2] START XA1_R1__supervised__s42__PGD_LINF_EPS0.003
+[1] DONE XA1_R1__supervised__s42__PGD_L2_EPS0.5
+[1] START XA1_R1__supervised__s42__PGD_LINF_EPS0.01
+[0] DONE XA1_R1__supervised__s42__PGD_L2_EPS0.7
+[0] START XA1_R1__supervised__s42__PGD_LINF_EPS0.03
+[3] DONE XA1_R1__supervised__s42__PGD_L2_EPS0.9
+[3] START XA1_R1__supervised__s42__PGD_LINF_EPS0.1
+[2] DONE XA1_R1__supervised__s42__PGD_LINF_EPS0.003
+[2] START XA1_R1__supervised__s42__PGD_LINF_EPS0.3
+[1] DONE XA1_R1__supervised__s42__PGD_LINF_EPS0.01
+[1] START XA1_R1__supervised__s42__PGD_LINF_EPS0.5
+[0] DONE XA1_R1__supervised__s42__PGD_LINF_EPS0.03
+[0] START XA1_R1__supervised__s42__PGD_LINF_EPS0.7
+[3] DONE XA1_R1__supervised__s42__PGD_LINF_EPS0.1
+[3] START XA1_R1__supervised__s42__PGD_LINF_EPS0.9
+[2] DONE XA1_R1__supervised__s42__PGD_LINF_EPS0.3
+[2] START XA1_R1__supervised__s42__MADRY_SPDIFF_D0.1
+[1] DONE XA1_R1__supervised__s42__PGD_LINF_EPS0.5
+[1] START XA1_R1__supervised__s42__MADRY_SPDIFF_D0.3
+[0] DONE XA1_R1__supervised__s42__PGD_LINF_EPS0.7
+[0] START XA1_R1__supervised__s42__MADRY_SPDIFF_D0.5
+[3] DONE XA1_R1__supervised__s42__PGD_LINF_EPS0.9
+[3] START XA1_R1__supervised__s42__MADRY_SPDIFF_D0.7
+[2] DONE XA1_R1__supervised__s42__MADRY_SPDIFF_D0.1
+[2] START XA1_R1__supervised__s42__MADRY_SPDIFF_D0.9
+[1] DONE XA1_R1__supervised__s42__MADRY_SPDIFF_D0.3
+[1] START XA1_R1__time_only__s42__PGD_L2_EPS0.1
+[0] DONE XA1_R1__supervised__s42__MADRY_SPDIFF_D0.5
+[0] START XA1_R1__time_only__s42__PGD_L2_EPS0.3
+[3] DONE XA1_R1__supervised__s42__MADRY_SPDIFF_D0.7
+[3] START XA1_R1__time_only__s42__PGD_L2_EPS0.5
+[1] DONE XA1_R1__time_only__s42__PGD_L2_EPS0.1
+[1] START XA1_R1__time_only__s42__PGD_L2_EPS0.7
+[2] DONE XA1_R1__supervised__s42__MADRY_SPDIFF_D0.9
+[2] START XA1_R1__time_only__s42__PGD_L2_EPS0.9
+[0] DONE XA1_R1__time_only__s42__PGD_L2_EPS0.3
+[0] START XA1_R1__time_only__s42__PGD_LINF_EPS0.003
+[3] DONE XA1_R1__time_only__s42__PGD_L2_EPS0.5
+[3] START XA1_R1__time_only__s42__PGD_LINF_EPS0.01
+[1] DONE XA1_R1__time_only__s42__PGD_L2_EPS0.7
+[1] START XA1_R1__time_only__s42__PGD_LINF_EPS0.03
+[2] DONE XA1_R1__time_only__s42__PGD_L2_EPS0.9
+[2] START XA1_R1__time_only__s42__PGD_LINF_EPS0.1
+[0] DONE XA1_R1__time_only__s42__PGD_LINF_EPS0.003
+[0] START XA1_R1__time_only__s42__PGD_LINF_EPS0.3
+[3] DONE XA1_R1__time_only__s42__PGD_LINF_EPS0.01
+[3] START XA1_R1__time_only__s42__PGD_LINF_EPS0.5
+[1] DONE XA1_R1__time_only__s42__PGD_LINF_EPS0.03
+[1] START XA1_R1__time_only__s42__PGD_LINF_EPS0.7
+[2] DONE XA1_R1__time_only__s42__PGD_LINF_EPS0.1
+[2] START XA1_R1__time_only__s42__PGD_LINF_EPS0.9
+[0] DONE XA1_R1__time_only__s42__PGD_LINF_EPS0.3
+[0] START XA1_R1__time_only__s42__MADRY_SPDIFF_D0.1
+[3] DONE XA1_R1__time_only__s42__PGD_LINF_EPS0.5
+[3] START XA1_R1__time_only__s42__MADRY_SPDIFF_D0.3
+[1] DONE XA1_R1__time_only__s42__PGD_LINF_EPS0.7
+[1] START XA1_R1__time_only__s42__MADRY_SPDIFF_D0.5
+[2] DONE XA1_R1__time_only__s42__PGD_LINF_EPS0.9
+[2] START XA1_R1__time_only__s42__MADRY_SPDIFF_D0.7
+[0] DONE XA1_R1__time_only__s42__MADRY_SPDIFF_D0.1
+[0] START XA1_R1__time_only__s42__MADRY_SPDIFF_D0.9
+[3] DONE XA1_R1__time_only__s42__MADRY_SPDIFF_D0.3
+[3] START XA1_R2__supervised__s42__PGD_L2_EPS0.1
+[1] DONE XA1_R1__time_only__s42__MADRY_SPDIFF_D0.5
+[1] START XA1_R2__supervised__s42__PGD_L2_EPS0.3
+[2] DONE XA1_R1__time_only__s42__MADRY_SPDIFF_D0.7
+[2] START XA1_R2__supervised__s42__PGD_L2_EPS0.5
+[3] DONE XA1_R2__supervised__s42__PGD_L2_EPS0.1
+[3] START XA1_R2__supervised__s42__PGD_L2_EPS0.7
+[0] DONE XA1_R1__time_only__s42__MADRY_SPDIFF_D0.9
+[0] START XA1_R2__supervised__s42__PGD_L2_EPS0.9
+[1] DONE XA1_R2__supervised__s42__PGD_L2_EPS0.3
+[1] START XA1_R2__supervised__s42__PGD_LINF_EPS0.003
+[2] DONE XA1_R2__supervised__s42__PGD_L2_EPS0.5
+[2] START XA1_R2__supervised__s42__PGD_LINF_EPS0.01
+[3] DONE XA1_R2__supervised__s42__PGD_L2_EPS0.7
+[3] START XA1_R2__supervised__s42__PGD_LINF_EPS0.03
+[0] DONE XA1_R2__supervised__s42__PGD_L2_EPS0.9
+[0] START XA1_R2__supervised__s42__PGD_LINF_EPS0.1
+[1] DONE XA1_R2__supervised__s42__PGD_LINF_EPS0.003
+[1] START XA1_R2__supervised__s42__PGD_LINF_EPS0.3
+[2] DONE XA1_R2__supervised__s42__PGD_LINF_EPS0.01
+[2] START XA1_R2__supervised__s42__PGD_LINF_EPS0.5
+[3] DONE XA1_R2__supervised__s42__PGD_LINF_EPS0.03
+[3] START XA1_R2__supervised__s42__PGD_LINF_EPS0.7
+[0] DONE XA1_R2__supervised__s42__PGD_LINF_EPS0.1
+[0] START XA1_R2__supervised__s42__PGD_LINF_EPS0.9
+[1] DONE XA1_R2__supervised__s42__PGD_LINF_EPS0.3
+[1] START XA1_R2__supervised__s42__MADRY_SPDIFF_D0.1
+[2] DONE XA1_R2__supervised__s42__PGD_LINF_EPS0.5
+[2] START XA1_R2__supervised__s42__MADRY_SPDIFF_D0.3
+[3] DONE XA1_R2__supervised__s42__PGD_LINF_EPS0.7
+[3] START XA1_R2__supervised__s42__MADRY_SPDIFF_D0.5
+[0] DONE XA1_R2__supervised__s42__PGD_LINF_EPS0.9
+[0] START XA1_R2__supervised__s42__MADRY_SPDIFF_D0.7
+[1] DONE XA1_R2__supervised__s42__MADRY_SPDIFF_D0.1
+[1] START XA1_R2__supervised__s42__MADRY_SPDIFF_D0.9
+[2] DONE XA1_R2__supervised__s42__MADRY_SPDIFF_D0.3
+[2] START XA1_R2__time_only__s42__PGD_L2_EPS0.1
+[3] DONE XA1_R2__supervised__s42__MADRY_SPDIFF_D0.5
+[3] START XA1_R2__time_only__s42__PGD_L2_EPS0.3
+[0] DONE XA1_R2__supervised__s42__MADRY_SPDIFF_D0.7
+[0] START XA1_R2__time_only__s42__PGD_L2_EPS0.5
+[2] DONE XA1_R2__time_only__s42__PGD_L2_EPS0.1
+[2] START XA1_R2__time_only__s42__PGD_L2_EPS0.7
+[1] DONE XA1_R2__supervised__s42__MADRY_SPDIFF_D0.9
+[1] START XA1_R2__time_only__s42__PGD_L2_EPS0.9
+[3] DONE XA1_R2__time_only__s42__PGD_L2_EPS0.3
+[3] START XA1_R2__time_only__s42__PGD_LINF_EPS0.003
+[0] DONE XA1_R2__time_only__s42__PGD_L2_EPS0.5
+[0] START XA1_R2__time_only__s42__PGD_LINF_EPS0.01
+[2] DONE XA1_R2__time_only__s42__PGD_L2_EPS0.7
+[2] START XA1_R2__time_only__s42__PGD_LINF_EPS0.03
+[1] DONE XA1_R2__time_only__s42__PGD_L2_EPS0.9
+[1] START XA1_R2__time_only__s42__PGD_LINF_EPS0.1
+[3] DONE XA1_R2__time_only__s42__PGD_LINF_EPS0.003
+[3] START XA1_R2__time_only__s42__PGD_LINF_EPS0.3
+[0] DONE XA1_R2__time_only__s42__PGD_LINF_EPS0.01
+[0] START XA1_R2__time_only__s42__PGD_LINF_EPS0.5
+[2] DONE XA1_R2__time_only__s42__PGD_LINF_EPS0.03
+[2] START XA1_R2__time_only__s42__PGD_LINF_EPS0.7
+[1] DONE XA1_R2__time_only__s42__PGD_LINF_EPS0.1
+[1] START XA1_R2__time_only__s42__PGD_LINF_EPS0.9
+[3] DONE XA1_R2__time_only__s42__PGD_LINF_EPS0.3
+[3] START XA1_R2__time_only__s42__MADRY_SPDIFF_D0.1
+[0] DONE XA1_R2__time_only__s42__PGD_LINF_EPS0.5
+[0] START XA1_R2__time_only__s42__MADRY_SPDIFF_D0.3
+[2] DONE XA1_R2__time_only__s42__PGD_LINF_EPS0.7
+[2] START XA1_R2__time_only__s42__MADRY_SPDIFF_D0.5
+[1] DONE XA1_R2__time_only__s42__PGD_LINF_EPS0.9
+[1] START XA1_R2__time_only__s42__MADRY_SPDIFF_D0.7
+[3] DONE XA1_R2__time_only__s42__MADRY_SPDIFF_D0.1
+[3] START XA1_R2__time_only__s42__MADRY_SPDIFF_D0.9
+[0] DONE XA1_R2__time_only__s42__MADRY_SPDIFF_D0.3
+[0] START XA1_R3__supervised__s42__PGD_L2_EPS0.1
+[2] DONE XA1_R2__time_only__s42__MADRY_SPDIFF_D0.5
+[2] START XA1_R3__supervised__s42__PGD_L2_EPS0.3
+[1] DONE XA1_R2__time_only__s42__MADRY_SPDIFF_D0.7
+[1] START XA1_R3__supervised__s42__PGD_L2_EPS0.5
+[0] DONE XA1_R3__supervised__s42__PGD_L2_EPS0.1
+[0] START XA1_R3__supervised__s42__PGD_L2_EPS0.7
+[3] DONE XA1_R2__time_only__s42__MADRY_SPDIFF_D0.9
+[3] START XA1_R3__supervised__s42__PGD_L2_EPS0.9
+[2] DONE XA1_R3__supervised__s42__PGD_L2_EPS0.3
+[2] START XA1_R3__supervised__s42__PGD_LINF_EPS0.003
+[1] DONE XA1_R3__supervised__s42__PGD_L2_EPS0.5
+[1] START XA1_R3__supervised__s42__PGD_LINF_EPS0.01
+[0] DONE XA1_R3__supervised__s42__PGD_L2_EPS0.7
+[0] START XA1_R3__supervised__s42__PGD_LINF_EPS0.03
+[2] DONE XA1_R3__supervised__s42__PGD_LINF_EPS0.003
+[2] START XA1_R3__supervised__s42__PGD_LINF_EPS0.1
+[3] DONE XA1_R3__supervised__s42__PGD_L2_EPS0.9
+[3] START XA1_R3__supervised__s42__PGD_LINF_EPS0.3
+[1] DONE XA1_R3__supervised__s42__PGD_LINF_EPS0.01
+[1] START XA1_R3__supervised__s42__PGD_LINF_EPS0.5
+[2] DONE XA1_R3__supervised__s42__PGD_LINF_EPS0.1
+[2] START XA1_R3__supervised__s42__PGD_LINF_EPS0.7
+[0] DONE XA1_R3__supervised__s42__PGD_LINF_EPS0.03
+[0] START XA1_R3__supervised__s42__PGD_LINF_EPS0.9
+[3] DONE XA1_R3__supervised__s42__PGD_LINF_EPS0.3
+[3] START XA1_R3__supervised__s42__MADRY_SPDIFF_D0.1
+[1] DONE XA1_R3__supervised__s42__PGD_LINF_EPS0.5
+[1] START XA1_R3__supervised__s42__MADRY_SPDIFF_D0.3
+[0] DONE XA1_R3__supervised__s42__PGD_LINF_EPS0.9
+[0] START XA1_R3__supervised__s42__MADRY_SPDIFF_D0.5
+[2] DONE XA1_R3__supervised__s42__PGD_LINF_EPS0.7
+[2] START XA1_R3__supervised__s42__MADRY_SPDIFF_D0.7
+[3] DONE XA1_R3__supervised__s42__MADRY_SPDIFF_D0.1
+[3] START XA1_R3__supervised__s42__MADRY_SPDIFF_D0.9
+[1] DONE XA1_R3__supervised__s42__MADRY_SPDIFF_D0.3
+[1] START XA1_R3__time_only__s42__PGD_L2_EPS0.1
+[0] DONE XA1_R3__supervised__s42__MADRY_SPDIFF_D0.5
+[0] START XA1_R3__time_only__s42__PGD_L2_EPS0.3
+[2] DONE XA1_R3__supervised__s42__MADRY_SPDIFF_D0.7
+[2] START XA1_R3__time_only__s42__PGD_L2_EPS0.5
+[1] DONE XA1_R3__time_only__s42__PGD_L2_EPS0.1
+[1] START XA1_R3__time_only__s42__PGD_L2_EPS0.7
+[3] DONE XA1_R3__supervised__s42__MADRY_SPDIFF_D0.9
+[3] START XA1_R3__time_only__s42__PGD_L2_EPS0.9
+[0] DONE XA1_R3__time_only__s42__PGD_L2_EPS0.3
+[0] START XA1_R3__time_only__s42__PGD_LINF_EPS0.003
+[2] DONE XA1_R3__time_only__s42__PGD_L2_EPS0.5
+[2] START XA1_R3__time_only__s42__PGD_LINF_EPS0.01
+[1] DONE XA1_R3__time_only__s42__PGD_L2_EPS0.7
+[1] START XA1_R3__time_only__s42__PGD_LINF_EPS0.03
+[3] DONE XA1_R3__time_only__s42__PGD_L2_EPS0.9
+[3] START XA1_R3__time_only__s42__PGD_LINF_EPS0.1
+[0] DONE XA1_R3__time_only__s42__PGD_LINF_EPS0.003
+[0] START XA1_R3__time_only__s42__PGD_LINF_EPS0.3
+[2] DONE XA1_R3__time_only__s42__PGD_LINF_EPS0.01
+[2] START XA1_R3__time_only__s42__PGD_LINF_EPS0.5
+[1] DONE XA1_R3__time_only__s42__PGD_LINF_EPS0.03
+[1] START XA1_R3__time_only__s42__PGD_LINF_EPS0.7
+[3] DONE XA1_R3__time_only__s42__PGD_LINF_EPS0.1
+[3] START XA1_R3__time_only__s42__PGD_LINF_EPS0.9
+[0] DONE XA1_R3__time_only__s42__PGD_LINF_EPS0.3
+[0] START XA1_R3__time_only__s42__MADRY_SPDIFF_D0.1
+[2] DONE XA1_R3__time_only__s42__PGD_LINF_EPS0.5
+[2] START XA1_R3__time_only__s42__MADRY_SPDIFF_D0.3
+[1] DONE XA1_R3__time_only__s42__PGD_LINF_EPS0.7
+[1] START XA1_R3__time_only__s42__MADRY_SPDIFF_D0.5
+[3] DONE XA1_R3__time_only__s42__PGD_LINF_EPS0.9
+[3] START XA1_R3__time_only__s42__MADRY_SPDIFF_D0.7
+[0] DONE XA1_R3__time_only__s42__MADRY_SPDIFF_D0.1
+[0] START XA1_R3__time_only__s42__MADRY_SPDIFF_D0.9
+[2] DONE XA1_R3__time_only__s42__MADRY_SPDIFF_D0.3
+[1] DONE XA1_R3__time_only__s42__MADRY_SPDIFF_D0.5
+[3] DONE XA1_R3__time_only__s42__MADRY_SPDIFF_D0.7
+[0] DONE XA1_R3__time_only__s42__MADRY_SPDIFF_D0.9
+Finished: 288/288 successful
+/data/hossein/mm_project/SYNTH_ATTRIBUTION: 400 successful runs, 0 errors; sessions 8
+
+0  exact surrogate encoders (E: minimum Euclidean norm, W: noise-whitened) scored with each inverse: AUROC (expected 1 for E-inv and W-inv_true; W-inv_noise is the ceiling of the practical inverse)
+session  alpha  surrogate_E_inv  surrogate_E_inv_noise  surrogate_E_inv_true  surrogate_W_inv  surrogate_W_inv_noise  surrogate_W_inv_true
+ XA0_R0    0.0              1.0                  0.998                 1.000            1.000                  0.998                   1.0
+ XA0_R1    0.0              1.0                  0.993                 1.000            1.000                  0.993                   1.0
+ XA0_R2    0.0              1.0                  0.986                 1.000            1.000                  0.986                   1.0
+ XA0_R3    0.0              1.0                  0.998                 1.000            1.000                  0.998                   1.0
+ XA1_R0    1.0              1.0                  0.700                 0.698            0.863                  0.922                   1.0
+ XA1_R1    1.0              1.0                  0.656                 0.660            0.859                  0.971                   1.0
+ XA1_R2    1.0              1.0                  0.707                 0.706            0.798                  0.941                   1.0
+ XA1_R3    1.0              1.0                  0.629                 0.620            0.815                  0.974                   1.0
+
+==================== supervised
+1  attribution AUROC per estimator (mean over sessions), with the linear identifiability (map / readout R2) and the robustness (true eps1/2)
+                            runs  clean_r2  map_r2  lin_r2    inv  inv_noise  inv_true    fwd  inv_col  inv_noise_col  auprc_inv  auprc_noise  true_half
+alpha arm                                                                                                                                               
+0.0   CLEAN                    4     0.763   0.308   0.503  0.676      0.676     0.676  0.757    0.574          0.574      0.855        0.855      2.683
+      MADRY_ISO_D8             4     0.884   0.604   0.821  0.872      0.872     0.872  0.903    0.595          0.595      0.960        0.960      5.237
+      MADRY_SPDIFF_AUTOBEH     4     0.881   0.571   0.806  0.862      0.862     0.862  0.899    0.580          0.580      0.956        0.956      5.245
+      MADRY_SPDIFF_D0.1        4     0.772   0.288   0.466  0.738      0.737     0.738  0.741    0.612          0.613      0.886        0.886      2.719
+      MADRY_SPDIFF_D0.3        4     0.795   0.294   0.483  0.738      0.738     0.738  0.762    0.617          0.618      0.884        0.883      2.863
+      MADRY_SPDIFF_D0.5        4     0.812   0.309   0.577  0.731      0.731     0.731  0.787    0.579          0.579      0.885        0.885      3.114
+      MADRY_SPDIFF_D0.7        4     0.827   0.325   0.592  0.724      0.724     0.724  0.805    0.594          0.594      0.879        0.879      3.358
+      MADRY_SPDIFF_D0.9        4     0.834   0.338   0.595  0.755      0.753     0.755  0.802    0.596          0.594      0.902        0.901      3.624
+      MADRY_SPDIFF_D8          4     0.882   0.581   0.809  0.870      0.870     0.870  0.887    0.591          0.591      0.959        0.959      5.248
+      MADRY_SPDIFF_GAUSS       4     0.829   0.346   0.606  0.795      0.795     0.795  0.731    0.623          0.623      0.918        0.918      4.035
+      MADRY_SP_D8              4     0.877   0.650   0.863  0.896      0.897     0.896  0.794    0.701          0.702      0.965        0.965      5.069
+      PGD_L2_EPS0.1            4     0.779   0.289   0.485  0.732      0.732     0.732  0.732    0.607          0.608      0.879        0.879      2.797
+      PGD_L2_EPS0.3            4     0.798   0.297   0.498  0.740      0.740     0.740  0.742    0.610          0.611      0.879        0.879      2.965
+      PGD_L2_EPS0.5            4     0.816   0.309   0.594  0.727      0.727     0.727  0.789    0.613          0.612      0.878        0.878      3.214
+      PGD_L2_EPS0.7            4     0.830   0.325   0.596  0.785      0.784     0.785  0.803    0.628          0.627      0.912        0.911      3.437
+      PGD_L2_EPS0.9            4     0.837   0.339   0.666  0.718      0.718     0.718  0.835    0.612          0.612      0.876        0.876      3.662
+      PGD_L2_EPS6              4     0.875   0.493   0.751  0.845      0.844     0.845  0.850    0.615          0.614      0.945        0.945      5.470
+      PGD_LINF_EPS0.003        4     0.779   0.295   0.435  0.721      0.721     0.721  0.714    0.624          0.625      0.875        0.875      2.796
+      PGD_LINF_EPS0.01         4     0.791   0.300   0.502  0.739      0.739     0.739  0.748    0.631          0.631      0.884        0.883      2.896
+      PGD_LINF_EPS0.03         4     0.818   0.318   0.593  0.779      0.778     0.779  0.801    0.647          0.647      0.908        0.907      3.185
+      PGD_LINF_EPS0.1          4     0.841   0.375   0.671  0.709      0.709     0.709  0.779    0.665          0.665      0.869        0.869      3.516
+      PGD_LINF_EPS0.3          4     0.815   0.459   0.701  0.651      0.673     0.651  0.656    0.659          0.649      0.826        0.832      2.892
+      PGD_LINF_EPS0.5          4     0.743   0.433   0.647  0.696      0.692     0.696  0.611    0.405          0.446      0.868        0.867      2.000
+      PGD_LINF_EPS0.7          4     0.746   0.422   0.680  0.718      0.665     0.718  0.638    0.433          0.444      0.880        0.862      1.988
+      PGD_LINF_EPS0.9          4     0.703   0.328   0.633  0.697      0.626     0.697  0.617    0.440          0.432      0.871        0.847      1.665
+1.0   CLEAN                    4     0.682   0.320   0.172  0.584      0.522     0.522  0.592    0.532          0.481      0.814        0.767      2.287
+      MADRY_ISO_D8             4     0.427   0.193   0.252  0.392      0.359     0.359  0.655    0.583          0.484      0.702        0.681      0.743
+      MADRY_SPDIFF_AUTOBEH     4     0.874   0.543   0.759  0.740      0.790     0.787  0.647    0.603          0.577      0.889        0.911      4.427
+      MADRY_SPDIFF_D0.1        4     0.704   0.290   0.287  0.599      0.532     0.531  0.601    0.543          0.485      0.811        0.781      2.101
+      MADRY_SPDIFF_D0.3        4     0.739   0.305   0.401  0.616      0.556     0.555  0.608    0.565          0.500      0.829        0.791      2.577
+      MADRY_SPDIFF_D0.5        4     0.742   0.314   0.443  0.657      0.590     0.588  0.615    0.565          0.497      0.847        0.812      2.752
+      MADRY_SPDIFF_D0.7        4     0.835   0.351   0.598  0.631      0.591     0.589  0.636    0.560          0.486      0.836        0.812      3.383
+      MADRY_SPDIFF_D0.9        4     0.839   0.350   0.599  0.630      0.593     0.592  0.635    0.564          0.487      0.837        0.811      3.513
+      MADRY_SPDIFF_D8          4     0.873   0.551   0.764  0.741      0.809     0.804  0.650    0.602          0.577      0.889        0.923      4.430
+      MADRY_SPDIFF_GAUSS       4     0.777   0.355   0.323  0.690      0.680     0.679  0.585    0.593          0.543      0.871        0.851      3.351
+      MADRY_SP_D8              4     0.868   0.621   0.847  0.762      0.763     0.760  0.637    0.643          0.623      0.909        0.897      4.373
+      PGD_L2_EPS0.1            4     0.702   0.306   0.330  0.581      0.541     0.540  0.602    0.526          0.488      0.809        0.779      1.978
+      PGD_L2_EPS0.3            4     0.826   0.338   0.620  0.599      0.528     0.527  0.690    0.557          0.483      0.819        0.779      3.071
+      PGD_L2_EPS0.5            4     0.830   0.362   0.600  0.660      0.562     0.561  0.712    0.571          0.489      0.856        0.803      3.147
+      PGD_L2_EPS0.7            4     0.829   0.383   0.639  0.675      0.558     0.558  0.738    0.571          0.484      0.865        0.803      3.198
+      PGD_L2_EPS0.9            4     0.828   0.399   0.644  0.657      0.535     0.535  0.768    0.581          0.481      0.851        0.788      3.270
+      PGD_L2_EPS6              4     0.473   0.247   0.300  0.411      0.375     0.376  0.664    0.586          0.489      0.720        0.692      0.829
+      PGD_LINF_EPS0.003        4     0.731   0.294   0.372  0.606      0.547     0.547  0.603    0.546          0.491      0.820        0.790      2.530
+      PGD_LINF_EPS0.01         4     0.791   0.320   0.493  0.634      0.565     0.565  0.640    0.579          0.501      0.841        0.796      3.070
+      PGD_LINF_EPS0.03         4     0.829   0.364   0.656  0.693      0.595     0.596  0.703    0.624          0.510      0.863        0.808      3.134
+      PGD_LINF_EPS0.1          4     0.663   0.326   0.475  0.612      0.537     0.536  0.622    0.587          0.503      0.817        0.778      1.936
+      PGD_LINF_EPS0.3          4    -0.070   0.054  -0.213  0.481      0.470     0.470  0.520    0.481          0.475      0.734        0.733      0.031
+      PGD_LINF_EPS0.5          4    -0.107   0.039  -0.259  0.548      0.490     0.491  0.507    0.482          0.467      0.794        0.761      0.031
+      PGD_LINF_EPS0.7          4    -0.107   0.034  -0.269  0.520      0.461     0.461  0.497    0.510          0.467      0.766        0.739      0.031
+      PGD_LINF_EPS0.9          4    -0.112   0.029  -0.259  0.541      0.490     0.490  0.500    0.521          0.469      0.777        0.750      0.031
+
+2  paired AUROC differences (sessions = data draws; CI = session bootstrap)
+  alpha 0    inv           PGD6 - CLEAN  +0.1687 [+0.0666, +0.2707] sessions up 4/4
+  alpha 0    inv           ISO8 - CLEAN  +0.1961 [+0.0948, +0.2974] sessions up 4/4
+  alpha 0    inv          DIFF8 - CLEAN  +0.1945 [+0.0847, +0.3043] sessions up 4/4
+  alpha 0    inv       AUTO_BEH - CLEAN  +0.1861 [+0.0794, +0.2928] sessions up 4/4
+  alpha 0    inv          DIFF8 - ISO8   -0.0016 [-0.0220, +0.0167] sessions up 2/4
+  alpha 0    inv       AUTO_BEH - PGD6   +0.0174 [+0.0009, +0.0293] sessions up 3/4
+  alpha 0    inv       AUTO_BEH - GAUSS  +0.0665 [+0.0373, +0.0864] sessions up 4/4
+  alpha 0    inv_true      PGD6 - CLEAN  +0.1687 [+0.0666, +0.2707] sessions up 4/4
+  alpha 0    inv_true      ISO8 - CLEAN  +0.1961 [+0.0948, +0.2974] sessions up 4/4
+  alpha 0    inv_true     DIFF8 - CLEAN  +0.1945 [+0.0847, +0.3043] sessions up 4/4
+  alpha 0    inv_true  AUTO_BEH - CLEAN  +0.1861 [+0.0794, +0.2928] sessions up 4/4
+  alpha 0    inv_true     DIFF8 - ISO8   -0.0016 [-0.0220, +0.0167] sessions up 2/4
+  alpha 0    inv_true  AUTO_BEH - PGD6   +0.0174 [+0.0009, +0.0293] sessions up 3/4
+  alpha 0    inv_true  AUTO_BEH - GAUSS  +0.0665 [+0.0373, +0.0864] sessions up 4/4
+  alpha 0    inv_noise     PGD6 - CLEAN  +0.1676 [+0.0663, +0.2688] sessions up 4/4
+  alpha 0    inv_noise     ISO8 - CLEAN  +0.1953 [+0.0949, +0.2958] sessions up 4/4
+  alpha 0    inv_noise    DIFF8 - CLEAN  +0.1935 [+0.0843, +0.3028] sessions up 4/4
+  alpha 0    inv_noise AUTO_BEH - CLEAN  +0.1855 [+0.0798, +0.2912] sessions up 4/4
+  alpha 0    inv_noise    DIFF8 - ISO8   -0.0018 [-0.0227, +0.0164] sessions up 2/4
+  alpha 0    inv_noise AUTO_BEH - PGD6   +0.0179 [+0.0016, +0.0298] sessions up 3/4
+  alpha 0    inv_noise AUTO_BEH - GAUSS  +0.0673 [+0.0398, +0.0859] sessions up 4/4
+  alpha 0        PGD6: inv_true - inv +0.0000 [+0.0000, +0.0000] sessions up 0/4
+  alpha 0        PGD6: inv_noise - inv -0.0006 [-0.0013, +0.0004] sessions up 1/4
+  alpha 0        ISO8: inv_true - inv +0.0000 [+0.0000, +0.0000] sessions up 0/4
+  alpha 0        ISO8: inv_noise - inv -0.0002 [-0.0006, +0.0003] sessions up 1/4
+  alpha 0       DIFF8: inv_true - inv +0.0000 [+0.0000, +0.0000] sessions up 0/4
+  alpha 0       DIFF8: inv_noise - inv -0.0005 [-0.0011, +0.0007] sessions up 1/4
+  alpha 0    AUTO_BEH: inv_true - inv +0.0000 [+0.0000, +0.0000] sessions up 0/4
+  alpha 0    AUTO_BEH: inv_noise - inv -0.0001 [-0.0005, +0.0002] sessions up 2/4
+  alpha 0       CLEAN: inv_true - inv +0.0000 [+0.0000, +0.0000] sessions up 0/4
+  alpha 0       CLEAN: inv_noise - inv +0.0005 [-0.0006, +0.0017] sessions up 2/4
+  alpha 1    inv           PGD6 - CLEAN  -0.1729 [-0.2479, -0.0983] sessions up 0/4
+  alpha 1    inv           ISO8 - CLEAN  -0.1916 [-0.2620, -0.1157] sessions up 0/4
+  alpha 1    inv          DIFF8 - CLEAN  +0.1568 [+0.1151, +0.1985] sessions up 4/4
+  alpha 1    inv       AUTO_BEH - CLEAN  +0.1564 [+0.1172, +0.1956] sessions up 4/4
+  alpha 1    inv          DIFF8 - ISO8   +0.3484 [+0.2982, +0.3874] sessions up 4/4
+  alpha 1    inv       AUTO_BEH - PGD6   +0.3293 [+0.2889, +0.3880] sessions up 4/4
+  alpha 1    inv       AUTO_BEH - GAUSS  +0.0506 [+0.0123, +0.0889] sessions up 4/4
+  alpha 1    inv_true      PGD6 - CLEAN  -0.1455 [-0.1609, -0.1300] sessions up 0/4
+  alpha 1    inv_true      ISO8 - CLEAN  -0.1629 [-0.1962, -0.1193] sessions up 0/4
+  alpha 1    inv_true     DIFF8 - CLEAN  +0.2825 [+0.2581, +0.3017] sessions up 4/4
+  alpha 1    inv_true  AUTO_BEH - CLEAN  +0.2655 [+0.2476, +0.2834] sessions up 4/4
+  alpha 1    inv_true     DIFF8 - ISO8   +0.4454 [+0.4170, +0.4814] sessions up 4/4
+  alpha 1    inv_true  AUTO_BEH - PGD6   +0.4110 [+0.4085, +0.4135] sessions up 4/4
+  alpha 1    inv_true  AUTO_BEH - GAUSS  +0.1087 [+0.0924, +0.1250] sessions up 4/4
+  alpha 1    inv_noise     PGD6 - CLEAN  -0.1468 [-0.1629, -0.1307] sessions up 0/4
+  alpha 1    inv_noise     ISO8 - CLEAN  -0.1635 [-0.1981, -0.1201] sessions up 0/4
+  alpha 1    inv_noise    DIFF8 - CLEAN  +0.2863 [+0.2653, +0.3047] sessions up 4/4
+  alpha 1    inv_noise AUTO_BEH - CLEAN  +0.2677 [+0.2480, +0.2874] sessions up 4/4
+  alpha 1    inv_noise    DIFF8 - ISO8   +0.4498 [+0.4197, +0.4895] sessions up 4/4
+  alpha 1    inv_noise AUTO_BEH - PGD6   +0.4145 [+0.4109, +0.4183] sessions up 4/4
+  alpha 1    inv_noise AUTO_BEH - GAUSS  +0.1096 [+0.0932, +0.1260] sessions up 4/4
+  alpha 1        PGD6: inv_true - inv -0.0345 [-0.0696, +0.0020] sessions up 1/4
+  alpha 1        PGD6: inv_noise - inv -0.0355 [-0.0712, +0.0016] sessions up 1/4
+  alpha 1        ISO8: inv_true - inv -0.0333 [-0.0434, -0.0232] sessions up 0/4
+  alpha 1        ISO8: inv_noise - inv -0.0335 [-0.0442, -0.0228] sessions up 0/4
+  alpha 1       DIFF8: inv_true - inv +0.0638 [+0.0476, +0.0896] sessions up 4/4
+  alpha 1       DIFF8: inv_noise - inv +0.0679 [+0.0508, +0.0918] sessions up 4/4
+  alpha 1    AUTO_BEH: inv_true - inv +0.0472 [+0.0108, +0.0835] sessions up 4/4
+  alpha 1    AUTO_BEH: inv_noise - inv +0.0497 [+0.0121, +0.0873] sessions up 4/4
+  alpha 1       CLEAN: inv_true - inv -0.0619 [-0.1196, -0.0042] sessions up 0/4
+  alpha 1       CLEAN: inv_noise - inv -0.0616 [-0.1187, -0.0044] sessions up 0/4
+
+==================== time_only
+1  attribution AUROC per estimator (mean over sessions), with the linear identifiability (map / readout R2) and the robustness (true eps1/2)
+                            runs  clean_r2  map_r2  lin_r2    inv  inv_noise  inv_true    fwd  inv_col  inv_noise_col  auprc_inv  auprc_noise  true_half
+alpha arm                                                                                                                                               
+0.0   CLEAN                    4     0.669   0.264   0.331  0.653      0.651     0.653  0.677    0.539          0.538      0.844        0.843      2.235
+      MADRY_ISO_D8             4     0.883   0.575   0.837  0.865      0.865     0.865  0.915    0.573          0.574      0.958        0.958      5.201
+      MADRY_SPDIFF_AUTOSIG     4     0.878   0.459   0.772  0.856      0.857     0.856  0.855    0.599          0.600      0.952        0.952      5.143
+      MADRY_SPDIFF_D0.1        4     0.620   0.231   0.249  0.625      0.625     0.625  0.653    0.545          0.547      0.816        0.817      2.098
+      MADRY_SPDIFF_D0.3        4     0.664   0.250   0.262  0.601      0.600     0.601  0.682    0.495          0.495      0.820        0.819      2.241
+      MADRY_SPDIFF_D0.5        4     0.677   0.261   0.192  0.616      0.616     0.616  0.648    0.489          0.488      0.823        0.822      2.472
+      MADRY_SPDIFF_D0.7        4     0.679   0.271   0.209  0.633      0.633     0.633  0.654    0.485          0.484      0.838        0.838      2.588
+      MADRY_SPDIFF_D0.9        4     0.673   0.279   0.239  0.661      0.662     0.661  0.644    0.495          0.496      0.843        0.843      2.620
+      MADRY_SPDIFF_D8          4     0.883   0.553   0.832  0.855      0.855     0.855  0.901    0.567          0.567      0.952        0.952      5.157
+      MADRY_SPDIFF_GAUSS       4     0.552   0.269   0.077  0.723      0.724     0.723  0.437    0.520          0.521      0.873        0.873      2.074
+      MADRY_SP_D8              4     0.880   0.644   0.819  0.858      0.858     0.858  0.926    0.589          0.590      0.952        0.952      5.231
+      PGD_L2_EPS0.1            4     0.626   0.241   0.241  0.600      0.600     0.600  0.660    0.528          0.527      0.811        0.812      2.082
+      PGD_L2_EPS0.3            4     0.630   0.255   0.130  0.603      0.603     0.603  0.627    0.501          0.502      0.814        0.814      2.330
+      PGD_L2_EPS0.5            4     0.632   0.260   0.220  0.662      0.662     0.662  0.609    0.525          0.526      0.850        0.850      2.509
+      PGD_L2_EPS0.7            4     0.679   0.276   0.276  0.648      0.650     0.648  0.660    0.495          0.497      0.845        0.846      2.732
+      PGD_L2_EPS0.9            4     0.676   0.285   0.274  0.680      0.681     0.680  0.640    0.504          0.504      0.859        0.860      2.659
+      PGD_L2_EPS6              4     0.877   0.452   0.784  0.844      0.844     0.844  0.874    0.589          0.589      0.946        0.945      5.105
+      PGD_LINF_EPS0.003        4     0.669   0.241   0.236  0.603      0.602     0.603  0.687    0.520          0.520      0.804        0.804      2.036
+      PGD_LINF_EPS0.01         4     0.676   0.245   0.270  0.603      0.603     0.603  0.687    0.545          0.545      0.803        0.803      2.159
+      PGD_LINF_EPS0.03         4     0.662   0.268   0.274  0.643      0.644     0.643  0.650    0.587          0.587      0.830        0.830      2.258
+      PGD_LINF_EPS0.1          4     0.637   0.288   0.405  0.527      0.531     0.527  0.528    0.505          0.508      0.756        0.757      1.744
+      PGD_LINF_EPS0.3          4     0.654   0.312   0.462  0.554      0.562     0.554  0.567    0.542          0.539      0.790        0.793      1.462
+      PGD_LINF_EPS0.5          4     0.633   0.360   0.503  0.526      0.532     0.526  0.577    0.511          0.513      0.780        0.782      1.341
+      PGD_LINF_EPS0.7          4     0.635   0.371   0.527  0.656      0.673     0.656  0.579    0.430          0.481      0.844        0.853      1.305
+      PGD_LINF_EPS0.9          4     0.793   0.332   0.570  0.703      0.704     0.703  0.747    0.552          0.553      0.874        0.874      2.498
+1.0   CLEAN                    4     0.485   0.209   0.043  0.597      0.542     0.541  0.534    0.507          0.464      0.817        0.792      1.273
+      MADRY_ISO_D8             4     0.134   0.090  -0.014  0.341      0.379     0.377  0.605    0.497          0.468      0.691        0.691      0.140
+      MADRY_SPDIFF_AUTOSIG     4     0.872   0.451   0.744  0.717      0.787     0.785  0.646    0.595          0.541      0.876        0.918      4.330
+      MADRY_SPDIFF_D0.1        4     0.507   0.212  -0.064  0.578      0.526     0.526  0.532    0.510          0.470      0.792        0.773      1.180
+      MADRY_SPDIFF_D0.3        4     0.575   0.239  -0.162  0.626      0.561     0.562  0.524    0.517          0.470      0.837        0.800      1.947
+      MADRY_SPDIFF_D0.5        4     0.669   0.273   0.308  0.593      0.548     0.549  0.594    0.501          0.478      0.816        0.791      2.731
+      MADRY_SPDIFF_D0.7        4     0.700   0.307   0.323  0.552      0.526     0.525  0.602    0.492          0.483      0.793        0.778      2.857
+      MADRY_SPDIFF_D0.9        4     0.767   0.332   0.388  0.618      0.593     0.593  0.642    0.537          0.485      0.823        0.815      3.469
+      MADRY_SPDIFF_D8          4     0.873   0.501   0.766  0.749      0.803     0.798  0.640    0.602          0.587      0.893        0.919      4.360
+      MADRY_SPDIFF_GAUSS       4     0.606   0.316  -0.174  0.643      0.608     0.607  0.517    0.520          0.486      0.839        0.830      2.462
+      MADRY_SP_D8              4     0.875   0.599   0.780  0.721      0.719     0.716  0.666    0.607          0.576      0.876        0.869      4.439
+      PGD_L2_EPS0.1            4     0.478   0.202  -0.209  0.607      0.553     0.552  0.471    0.497          0.472      0.810        0.795      1.283
+      PGD_L2_EPS0.3            4     0.369   0.144   0.050  0.507      0.459     0.462  0.485    0.498          0.457      0.758        0.735      0.559
+      PGD_L2_EPS0.5            4     0.270   0.118  -0.008  0.451      0.428     0.429  0.464    0.493          0.464      0.722        0.718      0.323
+      PGD_L2_EPS0.7            4     0.222   0.105  -0.065  0.424      0.417     0.416  0.497    0.483          0.454      0.699        0.708      0.277
+      PGD_L2_EPS0.9            4     0.203   0.100  -0.066  0.441      0.428     0.427  0.490    0.494          0.468      0.708        0.712      0.240
+      PGD_L2_EPS6              4     0.184   0.119   0.009  0.292      0.377     0.376  0.609    0.475          0.472      0.660        0.687      0.237
+      PGD_LINF_EPS0.003        4     0.487   0.209  -0.040  0.609      0.551     0.551  0.542    0.500          0.466      0.817        0.798      1.279
+      PGD_LINF_EPS0.01         4     0.471   0.190   0.058  0.578      0.527     0.527  0.498    0.484          0.451      0.803        0.779      0.919
+      PGD_LINF_EPS0.03         4     0.204   0.105  -0.085  0.347      0.389     0.388  0.374    0.400          0.433      0.664        0.686      0.194
+      PGD_LINF_EPS0.1          4    -0.023   0.055  -0.192  0.417      0.434     0.433  0.500    0.481          0.469      0.700        0.709      0.031
+      PGD_LINF_EPS0.3          4    -0.106   0.042  -0.251  0.490      0.464     0.464  0.468    0.463          0.460      0.756        0.736      0.031
+      PGD_LINF_EPS0.5          4    -0.105   0.037  -0.242  0.551      0.503     0.502  0.501    0.493          0.478      0.793        0.764      0.031
+      PGD_LINF_EPS0.7          4    -0.092   0.033  -0.236  0.439      0.445     0.445  0.518    0.494          0.479      0.737        0.726      0.031
+      PGD_LINF_EPS0.9          4    -0.086   0.027  -0.227  0.519      0.499     0.500  0.538    0.497          0.472      0.765        0.764      0.031
+
+2  paired AUROC differences (sessions = data draws; CI = session bootstrap)
+  alpha 0    inv           PGD6 - CLEAN  +0.1914 [+0.1289, +0.2665] sessions up 4/4
+  alpha 0    inv           ISO8 - CLEAN  +0.2124 [+0.1369, +0.2991] sessions up 4/4
+  alpha 0    inv          DIFF8 - CLEAN  +0.2025 [+0.1295, +0.2754] sessions up 4/4
+  alpha 0    inv       AUTO_SIG - CLEAN  +0.2035 [+0.1466, +0.2735] sessions up 4/4
+  alpha 0    inv          DIFF8 - ISO8   -0.0099 [-0.0273, +0.0074] sessions up 2/4
+  alpha 0    inv       AUTO_SIG - PGD6   +0.0121 [+0.0059, +0.0177] sessions up 4/4
+  alpha 0    inv       AUTO_SIG - GAUSS  +0.1333 [+0.0936, +0.1729] sessions up 4/4
+  alpha 0    inv_true      PGD6 - CLEAN  +0.1914 [+0.1289, +0.2665] sessions up 4/4
+  alpha 0    inv_true      ISO8 - CLEAN  +0.2124 [+0.1369, +0.2991] sessions up 4/4
+  alpha 0    inv_true     DIFF8 - CLEAN  +0.2025 [+0.1295, +0.2754] sessions up 4/4
+  alpha 0    inv_true  AUTO_SIG - CLEAN  +0.2035 [+0.1466, +0.2735] sessions up 4/4
+  alpha 0    inv_true     DIFF8 - ISO8   -0.0099 [-0.0273, +0.0074] sessions up 2/4
+  alpha 0    inv_true  AUTO_SIG - PGD6   +0.0121 [+0.0059, +0.0177] sessions up 4/4
+  alpha 0    inv_true  AUTO_SIG - GAUSS  +0.1333 [+0.0936, +0.1729] sessions up 4/4
+  alpha 0    inv_noise     PGD6 - CLEAN  +0.1923 [+0.1302, +0.2686] sessions up 4/4
+  alpha 0    inv_noise     ISO8 - CLEAN  +0.2136 [+0.1377, +0.3020] sessions up 4/4
+  alpha 0    inv_noise    DIFF8 - CLEAN  +0.2039 [+0.1312, +0.2776] sessions up 4/4
+  alpha 0    inv_noise AUTO_SIG - CLEAN  +0.2054 [+0.1487, +0.2768] sessions up 4/4
+  alpha 0    inv_noise    DIFF8 - ISO8   -0.0097 [-0.0269, +0.0075] sessions up 2/4
+  alpha 0    inv_noise AUTO_SIG - PGD6   +0.0131 [+0.0069, +0.0189] sessions up 4/4
+  alpha 0    inv_noise AUTO_SIG - GAUSS  +0.1331 [+0.0931, +0.1713] sessions up 4/4
+  alpha 0        PGD6: inv_true - inv +0.0000 [+0.0000, +0.0000] sessions up 0/4
+  alpha 0        PGD6: inv_noise - inv -0.0009 [-0.0017, -0.0001] sessions up 1/4
+  alpha 0        ISO8: inv_true - inv +0.0000 [+0.0000, +0.0000] sessions up 0/4
+  alpha 0        ISO8: inv_noise - inv -0.0005 [-0.0014, +0.0009] sessions up 1/4
+  alpha 0       DIFF8: inv_true - inv +0.0000 [+0.0000, +0.0000] sessions up 0/4
+  alpha 0       DIFF8: inv_noise - inv -0.0003 [-0.0012, +0.0011] sessions up 1/4
+  alpha 0    AUTO_SIG: inv_true - inv +0.0000 [+0.0000, +0.0000] sessions up 0/4
+  alpha 0    AUTO_SIG: inv_noise - inv +0.0002 [-0.0009, +0.0012] sessions up 2/4
+  alpha 0       CLEAN: inv_true - inv +0.0000 [+0.0000, +0.0000] sessions up 0/4
+  alpha 0       CLEAN: inv_noise - inv -0.0017 [-0.0025, -0.0006] sessions up 0/4
+  alpha 1    inv           PGD6 - CLEAN  -0.3048 [-0.4197, -0.0991] sessions up 1/4
+  alpha 1    inv           ISO8 - CLEAN  -0.2552 [-0.4049, -0.1056] sessions up 0/4
+  alpha 1    inv          DIFF8 - CLEAN  +0.1523 [+0.1089, +0.1948] sessions up 4/4
+  alpha 1    inv       AUTO_SIG - CLEAN  +0.1200 [+0.0724, +0.1639] sessions up 4/4
+  alpha 1    inv          DIFF8 - ISO8   +0.4075 [+0.3004, +0.5147] sessions up 4/4
+  alpha 1    inv       AUTO_SIG - PGD6   +0.4249 [+0.2580, +0.5304] sessions up 4/4
+  alpha 1    inv       AUTO_SIG - GAUSS  +0.0739 [+0.0166, +0.1311] sessions up 3/4
+  alpha 1    inv_true      PGD6 - CLEAN  -0.1653 [-0.2286, -0.0728] sessions up 0/4
+  alpha 1    inv_true      ISO8 - CLEAN  -0.1638 [-0.2625, -0.0650] sessions up 0/4
+  alpha 1    inv_true     DIFF8 - CLEAN  +0.2563 [+0.1861, +0.3128] sessions up 4/4
+  alpha 1    inv_true  AUTO_SIG - CLEAN  +0.2435 [+0.1839, +0.3031] sessions up 4/4
+  alpha 1    inv_true     DIFF8 - ISO8   +0.4201 [+0.3741, +0.4883] sessions up 4/4
+  alpha 1    inv_true  AUTO_SIG - PGD6   +0.4088 [+0.3462, +0.4690] sessions up 4/4
+  alpha 1    inv_true  AUTO_SIG - GAUSS  +0.1780 [+0.1593, +0.1952] sessions up 4/4
+  alpha 1    inv_noise     PGD6 - CLEAN  -0.1654 [-0.2275, -0.0756] sessions up 0/4
+  alpha 1    inv_noise     ISO8 - CLEAN  -0.1633 [-0.2624, -0.0642] sessions up 0/4
+  alpha 1    inv_noise    DIFF8 - CLEAN  +0.2604 [+0.1926, +0.3171] sessions up 4/4
+  alpha 1    inv_noise AUTO_SIG - CLEAN  +0.2447 [+0.1873, +0.3013] sessions up 4/4
+  alpha 1    inv_noise    DIFF8 - ISO8   +0.4237 [+0.3813, +0.4869] sessions up 4/4
+  alpha 1    inv_noise AUTO_SIG - PGD6   +0.4100 [+0.3491, +0.4656] sessions up 4/4
+  alpha 1    inv_noise AUTO_SIG - GAUSS  +0.1785 [+0.1612, +0.1972] sessions up 4/4
+  alpha 1        PGD6: inv_true - inv +0.0842 [-0.0065, +0.1530] sessions up 3/4
+  alpha 1        PGD6: inv_noise - inv +0.0850 [-0.0064, +0.1558] sessions up 3/4
+  alpha 1        ISO8: inv_true - inv +0.0361 [-0.0188, +0.0911] sessions up 3/4
+  alpha 1        ISO8: inv_noise - inv +0.0375 [-0.0173, +0.0923] sessions up 3/4
+  alpha 1       DIFF8: inv_true - inv +0.0487 [+0.0076, +0.0897] sessions up 3/4
+  alpha 1       DIFF8: inv_noise - inv +0.0537 [+0.0161, +0.0932] sessions up 4/4
+  alpha 1    AUTO_SIG: inv_true - inv +0.0681 [+0.0496, +0.0917] sessions up 4/4
+  alpha 1    AUTO_SIG: inv_noise - inv +0.0702 [+0.0494, +0.0921] sessions up 4/4
+  alpha 1       CLEAN: inv_true - inv -0.0553 [-0.1041, -0.0065] sessions up 0/4
+  alpha 1       CLEAN: inv_noise - inv -0.0544 [-0.1047, -0.0041] sessions up 1/4
+
+4  budget sweep: AUROC against the training budget (PGD-L2 / PGD-Linf: raw input units, Linf per entry; DIFF: d' in the noise metric); 'best' = the better of inv and inv_true for every run, 'matched' = inv for PGD, inv_true for DIFF
+
+  supervised: best_inverse (mean over sessions)
+budget_value    0.003  0.010  0.030  0.100  0.300  0.500  0.700  0.900  6.000  8.000
+alpha family                                                                        
+0.0   DIFF        NaN    NaN    NaN  0.738  0.738  0.731  0.724  0.755    NaN  0.870
+      ISO         NaN    NaN    NaN    NaN    NaN    NaN    NaN    NaN    NaN  0.872
+      PGD-L2      NaN    NaN    NaN  0.732  0.740  0.727  0.785  0.718  0.845    NaN
+      PGD-Linf  0.721  0.739  0.779  0.709  0.651  0.696  0.718  0.697    NaN    NaN
+1.0   DIFF        NaN    NaN    NaN  0.599  0.616  0.657  0.635  0.633    NaN  0.804
+      ISO         NaN    NaN    NaN    NaN    NaN    NaN    NaN    NaN    NaN  0.392
+      PGD-L2      NaN    NaN    NaN  0.592  0.599  0.660  0.675  0.657  0.415    NaN
+      PGD-Linf  0.606  0.634  0.693  0.616  0.494  0.548  0.521  0.541    NaN    NaN
+
+  supervised: matched_inverse (mean over sessions)
+budget_value    0.003  0.010  0.030  0.100  0.300  0.500  0.700  0.900  6.000  8.000
+alpha family                                                                        
+0.0   DIFF        NaN    NaN    NaN  0.738  0.738  0.731  0.724  0.755    NaN  0.870
+      ISO         NaN    NaN    NaN    NaN    NaN    NaN    NaN    NaN    NaN  0.872
+      PGD-L2      NaN    NaN    NaN  0.732  0.740  0.727  0.785  0.718  0.845    NaN
+      PGD-Linf  0.721  0.739  0.779  0.709  0.651  0.696  0.718  0.697    NaN    NaN
+1.0   DIFF        NaN    NaN    NaN  0.531  0.555  0.588  0.589  0.592    NaN  0.804
+      ISO         NaN    NaN    NaN    NaN    NaN    NaN    NaN    NaN    NaN  0.392
+      PGD-L2      NaN    NaN    NaN  0.581  0.599  0.660  0.675  0.657  0.411    NaN
+      PGD-Linf  0.606  0.634  0.693  0.612  0.481  0.548  0.520  0.541    NaN    NaN
+
+  supervised: clean_r2 (mean over sessions)
+budget_value    0.003  0.010  0.030  0.100  0.300  0.500  0.700  0.900  6.000  8.000
+alpha family                                                                        
+0.0   DIFF        NaN    NaN    NaN  0.772  0.795  0.812  0.827  0.834    NaN  0.882
+      ISO         NaN    NaN    NaN    NaN    NaN    NaN    NaN    NaN    NaN  0.884
+      PGD-L2      NaN    NaN    NaN  0.779  0.798  0.816  0.830  0.837  0.875    NaN
+      PGD-Linf  0.779  0.791  0.818  0.841  0.815  0.743  0.746  0.703    NaN    NaN
+1.0   DIFF        NaN    NaN    NaN  0.704  0.739  0.742  0.835  0.839    NaN  0.873
+      ISO         NaN    NaN    NaN    NaN    NaN    NaN    NaN    NaN    NaN  0.427
+      PGD-L2      NaN    NaN    NaN  0.702  0.826  0.830  0.829  0.828  0.473    NaN
+      PGD-Linf  0.731  0.791  0.829  0.663 -0.070 -0.107 -0.107 -0.112    NaN    NaN
+
+  supervised: best PGD arm per session (oracle on the AUROC):
+    alpha 0: {'PGD_L2_EPS6': 2, 'PGD_L2_EPS0.1': 1, 'PGD_L2_EPS0.5': 1}
+    alpha 1: {'PGD_LINF_EPS0.1': 2, 'PGD_L2_EPS0.9': 1, 'PGD_LINF_EPS0.03': 1}
+    alpha 0       AUTO_BEH - ORACLE_PGD  +0.0108 [-0.0007, +0.0194] sessions up 3/4
+    alpha 0          DIFF8 - ORACLE_PGD  +0.0192 [+0.0074, +0.0304] sessions up 4/4
+    alpha 0    ORACLE_DIFF - ORACLE_PGD  +0.0192 [+0.0074, +0.0304] sessions up 4/4
+    alpha 0    DIFF0.1 - PGD-L2 0.1 (matched)  +0.0058 [-0.0292, +0.0408] sessions up 2/4
+    alpha 0    DIFF0.3 - PGD-L2 0.3 (matched)  -0.0019 [-0.0535, +0.0779] sessions up 1/4
+    alpha 0    DIFF0.5 - PGD-L2 0.5 (matched)  +0.0037 [-0.0452, +0.0820] sessions up 1/4
+    alpha 0    DIFF0.7 - PGD-L2 0.7 (matched)  -0.0607 [-0.0878, -0.0335] sessions up 0/4
+    alpha 0    DIFF0.9 - PGD-L2 0.9 (matched)  +0.0369 [-0.0760, +0.1359] sessions up 3/4
+    alpha 1       AUTO_BEH - ORACLE_PGD  +0.0683 [+0.0014, +0.1151] sessions up 3/4
+    alpha 1          DIFF8 - ORACLE_PGD  +0.0854 [+0.0408, +0.1116] sessions up 4/4
+    alpha 1    ORACLE_DIFF - ORACLE_PGD  +0.0854 [+0.0408, +0.1116] sessions up 4/4
+    alpha 1    DIFF0.1 - PGD-L2 0.1 (matched)  -0.0497 [-0.1504, +0.0494] sessions up 2/4
+    alpha 1    DIFF0.3 - PGD-L2 0.3 (matched)  -0.0438 [-0.0954, +0.0078] sessions up 1/4
+    alpha 1    DIFF0.5 - PGD-L2 0.5 (matched)  -0.0725 [-0.1145, -0.0305] sessions up 0/4
+    alpha 1    DIFF0.7 - PGD-L2 0.7 (matched)  -0.0861 [-0.1635, -0.0184] sessions up 1/4
+    alpha 1    DIFF0.9 - PGD-L2 0.9 (matched)  -0.0659 [-0.1543, +0.0109] sessions up 1/4
+
+  time_only: best_inverse (mean over sessions)
+budget_value    0.003  0.010  0.030  0.100  0.300  0.500  0.700  0.900  6.000  8.000
+alpha family                                                                        
+0.0   DIFF        NaN    NaN    NaN  0.625  0.601  0.616  0.633  0.661    NaN  0.855
+      ISO         NaN    NaN    NaN    NaN    NaN    NaN    NaN    NaN    NaN  0.865
+      PGD-L2      NaN    NaN    NaN  0.600  0.603  0.662  0.648  0.680  0.844    NaN
+      PGD-Linf  0.603  0.603  0.643  0.527  0.554  0.526  0.656  0.703    NaN    NaN
+1.0   DIFF        NaN    NaN    NaN  0.578  0.626  0.601  0.564  0.618    NaN  0.798
+      ISO         NaN    NaN    NaN    NaN    NaN    NaN    NaN    NaN    NaN  0.389
+      PGD-L2      NaN    NaN    NaN  0.614  0.518  0.476  0.444  0.469  0.387    NaN
+      PGD-Linf  0.609  0.578  0.388  0.435  0.504  0.555  0.459  0.531    NaN    NaN
+
+  time_only: matched_inverse (mean over sessions)
+budget_value    0.003  0.010  0.030  0.100  0.300  0.500  0.700  0.900  6.000  8.000
+alpha family                                                                        
+0.0   DIFF        NaN    NaN    NaN  0.625  0.601  0.616  0.633  0.661    NaN  0.855
+      ISO         NaN    NaN    NaN    NaN    NaN    NaN    NaN    NaN    NaN  0.865
+      PGD-L2      NaN    NaN    NaN  0.600  0.603  0.662  0.648  0.680  0.844    NaN
+      PGD-Linf  0.603  0.603  0.643  0.527  0.554  0.526  0.656  0.703    NaN    NaN
+1.0   DIFF        NaN    NaN    NaN  0.526  0.562  0.549  0.525  0.593    NaN  0.798
+      ISO         NaN    NaN    NaN    NaN    NaN    NaN    NaN    NaN    NaN  0.341
+      PGD-L2      NaN    NaN    NaN  0.607  0.507  0.451  0.424  0.441  0.292    NaN
+      PGD-Linf  0.609  0.578  0.347  0.417  0.490  0.551  0.439  0.519    NaN    NaN
+
+  time_only: clean_r2 (mean over sessions)
+budget_value    0.003  0.010  0.030  0.100  0.300  0.500  0.700  0.900  6.000  8.000
+alpha family                                                                        
+0.0   DIFF        NaN    NaN    NaN  0.620  0.664  0.677  0.679  0.673    NaN  0.883
+      ISO         NaN    NaN    NaN    NaN    NaN    NaN    NaN    NaN    NaN  0.883
+      PGD-L2      NaN    NaN    NaN  0.626  0.630  0.632  0.679  0.676  0.877    NaN
+      PGD-Linf  0.669  0.676  0.662  0.637  0.654  0.633  0.635  0.793    NaN    NaN
+1.0   DIFF        NaN    NaN    NaN  0.507  0.575  0.669  0.700  0.767    NaN  0.873
+      ISO         NaN    NaN    NaN    NaN    NaN    NaN    NaN    NaN    NaN  0.134
+      PGD-L2      NaN    NaN    NaN  0.478  0.369  0.270  0.222  0.203  0.184    NaN
+      PGD-Linf  0.487  0.471  0.204 -0.023 -0.106 -0.105 -0.092 -0.086    NaN    NaN
+
+  time_only: best PGD arm per session (oracle on the AUROC):
+    alpha 0: {'PGD_L2_EPS6': 4}
+    alpha 1: {'PGD_L2_EPS0.1': 2, 'PGD_LINF_EPS0.5': 1, 'PGD_LINF_EPS0.003': 1}
+    alpha 0       AUTO_SIG - ORACLE_PGD  +0.0121 [+0.0059, +0.0177] sessions up 4/4
+    alpha 0          DIFF8 - ORACLE_PGD  +0.0110 [+0.0006, +0.0246] sessions up 4/4
+    alpha 0    ORACLE_DIFF - ORACLE_PGD  +0.0110 [+0.0006, +0.0246] sessions up 4/4
+    alpha 0    DIFF0.1 - PGD-L2 0.1 (matched)  +0.0248 [-0.0461, +0.0714] sessions up 3/4
+    alpha 0    DIFF0.3 - PGD-L2 0.3 (matched)  -0.0020 [-0.0534, +0.0359] sessions up 3/4
+    alpha 0    DIFF0.5 - PGD-L2 0.5 (matched)  -0.0457 [-0.1540, +0.0628] sessions up 1/4
+    alpha 0    DIFF0.7 - PGD-L2 0.7 (matched)  -0.0148 [-0.0932, +0.0637] sessions up 2/4
+    alpha 0    DIFF0.9 - PGD-L2 0.9 (matched)  -0.0182 [-0.0681, +0.0316] sessions up 2/4
+    alpha 1       AUTO_SIG - ORACLE_PGD  +0.1181 [+0.0807, +0.1581] sessions up 4/4
+    alpha 1          DIFF8 - ORACLE_PGD  +0.1313 [+0.0856, +0.1916] sessions up 4/4
+    alpha 1    ORACLE_DIFF - ORACLE_PGD  +0.1313 [+0.0856, +0.1916] sessions up 4/4
+    alpha 1    DIFF0.1 - PGD-L2 0.1 (matched)  -0.0811 [-0.1622, -0.0001] sessions up 1/4
+    alpha 1    DIFF0.3 - PGD-L2 0.3 (matched)  +0.0554 [-0.0352, +0.1491] sessions up 3/4
+    alpha 1    DIFF0.5 - PGD-L2 0.5 (matched)  +0.0979 [-0.0233, +0.2190] sessions up 3/4
+    alpha 1    DIFF0.7 - PGD-L2 0.7 (matched)  +0.1013 [+0.0680, +0.1667] sessions up 4/4
+    alpha 1    DIFF0.9 - PGD-L2 0.9 (matched)  +0.1525 [+0.0655, +0.2399] sessions up 4/4
+
+3  pre-registered hypotheses
+   inconclusive  HA1 supervised PGD6 > CLEAN (matched inverse, all alpha)  diff -0.0021 [-0.1335, +0.1344], sessions 4/8
+   inconclusive  HA1 supervised ISO8 > CLEAN (matched inverse, all alpha)  diff +0.0023 [-0.1421, +0.1519], sessions 4/8
+      SUPPORTED  HA1 supervised DIFF8 > CLEAN (matched inverse, all alpha)  diff +0.2076 [+0.1442, +0.2686], sessions 8/8
+      SUPPORTED  HA1 supervised AUTO_BEH > CLEAN (matched inverse, all alpha)  diff +0.1948 [+0.1285, +0.2599], sessions 8/8
+      SUPPORTED  HA2 supervised alpha 1 DIFF8 > ISO8 (inv_true)  diff +0.4454 [+0.4170, +0.4814], sessions 4/4
+      SUPPORTED  HA2 supervised alpha 1 DIFF8 > ISO8 (inv_noise, secondary)  diff +0.4498 [+0.4197, +0.4895], sessions 4/4
+      SUPPORTED  HA2 supervised alpha 1 AUTO_BEH > PGD6 (inv_true)  diff +0.4110 [+0.4085, +0.4135], sessions 4/4
+      SUPPORTED  HA2 supervised alpha 1 AUTO_BEH > PGD6 (inv_noise, secondary)  diff +0.4145 [+0.4109, +0.4183], sessions 4/4
+      SUPPORTED  HA3 supervised alpha 1 DIFF8: inv_true > inv  diff +0.0638 [+0.0476, +0.0896], sessions 4/4
+      SUPPORTED  HA3 supervised alpha 1 AUTO_BEH: inv_true > inv  diff +0.0472 [+0.0108, +0.0835], sessions 4/4
+      SUPPORTED  HA3 supervised alpha 1 PGD6: inv >= inv_true  diff +0.0345 [-0.0020, +0.0696], sessions 3/4
+      SUPPORTED  HA3 supervised alpha 1 ISO8: inv >= inv_true  diff +0.0333 [+0.0232, +0.0434], sessions 4/4
+      SUPPORTED  HA2 supervised alpha 0: the two inverses agree (max |diff| 0.0000)
+   inconclusive  HA1 time_only PGD6 > CLEAN (matched inverse, all alpha)  diff -0.0567 [-0.2597, +0.1334], sessions 5/8
+   inconclusive  HA1 time_only ISO8 > CLEAN (matched inverse, all alpha)  diff -0.0214 [-0.2081, +0.1574], sessions 4/8
+      SUPPORTED  HA1 time_only DIFF8 > CLEAN (matched inverse, all alpha)  diff +0.2017 [+0.1527, +0.2562], sessions 8/8
+      SUPPORTED  HA1 time_only AUTO_SIG > CLEAN (matched inverse, all alpha)  diff +0.1958 [+0.1524, +0.2434], sessions 8/8
+      SUPPORTED  HA2 time_only alpha 1 DIFF8 > ISO8 (inv_true)  diff +0.4201 [+0.3741, +0.4883], sessions 4/4
+      SUPPORTED  HA2 time_only alpha 1 DIFF8 > ISO8 (inv_noise, secondary)  diff +0.4237 [+0.3813, +0.4869], sessions 4/4
+      SUPPORTED  HA2 time_only alpha 1 AUTO_SIG > PGD6 (inv_true)  diff +0.4088 [+0.3462, +0.4690], sessions 4/4
+      SUPPORTED  HA2 time_only alpha 1 AUTO_SIG > PGD6 (inv_noise, secondary)  diff +0.4100 [+0.3491, +0.4656], sessions 4/4
+      SUPPORTED  HA3 time_only alpha 1 DIFF8: inv_true > inv  diff +0.0487 [+0.0076, +0.0897], sessions 3/4
+      SUPPORTED  HA3 time_only alpha 1 AUTO_SIG: inv_true > inv  diff +0.0681 [+0.0496, +0.0917], sessions 4/4
+  not supported  HA3 time_only alpha 1 PGD6: inv >= inv_true  diff -0.0842 [-0.1530, +0.0065], sessions 1/4
+  not supported  HA3 time_only alpha 1 ISO8: inv >= inv_true  diff -0.0361 [-0.0911, +0.0188], sessions 1/4
+      SUPPORTED  HA2 time_only alpha 0: the two inverses agree (max |diff| 0.0000)
+      SUPPORTED  HA4 supervised alpha 0: AUTO within 0.03 of the best PGD (oracle)  diff +0.0108 [-0.0007, +0.0194], sessions 3/4
+   inconclusive  HA5 supervised alpha 1 DIFF0.1 > PGD-L2 0.1  diff -0.0497 [-0.1504, +0.0494], sessions 2/4
+   inconclusive  HA5 supervised alpha 1 DIFF0.3 > PGD-L2 0.3  diff -0.0438 [-0.0954, +0.0078], sessions 1/4
+   CONTRADICTED  HA5 supervised alpha 1 DIFF0.5 > PGD-L2 0.5  diff -0.0725 [-0.1145, -0.0305], sessions 0/4
+   CONTRADICTED  HA5 supervised alpha 1 DIFF0.7 > PGD-L2 0.7  diff -0.0861 [-0.1635, -0.0184], sessions 1/4
+   inconclusive  HA5 supervised alpha 1 DIFF0.9 > PGD-L2 0.9  diff -0.0659 [-0.1543, +0.0109], sessions 1/4
+      SUPPORTED  HA4 supervised alpha 1: AUTO > best PGD (oracle)  diff +0.0683 [+0.0014, +0.1151], sessions 3/4
+      SUPPORTED  HA4 time_only alpha 0: AUTO within 0.03 of the best PGD (oracle)  diff +0.0121 [+0.0059, +0.0177], sessions 4/4
+   CONTRADICTED  HA5 time_only alpha 1 DIFF0.1 > PGD-L2 0.1  diff -0.0811 [-0.1622, -0.0001], sessions 1/4
+   inconclusive  HA5 time_only alpha 1 DIFF0.3 > PGD-L2 0.3  diff +0.0554 [-0.0352, +0.1491], sessions 3/4
+   inconclusive  HA5 time_only alpha 1 DIFF0.5 > PGD-L2 0.5  diff +0.0979 [-0.0233, +0.2190], sessions 3/4
+      SUPPORTED  HA5 time_only alpha 1 DIFF0.7 > PGD-L2 0.7  diff +0.1013 [+0.0680, +0.1667], sessions 4/4
+      SUPPORTED  HA5 time_only alpha 1 DIFF0.9 > PGD-L2 0.9  diff +0.1525 [+0.0655, +0.2399], sessions 4/4
+      SUPPORTED  HA4 time_only alpha 1: AUTO > best PGD (oracle)  diff +0.1181 [+0.0807, +0.1581], sessions 4/4
+/home/mirzaei/sam/result/Aggregate/Acorn-dprime/cebra/helper.py:35: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  import pkg_resources
+/data/hossein/mm_project/SYNTH_ATTRIBUTION: 400 successful runs, 0 errors; sessions 8
+
+0  exact surrogate encoders (E: minimum Euclidean norm, W: noise-whitened) scored with each inverse: AUROC (expected 1 for E-inv and W-inv_true; W-inv_noise is the ceiling of the practical inverse)
+session  alpha  surrogate_E_inv  surrogate_E_inv_noise  surrogate_E_inv_true  surrogate_W_inv  surrogate_W_inv_noise  surrogate_W_inv_true
+ XA0_R0    0.0              1.0                  0.998                 1.000            1.000                  0.998                   1.0
+ XA0_R1    0.0              1.0                  0.993                 1.000            1.000                  0.993                   1.0
+ XA0_R2    0.0              1.0                  0.986                 1.000            1.000                  0.986                   1.0
+ XA0_R3    0.0              1.0                  0.998                 1.000            1.000                  0.998                   1.0
+ XA1_R0    1.0              1.0                  0.700                 0.698            0.863                  0.922                   1.0
+ XA1_R1    1.0              1.0                  0.656                 0.660            0.859                  0.971                   1.0
+ XA1_R2    1.0              1.0                  0.707                 0.706            0.798                  0.941                   1.0
+ XA1_R3    1.0              1.0                  0.629                 0.620            0.815                  0.974                   1.0
+
+==================== supervised
+1  attribution AUROC per estimator (mean over sessions), with the linear identifiability (map / readout R2) and the robustness (true eps1/2)
+                            runs  clean_r2  map_r2  lin_r2    inv  inv_noise  inv_true    fwd  inv_col  inv_noise_col  auprc_inv  auprc_noise  true_half
+alpha arm                                                                                                                                               
+0.0   CLEAN                    4     0.763   0.308   0.503  0.676      0.676     0.676  0.757    0.574          0.574      0.855        0.855      2.683
+      MADRY_ISO_D8             4     0.884   0.604   0.821  0.872      0.872     0.872  0.903    0.595          0.595      0.960        0.960      5.237
+      MADRY_SPDIFF_AUTOBEH     4     0.881   0.571   0.806  0.862      0.862     0.862  0.899    0.580          0.580      0.956        0.956      5.245
+      MADRY_SPDIFF_D0.1        4     0.772   0.288   0.466  0.738      0.737     0.738  0.741    0.612          0.613      0.886        0.886      2.719
+      MADRY_SPDIFF_D0.3        4     0.795   0.294   0.483  0.738      0.738     0.738  0.762    0.617          0.618      0.884        0.883      2.863
+      MADRY_SPDIFF_D0.5        4     0.812   0.309   0.577  0.731      0.731     0.731  0.787    0.579          0.579      0.885        0.885      3.114
+      MADRY_SPDIFF_D0.7        4     0.827   0.325   0.592  0.724      0.724     0.724  0.805    0.594          0.594      0.879        0.879      3.358
+      MADRY_SPDIFF_D0.9        4     0.834   0.338   0.595  0.755      0.753     0.755  0.802    0.596          0.594      0.902        0.901      3.624
+      MADRY_SPDIFF_D8          4     0.882   0.581   0.809  0.870      0.870     0.870  0.887    0.591          0.591      0.959        0.959      5.248
+      MADRY_SPDIFF_GAUSS       4     0.829   0.346   0.606  0.795      0.795     0.795  0.731    0.623          0.623      0.918        0.918      4.035
+      MADRY_SP_D8              4     0.877   0.650   0.863  0.896      0.897     0.896  0.794    0.701          0.702      0.965        0.965      5.069
+      PGD_L2_EPS0.1            4     0.779   0.289   0.485  0.732      0.732     0.732  0.732    0.607          0.608      0.879        0.879      2.797
+      PGD_L2_EPS0.3            4     0.798   0.297   0.498  0.740      0.740     0.740  0.742    0.610          0.611      0.879        0.879      2.965
+      PGD_L2_EPS0.5            4     0.816   0.309   0.594  0.727      0.727     0.727  0.789    0.613          0.612      0.878        0.878      3.214
+      PGD_L2_EPS0.7            4     0.830   0.325   0.596  0.785      0.784     0.785  0.803    0.628          0.627      0.912        0.911      3.437
+      PGD_L2_EPS0.9            4     0.837   0.339   0.666  0.718      0.718     0.718  0.835    0.612          0.612      0.876        0.876      3.662
+      PGD_L2_EPS6              4     0.875   0.493   0.751  0.845      0.844     0.845  0.850    0.615          0.614      0.945        0.945      5.470
+      PGD_LINF_EPS0.003        4     0.779   0.295   0.435  0.721      0.721     0.721  0.714    0.624          0.625      0.875        0.875      2.796
+      PGD_LINF_EPS0.01         4     0.791   0.300   0.502  0.739      0.739     0.739  0.748    0.631          0.631      0.884        0.883      2.896
+      PGD_LINF_EPS0.03         4     0.818   0.318   0.593  0.779      0.778     0.779  0.801    0.647          0.647      0.908        0.907      3.185
+      PGD_LINF_EPS0.1          4     0.841   0.375   0.671  0.709      0.709     0.709  0.779    0.665          0.665      0.869        0.869      3.516
+      PGD_LINF_EPS0.3          4     0.815   0.459   0.701  0.651      0.673     0.651  0.656    0.659          0.649      0.826        0.832      2.892
+      PGD_LINF_EPS0.5          4     0.743   0.433   0.647  0.696      0.692     0.696  0.611    0.405          0.446      0.868        0.867      2.000
+      PGD_LINF_EPS0.7          4     0.746   0.422   0.680  0.718      0.665     0.718  0.638    0.433          0.444      0.880        0.862      1.988
+      PGD_LINF_EPS0.9          4     0.703   0.328   0.633  0.697      0.626     0.697  0.617    0.440          0.432      0.871        0.847      1.665
+1.0   CLEAN                    4     0.682   0.320   0.172  0.584      0.522     0.522  0.592    0.532          0.481      0.814        0.767      2.287
+      MADRY_ISO_D8             4     0.427   0.193   0.252  0.392      0.359     0.359  0.655    0.583          0.484      0.702        0.681      0.743
+      MADRY_SPDIFF_AUTOBEH     4     0.874   0.543   0.759  0.740      0.790     0.787  0.647    0.603          0.577      0.889        0.911      4.427
+      MADRY_SPDIFF_D0.1        4     0.704   0.290   0.287  0.599      0.532     0.531  0.601    0.543          0.485      0.811        0.781      2.101
+      MADRY_SPDIFF_D0.3        4     0.739   0.305   0.401  0.616      0.556     0.555  0.608    0.565          0.500      0.829        0.791      2.577
+      MADRY_SPDIFF_D0.5        4     0.742   0.314   0.443  0.657      0.590     0.588  0.615    0.565          0.497      0.847        0.812      2.752
+      MADRY_SPDIFF_D0.7        4     0.835   0.351   0.598  0.631      0.591     0.589  0.636    0.560          0.486      0.836        0.812      3.383
+      MADRY_SPDIFF_D0.9        4     0.839   0.350   0.599  0.630      0.593     0.592  0.635    0.564          0.487      0.837        0.811      3.513
+      MADRY_SPDIFF_D8          4     0.873   0.551   0.764  0.741      0.809     0.804  0.650    0.602          0.577      0.889        0.923      4.430
+      MADRY_SPDIFF_GAUSS       4     0.777   0.355   0.323  0.690      0.680     0.679  0.585    0.593          0.543      0.871        0.851      3.351
+      MADRY_SP_D8              4     0.868   0.621   0.847  0.762      0.763     0.760  0.637    0.643          0.623      0.909        0.897      4.373
+      PGD_L2_EPS0.1            4     0.702   0.306   0.330  0.581      0.541     0.540  0.602    0.526          0.488      0.809        0.779      1.978
+      PGD_L2_EPS0.3            4     0.826   0.338   0.620  0.599      0.528     0.527  0.690    0.557          0.483      0.819        0.779      3.071
+      PGD_L2_EPS0.5            4     0.830   0.362   0.600  0.660      0.562     0.561  0.712    0.571          0.489      0.856        0.803      3.147
+      PGD_L2_EPS0.7            4     0.829   0.383   0.639  0.675      0.558     0.558  0.738    0.571          0.484      0.865        0.803      3.198
+      PGD_L2_EPS0.9            4     0.828   0.399   0.644  0.657      0.535     0.535  0.768    0.581          0.481      0.851        0.788      3.270
+      PGD_L2_EPS6              4     0.473   0.247   0.300  0.411      0.375     0.376  0.664    0.586          0.489      0.720        0.692      0.829
+      PGD_LINF_EPS0.003        4     0.731   0.294   0.372  0.606      0.547     0.547  0.603    0.546          0.491      0.820        0.790      2.530
+      PGD_LINF_EPS0.01         4     0.791   0.320   0.493  0.634      0.565     0.565  0.640    0.579          0.501      0.841        0.796      3.070
+      PGD_LINF_EPS0.03         4     0.829   0.364   0.656  0.693      0.595     0.596  0.703    0.624          0.510      0.863        0.808      3.134
+      PGD_LINF_EPS0.1          4     0.663   0.326   0.475  0.612      0.537     0.536  0.622    0.587          0.503      0.817        0.778      1.936
+      PGD_LINF_EPS0.3          4    -0.070   0.054  -0.213  0.481      0.470     0.470  0.520    0.481          0.475      0.734        0.733      0.031
+      PGD_LINF_EPS0.5          4    -0.107   0.039  -0.259  0.548      0.490     0.491  0.507    0.482          0.467      0.794        0.761      0.031
+      PGD_LINF_EPS0.7          4    -0.107   0.034  -0.269  0.520      0.461     0.461  0.497    0.510          0.467      0.766        0.739      0.031
+      PGD_LINF_EPS0.9          4    -0.112   0.029  -0.259  0.541      0.490     0.490  0.500    0.521          0.469      0.777        0.750      0.031
+
+2  paired AUROC differences (sessions = data draws; CI = session bootstrap)
+  alpha 0    inv           PGD6 - CLEAN  +0.1687 [+0.0666, +0.2707] sessions up 4/4
+  alpha 0    inv           ISO8 - CLEAN  +0.1961 [+0.0948, +0.2974] sessions up 4/4
+  alpha 0    inv          DIFF8 - CLEAN  +0.1945 [+0.0847, +0.3043] sessions up 4/4
+  alpha 0    inv       AUTO_BEH - CLEAN  +0.1861 [+0.0794, +0.2928] sessions up 4/4
+  alpha 0    inv          DIFF8 - ISO8   -0.0016 [-0.0220, +0.0167] sessions up 2/4
+  alpha 0    inv       AUTO_BEH - PGD6   +0.0174 [+0.0009, +0.0293] sessions up 3/4
+  alpha 0    inv       AUTO_BEH - GAUSS  +0.0665 [+0.0373, +0.0864] sessions up 4/4
+  alpha 0    inv_true      PGD6 - CLEAN  +0.1687 [+0.0666, +0.2707] sessions up 4/4
+  alpha 0    inv_true      ISO8 - CLEAN  +0.1961 [+0.0948, +0.2974] sessions up 4/4
+  alpha 0    inv_true     DIFF8 - CLEAN  +0.1945 [+0.0847, +0.3043] sessions up 4/4
+  alpha 0    inv_true  AUTO_BEH - CLEAN  +0.1861 [+0.0794, +0.2928] sessions up 4/4
+  alpha 0    inv_true     DIFF8 - ISO8   -0.0016 [-0.0220, +0.0167] sessions up 2/4
+  alpha 0    inv_true  AUTO_BEH - PGD6   +0.0174 [+0.0009, +0.0293] sessions up 3/4
+  alpha 0    inv_true  AUTO_BEH - GAUSS  +0.0665 [+0.0373, +0.0864] sessions up 4/4
+  alpha 0    inv_noise     PGD6 - CLEAN  +0.1676 [+0.0663, +0.2688] sessions up 4/4
+  alpha 0    inv_noise     ISO8 - CLEAN  +0.1953 [+0.0949, +0.2958] sessions up 4/4
+  alpha 0    inv_noise    DIFF8 - CLEAN  +0.1935 [+0.0843, +0.3028] sessions up 4/4
+  alpha 0    inv_noise AUTO_BEH - CLEAN  +0.1855 [+0.0798, +0.2912] sessions up 4/4
+  alpha 0    inv_noise    DIFF8 - ISO8   -0.0018 [-0.0227, +0.0164] sessions up 2/4
+  alpha 0    inv_noise AUTO_BEH - PGD6   +0.0179 [+0.0016, +0.0298] sessions up 3/4
+  alpha 0    inv_noise AUTO_BEH - GAUSS  +0.0673 [+0.0398, +0.0859] sessions up 4/4
+  alpha 0        PGD6: inv_true - inv +0.0000 [+0.0000, +0.0000] sessions up 0/4
+  alpha 0        PGD6: inv_noise - inv -0.0006 [-0.0013, +0.0004] sessions up 1/4
+  alpha 0        ISO8: inv_true - inv +0.0000 [+0.0000, +0.0000] sessions up 0/4
+  alpha 0        ISO8: inv_noise - inv -0.0002 [-0.0006, +0.0003] sessions up 1/4
+  alpha 0       DIFF8: inv_true - inv +0.0000 [+0.0000, +0.0000] sessions up 0/4
+  alpha 0       DIFF8: inv_noise - inv -0.0005 [-0.0011, +0.0007] sessions up 1/4
+  alpha 0    AUTO_BEH: inv_true - inv +0.0000 [+0.0000, +0.0000] sessions up 0/4
+  alpha 0    AUTO_BEH: inv_noise - inv -0.0001 [-0.0005, +0.0002] sessions up 2/4
+  alpha 0       CLEAN: inv_true - inv +0.0000 [+0.0000, +0.0000] sessions up 0/4
+  alpha 0       CLEAN: inv_noise - inv +0.0005 [-0.0006, +0.0017] sessions up 2/4
+  alpha 1    inv           PGD6 - CLEAN  -0.1729 [-0.2479, -0.0983] sessions up 0/4
+  alpha 1    inv           ISO8 - CLEAN  -0.1916 [-0.2620, -0.1157] sessions up 0/4
+  alpha 1    inv          DIFF8 - CLEAN  +0.1568 [+0.1151, +0.1985] sessions up 4/4
+  alpha 1    inv       AUTO_BEH - CLEAN  +0.1564 [+0.1172, +0.1956] sessions up 4/4
+  alpha 1    inv          DIFF8 - ISO8   +0.3484 [+0.2982, +0.3874] sessions up 4/4
+  alpha 1    inv       AUTO_BEH - PGD6   +0.3293 [+0.2889, +0.3880] sessions up 4/4
+  alpha 1    inv       AUTO_BEH - GAUSS  +0.0506 [+0.0123, +0.0889] sessions up 4/4
+  alpha 1    inv_true      PGD6 - CLEAN  -0.1455 [-0.1609, -0.1300] sessions up 0/4
+  alpha 1    inv_true      ISO8 - CLEAN  -0.1629 [-0.1962, -0.1193] sessions up 0/4
+  alpha 1    inv_true     DIFF8 - CLEAN  +0.2825 [+0.2581, +0.3017] sessions up 4/4
+  alpha 1    inv_true  AUTO_BEH - CLEAN  +0.2655 [+0.2476, +0.2834] sessions up 4/4
+  alpha 1    inv_true     DIFF8 - ISO8   +0.4454 [+0.4170, +0.4814] sessions up 4/4
+  alpha 1    inv_true  AUTO_BEH - PGD6   +0.4110 [+0.4085, +0.4135] sessions up 4/4
+  alpha 1    inv_true  AUTO_BEH - GAUSS  +0.1087 [+0.0924, +0.1250] sessions up 4/4
+  alpha 1    inv_noise     PGD6 - CLEAN  -0.1468 [-0.1629, -0.1307] sessions up 0/4
+  alpha 1    inv_noise     ISO8 - CLEAN  -0.1635 [-0.1981, -0.1201] sessions up 0/4
+  alpha 1    inv_noise    DIFF8 - CLEAN  +0.2863 [+0.2653, +0.3047] sessions up 4/4
+  alpha 1    inv_noise AUTO_BEH - CLEAN  +0.2677 [+0.2480, +0.2874] sessions up 4/4
+  alpha 1    inv_noise    DIFF8 - ISO8   +0.4498 [+0.4197, +0.4895] sessions up 4/4
+  alpha 1    inv_noise AUTO_BEH - PGD6   +0.4145 [+0.4109, +0.4183] sessions up 4/4
+  alpha 1    inv_noise AUTO_BEH - GAUSS  +0.1096 [+0.0932, +0.1260] sessions up 4/4
+  alpha 1        PGD6: inv_true - inv -0.0345 [-0.0696, +0.0020] sessions up 1/4
+  alpha 1        PGD6: inv_noise - inv -0.0355 [-0.0712, +0.0016] sessions up 1/4
+  alpha 1        ISO8: inv_true - inv -0.0333 [-0.0434, -0.0232] sessions up 0/4
+  alpha 1        ISO8: inv_noise - inv -0.0335 [-0.0442, -0.0228] sessions up 0/4
+  alpha 1       DIFF8: inv_true - inv +0.0638 [+0.0476, +0.0896] sessions up 4/4
+  alpha 1       DIFF8: inv_noise - inv +0.0679 [+0.0508, +0.0918] sessions up 4/4
+  alpha 1    AUTO_BEH: inv_true - inv +0.0472 [+0.0108, +0.0835] sessions up 4/4
+  alpha 1    AUTO_BEH: inv_noise - inv +0.0497 [+0.0121, +0.0873] sessions up 4/4
+  alpha 1       CLEAN: inv_true - inv -0.0619 [-0.1196, -0.0042] sessions up 0/4
+  alpha 1       CLEAN: inv_noise - inv -0.0616 [-0.1187, -0.0044] sessions up 0/4
+
+==================== time_only
+1  attribution AUROC per estimator (mean over sessions), with the linear identifiability (map / readout R2) and the robustness (true eps1/2)
+                            runs  clean_r2  map_r2  lin_r2    inv  inv_noise  inv_true    fwd  inv_col  inv_noise_col  auprc_inv  auprc_noise  true_half
+alpha arm                                                                                                                                               
+0.0   CLEAN                    4     0.669   0.264   0.331  0.653      0.651     0.653  0.677    0.539          0.538      0.844        0.843      2.235
+      MADRY_ISO_D8             4     0.883   0.575   0.837  0.865      0.865     0.865  0.915    0.573          0.574      0.958        0.958      5.201
+      MADRY_SPDIFF_AUTOSIG     4     0.878   0.459   0.772  0.856      0.857     0.856  0.855    0.599          0.600      0.952        0.952      5.143
+      MADRY_SPDIFF_D0.1        4     0.620   0.231   0.249  0.625      0.625     0.625  0.653    0.545          0.547      0.816        0.817      2.098
+      MADRY_SPDIFF_D0.3        4     0.664   0.250   0.262  0.601      0.600     0.601  0.682    0.495          0.495      0.820        0.819      2.241
+      MADRY_SPDIFF_D0.5        4     0.677   0.261   0.192  0.616      0.616     0.616  0.648    0.489          0.488      0.823        0.822      2.472
+      MADRY_SPDIFF_D0.7        4     0.679   0.271   0.209  0.633      0.633     0.633  0.654    0.485          0.484      0.838        0.838      2.588
+      MADRY_SPDIFF_D0.9        4     0.673   0.279   0.239  0.661      0.662     0.661  0.644    0.495          0.496      0.843        0.843      2.620
+      MADRY_SPDIFF_D8          4     0.883   0.553   0.832  0.855      0.855     0.855  0.901    0.567          0.567      0.952        0.952      5.157
+      MADRY_SPDIFF_GAUSS       4     0.552   0.269   0.077  0.723      0.724     0.723  0.437    0.520          0.521      0.873        0.873      2.074
+      MADRY_SP_D8              4     0.880   0.644   0.819  0.858      0.858     0.858  0.926    0.589          0.590      0.952        0.952      5.231
+      PGD_L2_EPS0.1            4     0.626   0.241   0.241  0.600      0.600     0.600  0.660    0.528          0.527      0.811        0.812      2.082
+      PGD_L2_EPS0.3            4     0.630   0.255   0.130  0.603      0.603     0.603  0.627    0.501          0.502      0.814        0.814      2.330
+      PGD_L2_EPS0.5            4     0.632   0.260   0.220  0.662      0.662     0.662  0.609    0.525          0.526      0.850        0.850      2.509
+      PGD_L2_EPS0.7            4     0.679   0.276   0.276  0.648      0.650     0.648  0.660    0.495          0.497      0.845        0.846      2.732
+      PGD_L2_EPS0.9            4     0.676   0.285   0.274  0.680      0.681     0.680  0.640    0.504          0.504      0.859        0.860      2.659
+      PGD_L2_EPS6              4     0.877   0.452   0.784  0.844      0.844     0.844  0.874    0.589          0.589      0.946        0.945      5.105
+      PGD_LINF_EPS0.003        4     0.669   0.241   0.236  0.603      0.602     0.603  0.687    0.520          0.520      0.804        0.804      2.036
+      PGD_LINF_EPS0.01         4     0.676   0.245   0.270  0.603      0.603     0.603  0.687    0.545          0.545      0.803        0.803      2.159
+      PGD_LINF_EPS0.03         4     0.662   0.268   0.274  0.643      0.644     0.643  0.650    0.587          0.587      0.830        0.830      2.258
+      PGD_LINF_EPS0.1          4     0.637   0.288   0.405  0.527      0.531     0.527  0.528    0.505          0.508      0.756        0.757      1.744
+      PGD_LINF_EPS0.3          4     0.654   0.312   0.462  0.554      0.562     0.554  0.567    0.542          0.539      0.790        0.793      1.462
+      PGD_LINF_EPS0.5          4     0.633   0.360   0.503  0.526      0.532     0.526  0.577    0.511          0.513      0.780        0.782      1.341
+      PGD_LINF_EPS0.7          4     0.635   0.371   0.527  0.656      0.673     0.656  0.579    0.430          0.481      0.844        0.853      1.305
+      PGD_LINF_EPS0.9          4     0.793   0.332   0.570  0.703      0.704     0.703  0.747    0.552          0.553      0.874        0.874      2.498
+1.0   CLEAN                    4     0.485   0.209   0.043  0.597      0.542     0.541  0.534    0.507          0.464      0.817        0.792      1.273
+      MADRY_ISO_D8             4     0.134   0.090  -0.014  0.341      0.379     0.377  0.605    0.497          0.468      0.691        0.691      0.140
+      MADRY_SPDIFF_AUTOSIG     4     0.872   0.451   0.744  0.717      0.787     0.785  0.646    0.595          0.541      0.876        0.918      4.330
+      MADRY_SPDIFF_D0.1        4     0.507   0.212  -0.064  0.578      0.526     0.526  0.532    0.510          0.470      0.792        0.773      1.180
+      MADRY_SPDIFF_D0.3        4     0.575   0.239  -0.162  0.626      0.561     0.562  0.524    0.517          0.470      0.837        0.800      1.947
+      MADRY_SPDIFF_D0.5        4     0.669   0.273   0.308  0.593      0.548     0.549  0.594    0.501          0.478      0.816        0.791      2.731
+      MADRY_SPDIFF_D0.7        4     0.700   0.307   0.323  0.552      0.526     0.525  0.602    0.492          0.483      0.793        0.778      2.857
+      MADRY_SPDIFF_D0.9        4     0.767   0.332   0.388  0.618      0.593     0.593  0.642    0.537          0.485      0.823        0.815      3.469
+      MADRY_SPDIFF_D8          4     0.873   0.501   0.766  0.749      0.803     0.798  0.640    0.602          0.587      0.893        0.919      4.360
+      MADRY_SPDIFF_GAUSS       4     0.606   0.316  -0.174  0.643      0.608     0.607  0.517    0.520          0.486      0.839        0.830      2.462
+      MADRY_SP_D8              4     0.875   0.599   0.780  0.721      0.719     0.716  0.666    0.607          0.576      0.876        0.869      4.439
+      PGD_L2_EPS0.1            4     0.478   0.202  -0.209  0.607      0.553     0.552  0.471    0.497          0.472      0.810        0.795      1.283
+      PGD_L2_EPS0.3            4     0.369   0.144   0.050  0.507      0.459     0.462  0.485    0.498          0.457      0.758        0.735      0.559
+      PGD_L2_EPS0.5            4     0.270   0.118  -0.008  0.451      0.428     0.429  0.464    0.493          0.464      0.722        0.718      0.323
+      PGD_L2_EPS0.7            4     0.222   0.105  -0.065  0.424      0.417     0.416  0.497    0.483          0.454      0.699        0.708      0.277
+      PGD_L2_EPS0.9            4     0.203   0.100  -0.066  0.441      0.428     0.427  0.490    0.494          0.468      0.708        0.712      0.240
+      PGD_L2_EPS6              4     0.184   0.119   0.009  0.292      0.377     0.376  0.609    0.475          0.472      0.660        0.687      0.237
+      PGD_LINF_EPS0.003        4     0.487   0.209  -0.040  0.609      0.551     0.551  0.542    0.500          0.466      0.817        0.798      1.279
+      PGD_LINF_EPS0.01         4     0.471   0.190   0.058  0.578      0.527     0.527  0.498    0.484          0.451      0.803        0.779      0.919
+      PGD_LINF_EPS0.03         4     0.204   0.105  -0.085  0.347      0.389     0.388  0.374    0.400          0.433      0.664        0.686      0.194
+      PGD_LINF_EPS0.1          4    -0.023   0.055  -0.192  0.417      0.434     0.433  0.500    0.481          0.469      0.700        0.709      0.031
+      PGD_LINF_EPS0.3          4    -0.106   0.042  -0.251  0.490      0.464     0.464  0.468    0.463          0.460      0.756        0.736      0.031
+      PGD_LINF_EPS0.5          4    -0.105   0.037  -0.242  0.551      0.503     0.502  0.501    0.493          0.478      0.793        0.764      0.031
+      PGD_LINF_EPS0.7          4    -0.092   0.033  -0.236  0.439      0.445     0.445  0.518    0.494          0.479      0.737        0.726      0.031
+      PGD_LINF_EPS0.9          4    -0.086   0.027  -0.227  0.519      0.499     0.500  0.538    0.497          0.472      0.765        0.764      0.031
+
+2  paired AUROC differences (sessions = data draws; CI = session bootstrap)
+  alpha 0    inv           PGD6 - CLEAN  +0.1914 [+0.1289, +0.2665] sessions up 4/4
+  alpha 0    inv           ISO8 - CLEAN  +0.2124 [+0.1369, +0.2991] sessions up 4/4
+  alpha 0    inv          DIFF8 - CLEAN  +0.2025 [+0.1295, +0.2754] sessions up 4/4
+  alpha 0    inv       AUTO_SIG - CLEAN  +0.2035 [+0.1466, +0.2735] sessions up 4/4
+  alpha 0    inv          DIFF8 - ISO8   -0.0099 [-0.0273, +0.0074] sessions up 2/4
+  alpha 0    inv       AUTO_SIG - PGD6   +0.0121 [+0.0059, +0.0177] sessions up 4/4
+  alpha 0    inv       AUTO_SIG - GAUSS  +0.1333 [+0.0936, +0.1729] sessions up 4/4
+  alpha 0    inv_true      PGD6 - CLEAN  +0.1914 [+0.1289, +0.2665] sessions up 4/4
+  alpha 0    inv_true      ISO8 - CLEAN  +0.2124 [+0.1369, +0.2991] sessions up 4/4
+  alpha 0    inv_true     DIFF8 - CLEAN  +0.2025 [+0.1295, +0.2754] sessions up 4/4
+  alpha 0    inv_true  AUTO_SIG - CLEAN  +0.2035 [+0.1466, +0.2735] sessions up 4/4
+  alpha 0    inv_true     DIFF8 - ISO8   -0.0099 [-0.0273, +0.0074] sessions up 2/4
+  alpha 0    inv_true  AUTO_SIG - PGD6   +0.0121 [+0.0059, +0.0177] sessions up 4/4
+  alpha 0    inv_true  AUTO_SIG - GAUSS  +0.1333 [+0.0936, +0.1729] sessions up 4/4
+  alpha 0    inv_noise     PGD6 - CLEAN  +0.1923 [+0.1302, +0.2686] sessions up 4/4
+  alpha 0    inv_noise     ISO8 - CLEAN  +0.2136 [+0.1377, +0.3020] sessions up 4/4
+  alpha 0    inv_noise    DIFF8 - CLEAN  +0.2039 [+0.1312, +0.2776] sessions up 4/4
+  alpha 0    inv_noise AUTO_SIG - CLEAN  +0.2054 [+0.1487, +0.2768] sessions up 4/4
+  alpha 0    inv_noise    DIFF8 - ISO8   -0.0097 [-0.0269, +0.0075] sessions up 2/4
+  alpha 0    inv_noise AUTO_SIG - PGD6   +0.0131 [+0.0069, +0.0189] sessions up 4/4
+  alpha 0    inv_noise AUTO_SIG - GAUSS  +0.1331 [+0.0931, +0.1713] sessions up 4/4
+  alpha 0        PGD6: inv_true - inv +0.0000 [+0.0000, +0.0000] sessions up 0/4
+  alpha 0        PGD6: inv_noise - inv -0.0009 [-0.0017, -0.0001] sessions up 1/4
+  alpha 0        ISO8: inv_true - inv +0.0000 [+0.0000, +0.0000] sessions up 0/4
+  alpha 0        ISO8: inv_noise - inv -0.0005 [-0.0014, +0.0009] sessions up 1/4
+  alpha 0       DIFF8: inv_true - inv +0.0000 [+0.0000, +0.0000] sessions up 0/4
+  alpha 0       DIFF8: inv_noise - inv -0.0003 [-0.0012, +0.0011] sessions up 1/4
+  alpha 0    AUTO_SIG: inv_true - inv +0.0000 [+0.0000, +0.0000] sessions up 0/4
+  alpha 0    AUTO_SIG: inv_noise - inv +0.0002 [-0.0009, +0.0012] sessions up 2/4
+  alpha 0       CLEAN: inv_true - inv +0.0000 [+0.0000, +0.0000] sessions up 0/4
+  alpha 0       CLEAN: inv_noise - inv -0.0017 [-0.0025, -0.0006] sessions up 0/4
+  alpha 1    inv           PGD6 - CLEAN  -0.3048 [-0.4197, -0.0991] sessions up 1/4
+  alpha 1    inv           ISO8 - CLEAN  -0.2552 [-0.4049, -0.1056] sessions up 0/4
+  alpha 1    inv          DIFF8 - CLEAN  +0.1523 [+0.1089, +0.1948] sessions up 4/4
+  alpha 1    inv       AUTO_SIG - CLEAN  +0.1200 [+0.0724, +0.1639] sessions up 4/4
+  alpha 1    inv          DIFF8 - ISO8   +0.4075 [+0.3004, +0.5147] sessions up 4/4
+  alpha 1    inv       AUTO_SIG - PGD6   +0.4249 [+0.2580, +0.5304] sessions up 4/4
+  alpha 1    inv       AUTO_SIG - GAUSS  +0.0739 [+0.0166, +0.1311] sessions up 3/4
+  alpha 1    inv_true      PGD6 - CLEAN  -0.1653 [-0.2286, -0.0728] sessions up 0/4
+  alpha 1    inv_true      ISO8 - CLEAN  -0.1638 [-0.2625, -0.0650] sessions up 0/4
+  alpha 1    inv_true     DIFF8 - CLEAN  +0.2563 [+0.1861, +0.3128] sessions up 4/4
+  alpha 1    inv_true  AUTO_SIG - CLEAN  +0.2435 [+0.1839, +0.3031] sessions up 4/4
+  alpha 1    inv_true     DIFF8 - ISO8   +0.4201 [+0.3741, +0.4883] sessions up 4/4
+  alpha 1    inv_true  AUTO_SIG - PGD6   +0.4088 [+0.3462, +0.4690] sessions up 4/4
+  alpha 1    inv_true  AUTO_SIG - GAUSS  +0.1780 [+0.1593, +0.1952] sessions up 4/4
+  alpha 1    inv_noise     PGD6 - CLEAN  -0.1654 [-0.2275, -0.0756] sessions up 0/4
+  alpha 1    inv_noise     ISO8 - CLEAN  -0.1633 [-0.2624, -0.0642] sessions up 0/4
+  alpha 1    inv_noise    DIFF8 - CLEAN  +0.2604 [+0.1926, +0.3171] sessions up 4/4
+  alpha 1    inv_noise AUTO_SIG - CLEAN  +0.2447 [+0.1873, +0.3013] sessions up 4/4
+  alpha 1    inv_noise    DIFF8 - ISO8   +0.4237 [+0.3813, +0.4869] sessions up 4/4
+  alpha 1    inv_noise AUTO_SIG - PGD6   +0.4100 [+0.3491, +0.4656] sessions up 4/4
+  alpha 1    inv_noise AUTO_SIG - GAUSS  +0.1785 [+0.1612, +0.1972] sessions up 4/4
+  alpha 1        PGD6: inv_true - inv +0.0842 [-0.0065, +0.1530] sessions up 3/4
+  alpha 1        PGD6: inv_noise - inv +0.0850 [-0.0064, +0.1558] sessions up 3/4
+  alpha 1        ISO8: inv_true - inv +0.0361 [-0.0188, +0.0911] sessions up 3/4
+  alpha 1        ISO8: inv_noise - inv +0.0375 [-0.0173, +0.0923] sessions up 3/4
+  alpha 1       DIFF8: inv_true - inv +0.0487 [+0.0076, +0.0897] sessions up 3/4
+  alpha 1       DIFF8: inv_noise - inv +0.0537 [+0.0161, +0.0932] sessions up 4/4
+  alpha 1    AUTO_SIG: inv_true - inv +0.0681 [+0.0496, +0.0917] sessions up 4/4
+  alpha 1    AUTO_SIG: inv_noise - inv +0.0702 [+0.0494, +0.0921] sessions up 4/4
+  alpha 1       CLEAN: inv_true - inv -0.0553 [-0.1041, -0.0065] sessions up 0/4
+  alpha 1       CLEAN: inv_noise - inv -0.0544 [-0.1047, -0.0041] sessions up 1/4
+
+4  budget sweep: AUROC against the training budget (PGD-L2 / PGD-Linf: raw input units, Linf per entry; DIFF: d' in the noise metric); 'best' = the better of inv and inv_true for every run, 'matched' = inv for PGD, inv_true for DIFF
+
+  supervised: best_inverse (mean over sessions)
+budget_value    0.003  0.010  0.030  0.100  0.300  0.500  0.700  0.900  6.000  8.000
+alpha family                                                                        
+0.0   DIFF        NaN    NaN    NaN  0.738  0.738  0.731  0.724  0.755    NaN  0.870
+      ISO         NaN    NaN    NaN    NaN    NaN    NaN    NaN    NaN    NaN  0.872
+      PGD-L2      NaN    NaN    NaN  0.732  0.740  0.727  0.785  0.718  0.845    NaN
+      PGD-Linf  0.721  0.739  0.779  0.709  0.651  0.696  0.718  0.697    NaN    NaN
+1.0   DIFF        NaN    NaN    NaN  0.599  0.616  0.657  0.635  0.633    NaN  0.804
+      ISO         NaN    NaN    NaN    NaN    NaN    NaN    NaN    NaN    NaN  0.392
+      PGD-L2      NaN    NaN    NaN  0.592  0.599  0.660  0.675  0.657  0.415    NaN
+      PGD-Linf  0.606  0.634  0.693  0.616  0.494  0.548  0.521  0.541    NaN    NaN
+
+  supervised: matched_inverse (mean over sessions)
+budget_value    0.003  0.010  0.030  0.100  0.300  0.500  0.700  0.900  6.000  8.000
+alpha family                                                                        
+0.0   DIFF        NaN    NaN    NaN  0.738  0.738  0.731  0.724  0.755    NaN  0.870
+      ISO         NaN    NaN    NaN    NaN    NaN    NaN    NaN    NaN    NaN  0.872
+      PGD-L2      NaN    NaN    NaN  0.732  0.740  0.727  0.785  0.718  0.845    NaN
+      PGD-Linf  0.721  0.739  0.779  0.709  0.651  0.696  0.718  0.697    NaN    NaN
+1.0   DIFF        NaN    NaN    NaN  0.531  0.555  0.588  0.589  0.592    NaN  0.804
+      ISO         NaN    NaN    NaN    NaN    NaN    NaN    NaN    NaN    NaN  0.392
+      PGD-L2      NaN    NaN    NaN  0.581  0.599  0.660  0.675  0.657  0.411    NaN
+      PGD-Linf  0.606  0.634  0.693  0.612  0.481  0.548  0.520  0.541    NaN    NaN
+
+  supervised: clean_r2 (mean over sessions)
+budget_value    0.003  0.010  0.030  0.100  0.300  0.500  0.700  0.900  6.000  8.000
+alpha family                                                                        
+0.0   DIFF        NaN    NaN    NaN  0.772  0.795  0.812  0.827  0.834    NaN  0.882
+      ISO         NaN    NaN    NaN    NaN    NaN    NaN    NaN    NaN    NaN  0.884
+      PGD-L2      NaN    NaN    NaN  0.779  0.798  0.816  0.830  0.837  0.875    NaN
+      PGD-Linf  0.779  0.791  0.818  0.841  0.815  0.743  0.746  0.703    NaN    NaN
+1.0   DIFF        NaN    NaN    NaN  0.704  0.739  0.742  0.835  0.839    NaN  0.873
+      ISO         NaN    NaN    NaN    NaN    NaN    NaN    NaN    NaN    NaN  0.427
+      PGD-L2      NaN    NaN    NaN  0.702  0.826  0.830  0.829  0.828  0.473    NaN
+      PGD-Linf  0.731  0.791  0.829  0.663 -0.070 -0.107 -0.107 -0.112    NaN    NaN
+
+  supervised: best PGD arm per session (oracle on the AUROC):
+    alpha 0: {'PGD_L2_EPS6': 2, 'PGD_L2_EPS0.1': 1, 'PGD_L2_EPS0.5': 1}
+    alpha 1: {'PGD_LINF_EPS0.1': 2, 'PGD_L2_EPS0.9': 1, 'PGD_LINF_EPS0.03': 1}
+    alpha 0       AUTO_BEH - ORACLE_PGD  +0.0108 [-0.0007, +0.0194] sessions up 3/4
+    alpha 0          DIFF8 - ORACLE_PGD  +0.0192 [+0.0074, +0.0304] sessions up 4/4
+    alpha 0    ORACLE_DIFF - ORACLE_PGD  +0.0192 [+0.0074, +0.0304] sessions up 4/4
+    alpha 0    DIFF0.1 - PGD-L2 0.1 (matched)  +0.0058 [-0.0292, +0.0408] sessions up 2/4
+    alpha 0    DIFF0.3 - PGD-L2 0.3 (matched)  -0.0019 [-0.0535, +0.0779] sessions up 1/4
+    alpha 0    DIFF0.5 - PGD-L2 0.5 (matched)  +0.0037 [-0.0452, +0.0820] sessions up 1/4
+    alpha 0    DIFF0.7 - PGD-L2 0.7 (matched)  -0.0607 [-0.0878, -0.0335] sessions up 0/4
+    alpha 0    DIFF0.9 - PGD-L2 0.9 (matched)  +0.0369 [-0.0760, +0.1359] sessions up 3/4
+    alpha 1       AUTO_BEH - ORACLE_PGD  +0.0683 [+0.0014, +0.1151] sessions up 3/4
+    alpha 1          DIFF8 - ORACLE_PGD  +0.0854 [+0.0408, +0.1116] sessions up 4/4
+    alpha 1    ORACLE_DIFF - ORACLE_PGD  +0.0854 [+0.0408, +0.1116] sessions up 4/4
+    alpha 1    DIFF0.1 - PGD-L2 0.1 (matched)  -0.0497 [-0.1504, +0.0494] sessions up 2/4
+    alpha 1    DIFF0.3 - PGD-L2 0.3 (matched)  -0.0438 [-0.0954, +0.0078] sessions up 1/4
+    alpha 1    DIFF0.5 - PGD-L2 0.5 (matched)  -0.0725 [-0.1145, -0.0305] sessions up 0/4
+    alpha 1    DIFF0.7 - PGD-L2 0.7 (matched)  -0.0861 [-0.1635, -0.0184] sessions up 1/4
+    alpha 1    DIFF0.9 - PGD-L2 0.9 (matched)  -0.0659 [-0.1543, +0.0109] sessions up 1/4
+
+  time_only: best_inverse (mean over sessions)
+budget_value    0.003  0.010  0.030  0.100  0.300  0.500  0.700  0.900  6.000  8.000
+alpha family                                                                        
+0.0   DIFF        NaN    NaN    NaN  0.625  0.601  0.616  0.633  0.661    NaN  0.855
+      ISO         NaN    NaN    NaN    NaN    NaN    NaN    NaN    NaN    NaN  0.865
+      PGD-L2      NaN    NaN    NaN  0.600  0.603  0.662  0.648  0.680  0.844    NaN
+      PGD-Linf  0.603  0.603  0.643  0.527  0.554  0.526  0.656  0.703    NaN    NaN
+1.0   DIFF        NaN    NaN    NaN  0.578  0.626  0.601  0.564  0.618    NaN  0.798
+      ISO         NaN    NaN    NaN    NaN    NaN    NaN    NaN    NaN    NaN  0.389
+      PGD-L2      NaN    NaN    NaN  0.614  0.518  0.476  0.444  0.469  0.387    NaN
+      PGD-Linf  0.609  0.578  0.388  0.435  0.504  0.555  0.459  0.531    NaN    NaN
+
+  time_only: matched_inverse (mean over sessions)
+budget_value    0.003  0.010  0.030  0.100  0.300  0.500  0.700  0.900  6.000  8.000
+alpha family                                                                        
+0.0   DIFF        NaN    NaN    NaN  0.625  0.601  0.616  0.633  0.661    NaN  0.855
+      ISO         NaN    NaN    NaN    NaN    NaN    NaN    NaN    NaN    NaN  0.865
+      PGD-L2      NaN    NaN    NaN  0.600  0.603  0.662  0.648  0.680  0.844    NaN
+      PGD-Linf  0.603  0.603  0.643  0.527  0.554  0.526  0.656  0.703    NaN    NaN
+1.0   DIFF        NaN    NaN    NaN  0.526  0.562  0.549  0.525  0.593    NaN  0.798
+      ISO         NaN    NaN    NaN    NaN    NaN    NaN    NaN    NaN    NaN  0.341
+      PGD-L2      NaN    NaN    NaN  0.607  0.507  0.451  0.424  0.441  0.292    NaN
+      PGD-Linf  0.609  0.578  0.347  0.417  0.490  0.551  0.439  0.519    NaN    NaN
+
+  time_only: clean_r2 (mean over sessions)
+budget_value    0.003  0.010  0.030  0.100  0.300  0.500  0.700  0.900  6.000  8.000
+alpha family                                                                        
+0.0   DIFF        NaN    NaN    NaN  0.620  0.664  0.677  0.679  0.673    NaN  0.883
+      ISO         NaN    NaN    NaN    NaN    NaN    NaN    NaN    NaN    NaN  0.883
+      PGD-L2      NaN    NaN    NaN  0.626  0.630  0.632  0.679  0.676  0.877    NaN
+      PGD-Linf  0.669  0.676  0.662  0.637  0.654  0.633  0.635  0.793    NaN    NaN
+1.0   DIFF        NaN    NaN    NaN  0.507  0.575  0.669  0.700  0.767    NaN  0.873
+      ISO         NaN    NaN    NaN    NaN    NaN    NaN    NaN    NaN    NaN  0.134
+      PGD-L2      NaN    NaN    NaN  0.478  0.369  0.270  0.222  0.203  0.184    NaN
+      PGD-Linf  0.487  0.471  0.204 -0.023 -0.106 -0.105 -0.092 -0.086    NaN    NaN
+
+  time_only: best PGD arm per session (oracle on the AUROC):
+    alpha 0: {'PGD_L2_EPS6': 4}
+    alpha 1: {'PGD_L2_EPS0.1': 2, 'PGD_LINF_EPS0.5': 1, 'PGD_LINF_EPS0.003': 1}
+    alpha 0       AUTO_SIG - ORACLE_PGD  +0.0121 [+0.0059, +0.0177] sessions up 4/4
+    alpha 0          DIFF8 - ORACLE_PGD  +0.0110 [+0.0006, +0.0246] sessions up 4/4
+    alpha 0    ORACLE_DIFF - ORACLE_PGD  +0.0110 [+0.0006, +0.0246] sessions up 4/4
+    alpha 0    DIFF0.1 - PGD-L2 0.1 (matched)  +0.0248 [-0.0461, +0.0714] sessions up 3/4
+    alpha 0    DIFF0.3 - PGD-L2 0.3 (matched)  -0.0020 [-0.0534, +0.0359] sessions up 3/4
+    alpha 0    DIFF0.5 - PGD-L2 0.5 (matched)  -0.0457 [-0.1540, +0.0628] sessions up 1/4
+    alpha 0    DIFF0.7 - PGD-L2 0.7 (matched)  -0.0148 [-0.0932, +0.0637] sessions up 2/4
+    alpha 0    DIFF0.9 - PGD-L2 0.9 (matched)  -0.0182 [-0.0681, +0.0316] sessions up 2/4
+    alpha 1       AUTO_SIG - ORACLE_PGD  +0.1181 [+0.0807, +0.1581] sessions up 4/4
+    alpha 1          DIFF8 - ORACLE_PGD  +0.1313 [+0.0856, +0.1916] sessions up 4/4
+    alpha 1    ORACLE_DIFF - ORACLE_PGD  +0.1313 [+0.0856, +0.1916] sessions up 4/4
+    alpha 1    DIFF0.1 - PGD-L2 0.1 (matched)  -0.0811 [-0.1622, -0.0001] sessions up 1/4
+    alpha 1    DIFF0.3 - PGD-L2 0.3 (matched)  +0.0554 [-0.0352, +0.1491] sessions up 3/4
+    alpha 1    DIFF0.5 - PGD-L2 0.5 (matched)  +0.0979 [-0.0233, +0.2190] sessions up 3/4
+    alpha 1    DIFF0.7 - PGD-L2 0.7 (matched)  +0.1013 [+0.0680, +0.1667] sessions up 4/4
+    alpha 1    DIFF0.9 - PGD-L2 0.9 (matched)  +0.1525 [+0.0655, +0.2399] sessions up 4/4
+
+3  pre-registered hypotheses
+   inconclusive  HA1 supervised PGD6 > CLEAN (matched inverse, all alpha)  diff -0.0021 [-0.1335, +0.1344], sessions 4/8
+   inconclusive  HA1 supervised ISO8 > CLEAN (matched inverse, all alpha)  diff +0.0023 [-0.1421, +0.1519], sessions 4/8
+      SUPPORTED  HA1 supervised DIFF8 > CLEAN (matched inverse, all alpha)  diff +0.2076 [+0.1442, +0.2686], sessions 8/8
+      SUPPORTED  HA1 supervised AUTO_BEH > CLEAN (matched inverse, all alpha)  diff +0.1948 [+0.1285, +0.2599], sessions 8/8
+      SUPPORTED  HA2 supervised alpha 1 DIFF8 > ISO8 (inv_true)  diff +0.4454 [+0.4170, +0.4814], sessions 4/4
+      SUPPORTED  HA2 supervised alpha 1 DIFF8 > ISO8 (inv_noise, secondary)  diff +0.4498 [+0.4197, +0.4895], sessions 4/4
+      SUPPORTED  HA2 supervised alpha 1 AUTO_BEH > PGD6 (inv_true)  diff +0.4110 [+0.4085, +0.4135], sessions 4/4
+      SUPPORTED  HA2 supervised alpha 1 AUTO_BEH > PGD6 (inv_noise, secondary)  diff +0.4145 [+0.4109, +0.4183], sessions 4/4
+      SUPPORTED  HA3 supervised alpha 1 DIFF8: inv_true > inv  diff +0.0638 [+0.0476, +0.0896], sessions 4/4
+      SUPPORTED  HA3 supervised alpha 1 AUTO_BEH: inv_true > inv  diff +0.0472 [+0.0108, +0.0835], sessions 4/4
+      SUPPORTED  HA3 supervised alpha 1 PGD6: inv >= inv_true  diff +0.0345 [-0.0020, +0.0696], sessions 3/4
+      SUPPORTED  HA3 supervised alpha 1 ISO8: inv >= inv_true  diff +0.0333 [+0.0232, +0.0434], sessions 4/4
+      SUPPORTED  HA2 supervised alpha 0: the two inverses agree (max |diff| 0.0000)
+   inconclusive  HA1 time_only PGD6 > CLEAN (matched inverse, all alpha)  diff -0.0567 [-0.2597, +0.1334], sessions 5/8
+   inconclusive  HA1 time_only ISO8 > CLEAN (matched inverse, all alpha)  diff -0.0214 [-0.2081, +0.1574], sessions 4/8
+      SUPPORTED  HA1 time_only DIFF8 > CLEAN (matched inverse, all alpha)  diff +0.2017 [+0.1527, +0.2562], sessions 8/8
+      SUPPORTED  HA1 time_only AUTO_SIG > CLEAN (matched inverse, all alpha)  diff +0.1958 [+0.1524, +0.2434], sessions 8/8
+      SUPPORTED  HA2 time_only alpha 1 DIFF8 > ISO8 (inv_true)  diff +0.4201 [+0.3741, +0.4883], sessions 4/4
+      SUPPORTED  HA2 time_only alpha 1 DIFF8 > ISO8 (inv_noise, secondary)  diff +0.4237 [+0.3813, +0.4869], sessions 4/4
+      SUPPORTED  HA2 time_only alpha 1 AUTO_SIG > PGD6 (inv_true)  diff +0.4088 [+0.3462, +0.4690], sessions 4/4
+      SUPPORTED  HA2 time_only alpha 1 AUTO_SIG > PGD6 (inv_noise, secondary)  diff +0.4100 [+0.3491, +0.4656], sessions 4/4
+      SUPPORTED  HA3 time_only alpha 1 DIFF8: inv_true > inv  diff +0.0487 [+0.0076, +0.0897], sessions 3/4
+      SUPPORTED  HA3 time_only alpha 1 AUTO_SIG: inv_true > inv  diff +0.0681 [+0.0496, +0.0917], sessions 4/4
+  not supported  HA3 time_only alpha 1 PGD6: inv >= inv_true  diff -0.0842 [-0.1530, +0.0065], sessions 1/4
+  not supported  HA3 time_only alpha 1 ISO8: inv >= inv_true  diff -0.0361 [-0.0911, +0.0188], sessions 1/4
+      SUPPORTED  HA2 time_only alpha 0: the two inverses agree (max |diff| 0.0000)
+      SUPPORTED  HA4 supervised alpha 0: AUTO within 0.03 of the best PGD (oracle)  diff +0.0108 [-0.0007, +0.0194], sessions 3/4
+   inconclusive  HA5 supervised alpha 1 DIFF0.1 > PGD-L2 0.1  diff -0.0497 [-0.1504, +0.0494], sessions 2/4
+   inconclusive  HA5 supervised alpha 1 DIFF0.3 > PGD-L2 0.3  diff -0.0438 [-0.0954, +0.0078], sessions 1/4
+   CONTRADICTED  HA5 supervised alpha 1 DIFF0.5 > PGD-L2 0.5  diff -0.0725 [-0.1145, -0.0305], sessions 0/4
+   CONTRADICTED  HA5 supervised alpha 1 DIFF0.7 > PGD-L2 0.7  diff -0.0861 [-0.1635, -0.0184], sessions 1/4
+   inconclusive  HA5 supervised alpha 1 DIFF0.9 > PGD-L2 0.9  diff -0.0659 [-0.1543, +0.0109], sessions 1/4
+      SUPPORTED  HA4 supervised alpha 1: AUTO > best PGD (oracle)  diff +0.0683 [+0.0014, +0.1151], sessions 3/4
+      SUPPORTED  HA4 time_only alpha 0: AUTO within 0.03 of the best PGD (oracle)  diff +0.0121 [+0.0059, +0.0177], sessions 4/4
+   CONTRADICTED  HA5 time_only alpha 1 DIFF0.1 > PGD-L2 0.1  diff -0.0811 [-0.1622, -0.0001], sessions 1/4
+   inconclusive  HA5 time_only alpha 1 DIFF0.3 > PGD-L2 0.3  diff +0.0554 [-0.0352, +0.1491], sessions 3/4
+   inconclusive  HA5 time_only alpha 1 DIFF0.5 > PGD-L2 0.5  diff +0.0979 [-0.0233, +0.2190], sessions 3/4
+      SUPPORTED  HA5 time_only alpha 1 DIFF0.7 > PGD-L2 0.7  diff +0.1013 [+0.0680, +0.1667], sessions 4/4
+      SUPPORTED  HA5 time_only alpha 1 DIFF0.9 > PGD-L2 0.9  diff +0.1525 [+0.0655, +0.2399], sessions 4/4
+      SUPPORTED  HA4 time_only alpha 1: AUTO > best PGD (oracle)  diff +0.1181 [+0.0807, +0.1581], sessions 4/4
+mirzaei@haas034:~$ 
