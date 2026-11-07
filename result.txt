@@ -1,295 +1,77 @@
-I have no name!@sam-0-0:/workspace$ cd /data/hossein/mm_project/EXP15
+There are several mathematical gaps in the proposed derivation that should be addressed before presenting \(x^*=1/(2\sqrt{2})\approx0.354\) as a theoretically justified optimal or safe adversarial budget.
 
-cat synth_half_e25.txt
-cat synth_half_e12.txt
-cat perich_sup_report.txt
-cat perich_time_report.txt
-/data/hossein/mm_project/EXP15/SYNTH_E25: 80 successful runs, 0 errors; sessions 4, seeds [np.int64(42)]
+**1. The derivation of 0.354 is algebraically correct, but its optimality is not established.**
 
-0  sessions: separations (estimated in each metric; true = exact) and the median d'_est / d'_true of random patterns
-session  alpha  amplitude  eps_beh_true  beh_r2  eps_beh_diff  eps_beh_sp  eps_beh_ref  eps_beh_true_est  dist_diff  dist_sp  dist_iso
-  A1_R0    1.0      0.275          25.0   0.033        24.255      12.583        9.159            24.409      0.999    0.959     0.450
-  A1_R1    1.0      0.261          25.0   0.028        24.143      12.681        9.056            24.292      0.998    0.957     0.401
-  A1_R2    1.0      0.293          25.0   0.035        24.114      12.390        8.768            24.213      1.000    0.951     0.443
-  A1_R3    1.0      0.300          25.0   0.036        24.399      12.732        9.144            24.482      0.999    0.956     0.470
+For two independent, identically distributed samples in the whitened space, the identity
 
-==================== supervised
-1  per arm (true = ideal-observer metric; auc_ideal = Phi(true eps1/2 / sqrt 2))
-                            runs  clean_r2  true_half  auc_ideal  kappa_true  ref_half  ref_kappa  iso_half  fails  budget  loss_gain
-alpha arm                                                                                                                            
-1.0   MADRY_SPDIFF_AUTOBEH     4     0.930      4.799      1.000       0.192     2.023      0.226     1.525      0   7.746      1.408
-      MADRY_SPDIFF_HALFBEH     4     0.930      4.799      1.000       0.192     2.023      0.226     1.525      0   7.746      1.408
-      MADRY_SPDIFF_XBEH20      4     0.921      4.562      0.999       0.182     2.075      0.232     1.553      0   4.840      0.938
-      MADRY_SPDIFF_XBEH30      4     0.928      4.786      1.000       0.191     2.039      0.228     1.546      0   7.260      1.344
-      MADRY_SPDIFF_XBEH36      4     0.933      4.751      1.000       0.190     1.967      0.220     1.488      0   8.712      1.530
-      MADRY_SPDIFF_XBEH42      4     0.935      4.709      1.000       0.188     1.918      0.214     1.448      0  10.164      1.715
-      MADRY_SPDIFF_XBEH48      4     0.934      4.607      0.999       0.184     1.896      0.212     1.428      0  11.615      2.043
-      MADRY_SPDIFF_XBEH54      4     0.931      4.369      0.999       0.175     1.835      0.205     1.399      0  13.067      2.260
-      MADRY_SPDIFF_XBEH60      4     0.929      3.943      0.997       0.158     1.698      0.190     1.379      0  14.519      2.374
-      MADRY_SPDIFF_XBEH70      4     0.913      2.539      0.963       0.102     1.465      0.161     1.088      0  16.939      2.285
+\[
+\mathbb{E}\|s_a-s_b\|^2=2\sigma^2
+\]
 
-==================== time_only
-1  per arm (true = ideal-observer metric; auc_ideal = Phi(true eps1/2 / sqrt 2))
-                            runs  clean_r2  true_half  auc_ideal  kappa_true  ref_half  ref_kappa  iso_half  fails  budget  loss_gain
-alpha arm                                                                                                                            
-1.0   MADRY_SPDIFF_AUTOSIG     4     0.934      4.636      0.999       0.185     1.855      0.207     1.418      0   5.963      0.528
-      MADRY_SPDIFF_HALFSIG     4     0.936      4.614      0.999       0.185     1.838      0.205     1.409      0   7.746      0.703
-      MADRY_SPDIFF_XSIG20      4     0.933      4.592      0.999       0.184     1.834      0.205     1.412      0   4.969      0.434
-      MADRY_SPDIFF_XSIG30      4     0.937      4.630      0.999       0.185     1.842      0.206     1.412      0   7.453      0.678
-      MADRY_SPDIFF_XSIG36      4     0.937      4.601      0.999       0.184     1.837      0.205     1.404      0   8.944      0.841
-      MADRY_SPDIFF_XSIG42      4     0.938      4.592      0.999       0.184     1.832      0.205     1.399      0  10.435      1.019
-      MADRY_SPDIFF_XSIG48      4     0.937      4.521      0.999       0.181     1.795      0.200     1.371      0  11.925      1.245
-      MADRY_SPDIFF_XSIG54      4     0.938      4.508      0.999       0.180     1.796      0.201     1.392      0  13.416      1.586
-      MADRY_SPDIFF_XSIG60      4     0.939      4.452      0.999       0.178     1.764      0.197     1.352      0  14.907      2.131
-      MADRY_SPDIFF_XSIG70      4     0.910      2.668      0.969       0.107     1.357      0.148     1.218      0  17.391      2.304
+is correct, provided that \(\sigma^2=\mathbb{E}\|s-\bar{s}\|^2\). Consequently, defining \(\epsilon_{\mathrm{task}}\) as the root-mean-square pairwise distance gives \(\epsilon_{\mathrm{task}}=\sqrt{2}\sigma\).
 
-6  half rule (eps_beh true 25.0): true eps1/2 against x = eps / eps_task(M_train) (ladder: DIFF without the cap; AUTO / HALF: their rules); rel = eps1/2 / the session's best ladder eps1/2
+However, the additional choice \(\epsilon^*=\sigma/2\) does not follow from this identity. Why should half the RMS distance from the distribution mean be the largest safe perturbation? A formal optimization objective, risk constraint, or additional geometric assumption is required to justify this choice.
 
-  supervised
-                      runs     x  budget  true_half    rel  clean_r2  fails
-arm                                                                        
-MADRY_SPDIFF_XBEH20      4  0.20   4.840      4.562  0.958     0.921      0
-MADRY_SPDIFF_XBEH30      4  0.30   7.260      4.786  1.000     0.928      0
-MADRY_SPDIFF_HALFBEH     4  0.32   7.746      4.799  1.001     0.930      0
-MADRY_SPDIFF_AUTOBEH     4  0.32   7.746      4.799  1.001     0.930      0
-MADRY_SPDIFF_XBEH36      4  0.36   8.712      4.751  0.990     0.933      0
-MADRY_SPDIFF_XBEH42      4  0.42  10.164      4.709  0.982     0.935      0
-MADRY_SPDIFF_XBEH48      4  0.48  11.615      4.607  0.959     0.934      0
-MADRY_SPDIFF_XBEH54      4  0.54  13.067      4.369  0.913     0.931      0
-MADRY_SPDIFF_XBEH60      4  0.60  14.519      3.943  0.865     0.929      0
-MADRY_SPDIFF_XBEH70      4  0.70  16.939      2.539  0.529     0.913      0
-  x of the best ladder budget per session: [0.3, 0.3, 0.3, 0.3] (predicted in [0.36, 0.54])
-  HALF jackknife q: [0.988, 0.977, 0.989, 0.988]
-  HALF / AUTO true eps1/2 1.000 [1.000, 1.000] sessions up 0/4; budget ratio median 1.000
+**2. RMS separation does not guarantee non-overlapping adversarial regions.**
 
-  time_only
-                      runs      x  budget  true_half    rel  clean_r2  fails
-arm                                                                         
-MADRY_SPDIFF_XSIG20      4  0.200   4.969      4.592  0.992     0.933      0
-MADRY_SPDIFF_AUTOSIG     4  0.240   5.963      4.636  0.997     0.934      0
-MADRY_SPDIFF_XSIG30      4  0.300   7.453      4.630  0.994     0.937      0
-MADRY_SPDIFF_HALFSIG     4  0.312   7.746      4.614  0.996     0.936      0
-MADRY_SPDIFF_XSIG36      4  0.360   8.944      4.601  0.994     0.937      0
-MADRY_SPDIFF_XSIG42      4  0.420  10.435      4.592  0.992     0.938      0
-MADRY_SPDIFF_XSIG48      4  0.480  11.925      4.521  0.966     0.937      0
-MADRY_SPDIFF_XSIG54      4  0.540  13.416      4.508  0.970     0.938      0
-MADRY_SPDIFF_XSIG60      4  0.600  14.907      4.452  0.956     0.939      0
-MADRY_SPDIFF_XSIG70      4  0.700  17.391      2.668  0.576     0.910      0
-  x of the best ladder budget per session: [0.2, 0.36, 0.3, 0.3] (predicted in [0.36, 0.54])
-  HALF jackknife q: [0.986, 0.974, 0.987, 0.985]
-  HALF / AUTO true eps1/2 0.996 [0.986, 1.006] sessions up 2/4; budget ratio median 1.299
+The midpoint argument establishes that two perturbation balls intersect when their radii reach half the actual distance between their centers. However, the proposed derivation substitutes an expected RMS distance for that pairwise distance.
 
-4  pre-registered hypotheses
-  not supported  S1 supervised ladder peak at x in [0.36, 0.54] (0/4 sessions)
-  rules give the same budget here  S2 supervised HALF >= AUTO  ratio 1.000 [1.000, 1.000], sessions 0/4
-      SUPPORTED  S3 supervised no HALF run below FAIL_HALF
-  not supported  S1 time_only ladder peak at x in [0.36, 0.54] (1/4 sessions)
-      SUPPORTED  S2 time_only HALF >= AUTO  ratio 0.996 [0.986, 1.006], sessions 2/4
-      SUPPORTED  S3 time_only no HALF run below FAIL_HALF
-/data/hossein/mm_project/EXP15/SYNTH_E12: 80 successful runs, 0 errors; sessions 4, seeds [np.int64(42)]
+These quantities are not interchangeable. Even if the RMS separation is large, some positive–negative pairs may be arbitrarily close.
 
-0  sessions: separations (estimated in each metric; true = exact) and the median d'_est / d'_true of random patterns
-session  alpha  amplitude  eps_beh_true  beh_r2  eps_beh_diff  eps_beh_sp  eps_beh_ref  eps_beh_true_est  dist_diff  dist_sp  dist_iso
-  A1_R0    1.0      0.132          12.0   0.007        11.422       8.847        8.040            11.442      0.999    0.979     0.456
-  A1_R1    1.0      0.125          12.0   0.006        11.374       8.846        7.928            11.392      0.999    0.978     0.406
-  A1_R2    1.0      0.141          12.0   0.008        11.331       8.608        7.658            11.311      1.000    0.975     0.450
-  A1_R3    1.0      0.144          12.0   0.008        11.565       8.940        8.070            11.549      0.999    0.978     0.477
+A genuine sufficient condition for non-overlap would be
 
-==================== supervised
-1  per arm (true = ideal-observer metric; auc_ideal = Phi(true eps1/2 / sqrt 2))
-                            runs  clean_r2  true_half  auc_ideal  kappa_true  ref_half  ref_kappa  iso_half  fails  budget  loss_gain
-alpha arm                                                                                                                            
-1.0   MADRY_SPDIFF_AUTOBEH     4     0.791      1.902      0.910       0.158     1.555      0.198     0.712      0   4.137      1.348
-      MADRY_SPDIFF_HALFBEH     4     0.816      2.140      0.934       0.178     1.658      0.211     0.741      0   5.607      1.599
-      MADRY_SPDIFF_XBEH20      4     0.804      1.771      0.895       0.148     1.453      0.182     0.682      0   2.280      0.791
-      MADRY_SPDIFF_XBEH30      4     0.795      1.815      0.900       0.151     1.497      0.190     0.698      0   3.419      1.148
-      MADRY_SPDIFF_XBEH36      4     0.789      1.884      0.908       0.157     1.548      0.197     0.710      0   4.103      1.340
-      MADRY_SPDIFF_XBEH42      4     0.795      2.040      0.925       0.170     1.632      0.205     0.738      0   4.787      1.488
-      MADRY_SPDIFF_XBEH48      4     0.813      2.129      0.934       0.177     1.651      0.210     0.741      0   5.471      1.584
-      MADRY_SPDIFF_XBEH54      4     0.827      2.171      0.937       0.181     1.660      0.211     0.727      0   6.155      1.677
-      MADRY_SPDIFF_XBEH60      4     0.833      2.191      0.939       0.183     1.658      0.211     0.720      0   6.839      1.790
-      MADRY_SPDIFF_XBEH70      4     0.835      1.781      0.896       0.148     1.376      0.173     0.626      0   7.978      2.398
+\[
+\epsilon < \frac12\min_{(a,b)\in\mathcal P_-}\|s_a-s_b\|,
+\]
 
-==================== time_only
-1  per arm (true = ideal-observer metric; auc_ideal = Phi(true eps1/2 / sqrt 2))
-                            runs  clean_r2  true_half  auc_ideal  kappa_true  ref_half  ref_kappa  iso_half  fails  budget  loss_gain
-alpha arm                                                                                                                            
-1.0   MADRY_SPDIFF_AUTOSIG     4     0.840      2.062      0.928       0.172     1.534      0.195     0.677      0   2.930      0.446
-      MADRY_SPDIFF_HALFSIG     4     0.845      2.113      0.932       0.176     1.575      0.200     0.692      0   5.904      0.934
-      MADRY_SPDIFF_XSIG20      4     0.843      2.060      0.927       0.172     1.531      0.195     0.677      0   2.442      0.381
-      MADRY_SPDIFF_XSIG30      4     0.842      2.048      0.926       0.171     1.530      0.195     0.687      0   3.663      0.549
-      MADRY_SPDIFF_XSIG36      4     0.842      2.024      0.924       0.169     1.520      0.193     0.674      0   4.395      0.649
-      MADRY_SPDIFF_XSIG42      4     0.842      2.035      0.925       0.170     1.528      0.194     0.688      0   5.128      0.758
-      MADRY_SPDIFF_XSIG48      4     0.844      2.086      0.930       0.174     1.557      0.198     0.686      0   5.861      0.913
-      MADRY_SPDIFF_XSIG54      4     0.846      2.158      0.936       0.180     1.595      0.203     0.702      0   6.593      1.105
-      MADRY_SPDIFF_XSIG60      4     0.845      2.152      0.936       0.179     1.589      0.202     0.698      0   7.326      1.327
-      MADRY_SPDIFF_XSIG70      4     0.846      2.151      0.936       0.179     1.581      0.201     0.686      0   8.547      2.034
+where \(\mathcal P_-\) denotes the relevant negative pairs.
 
-6  half rule (eps_beh true 12.0): true eps1/2 against x = eps / eps_task(M_train) (ladder: DIFF without the cap; AUTO / HALF: their rules); rel = eps1/2 / the session's best ladder eps1/2
+Therefore, \(\epsilon\leq\epsilon_{\mathrm{task}}/(2\sqrt2)\) does not generally guarantee the absence of overlap.
 
-  supervised
-                      runs      x  budget  true_half    rel  clean_r2  fails
-arm                                                                         
-MADRY_SPDIFF_XBEH20      4  0.200   2.280      1.771  0.809     0.804      0
-MADRY_SPDIFF_XBEH30      4  0.300   3.419      1.815  0.840     0.795      0
-MADRY_SPDIFF_XBEH36      4  0.360   4.103      1.884  0.866     0.789      0
-MADRY_SPDIFF_AUTOBEH     4  0.363   4.137      1.902  0.867     0.791      0
-MADRY_SPDIFF_XBEH42      4  0.420   4.787      2.040  0.924     0.795      0
-MADRY_SPDIFF_XBEH48      4  0.480   5.471      2.129  0.971     0.813      0
-MADRY_SPDIFF_HALFBEH     4  0.493   5.607      2.140  0.980     0.816      0
-MADRY_SPDIFF_XBEH54      4  0.540   6.155      2.171  0.994     0.827      0
-MADRY_SPDIFF_XBEH60      4  0.600   6.839      2.191  1.000     0.833      0
-MADRY_SPDIFF_XBEH70      4  0.700   7.978      1.781  0.814     0.835      0
-  x of the best ladder budget per session: [0.6, 0.54, 0.6, 0.6] (predicted in [0.36, 0.54])
-  HALF jackknife q: [0.985, 0.977, 0.987, 0.985]
-  HALF / AUTO true eps1/2 1.125 [1.120, 1.131] sessions up 4/4; budget ratio median 1.357
+**3. Overlap does not necessarily imply representation collapse.**
 
-  time_only
-                      runs      x  budget  true_half    rel  clean_r2  fails
-arm                                                                         
-MADRY_SPDIFF_XSIG20      4  0.200   2.442      2.060  0.965     0.843      0
-MADRY_SPDIFF_AUTOSIG     4  0.240   2.930      2.062  0.959     0.840      0
-MADRY_SPDIFF_XSIG30      4  0.300   3.663      2.048  0.959     0.842      0
-MADRY_SPDIFF_XSIG36      4  0.360   4.395      2.024  0.931     0.842      0
-MADRY_SPDIFF_XSIG42      4  0.420   5.128      2.035  0.942     0.842      0
-MADRY_SPDIFF_XSIG48      4  0.480   5.861      2.086  0.959     0.844      0
-MADRY_SPDIFF_HALFSIG     4  0.487   5.904      2.113  0.976     0.845      0
-MADRY_SPDIFF_XSIG54      4  0.540   6.593      2.158  1.000     0.846      0
-MADRY_SPDIFF_XSIG60      4  0.600   7.326      2.152  0.997     0.845      0
-MADRY_SPDIFF_XSIG70      4  0.700   8.547      2.151  0.990     0.846      0
-  x of the best ladder budget per session: [0.6, 0.6, 0.7, 0.54] (predicted in [0.36, 0.54])
-  HALF jackknife q: [0.978, 0.961, 0.974, 0.973]
-  HALF / AUTO true eps1/2 1.023 [1.000, 1.046] sessions up 3/4; budget ratio median 2.028
+Even if adversarial regions corresponding to different contrastive targets overlap, this establishes a conflict in simultaneously satisfying certain robustness constraints. It does not prove that the entire CEBRA embedding collapses.
 
-4  pre-registered hypotheses
-  not supported  S1 supervised ladder peak at x in [0.36, 0.54] (1/4 sessions)
-      SUPPORTED  S2 supervised HALF >= AUTO  ratio 1.125 [1.120, 1.131], sessions 4/4
-      SUPPORTED  S3 supervised no HALF run below FAIL_HALF
-  not supported  S1 time_only ladder peak at x in [0.36, 0.54] (1/4 sessions)
-      SUPPORTED  S2 time_only HALF >= AUTO  ratio 1.023 [1.000, 1.046], sessions 3/4
-      SUPPORTED  S3 time_only no HALF run below FAIL_HALF
+Such a conclusion would require explicit assumptions about the contrastive objective, positive/negative sampling, encoder capacity, and the relationship between adversarial overlap and the collapse criterion.
 
-==================== supervised: /data/hossein/mm_project/EXP15/PERICH_SUP
-0  screen: 111 sessions, 111 usable; AUTO binding {'blind_cap': 82, 'behaviour': 29}; rule changes the budget in 24
-   jackknife q median 0.798 [0.400, 0.985] -> HALF fraction median 0.399; HALF / AUTO budget median 1.037 [0.550, 1.328]
-   runs: {'MADRY_SPDIFF_AUTOBEH': 48, 'MADRY_SPDIFF_HALFBEH': 48, 'MADRY_SPDIFF_XBEH30': 16, 'MADRY_SPDIFF_XBEH42': 16, 'MADRY_SPDIFF_XBEH54': 16, 'MADRY_SPDIFF_XBEH66': 16}
+Similarly, the proposed decoder \(R^2\) lower bound does not follow from the stated geometric lemma without additional assumptions about the data-generating process and decoder.
 
-1  MADRY_SPDIFF_HALFBEH / MADRY_SPDIFF_AUTOBEH, refined reference eps1/2 (= kappa ratio; same session)
-   observed x0.957 [x0.857, x1.028], sessions up 13/24
-   predicted from Exp14 (budget ratio^0.32): mean x1.000; r(log obs, log pred) +0.17
-   clean R2 HALF - AUTO +0.0010
-   failures MADRY_SPDIFF_AUTOBEH: 0/48
-   failures MADRY_SPDIFF_HALFBEH: 1/48
-         obs_ratio  pred_ratio  kappa_auto  x_auto  kappa_half  x_half
-session                                                               
-C-CO1        1.123       0.953       0.100   0.363       0.113   0.312
-C-CO15       0.936       0.959       0.185   0.363       0.173   0.319
-C-CO20       1.053       0.934       0.173   0.363       0.183   0.294
-C-CO23       0.924       0.947       0.269   0.363       0.248   0.306
-C-RT0        1.026       1.078       0.109   0.363       0.112   0.459
-C-RT1        0.960       0.916       0.136   0.363       0.130   0.276
-C-RT10       1.026       1.064       0.134   0.363       0.137   0.441
-C-RT12       0.971       1.026       0.128   0.363       0.124   0.393
-C-RT2        0.981       0.940       0.135   0.363       0.133   0.299
-C-RT3        1.104       1.074       0.094   0.363       0.104   0.454
-C-RT4        0.323       1.018       0.122   0.363       0.054   0.384
-C-RT5        1.016       1.059       0.151   0.363       0.154   0.434
-C-RT6        1.014       1.055       0.156   0.363       0.158   0.429
-C-RT7        1.010       1.076       0.151   0.363       0.153   0.456
-C-RT8        0.974       0.963       0.193   0.363       0.188   0.323
-C-RT9        1.006       1.045       0.147   0.363       0.148   0.416
-J-CO1        0.863       0.909       0.158   0.363       0.136   0.270
-M-RT0        0.992       0.969       0.150   0.363       0.148   0.329
-M-RT4        1.045       1.077       0.134   0.363       0.139   0.457
-T-RT0        1.109       1.085       0.119   0.363       0.132   0.468
-T-RT1        0.882       0.826       0.105   0.363       0.093   0.200
-T-RT2        1.228       1.095       0.070   0.363       0.086   0.482
-T-RT3        0.893       0.945       0.149   0.363       0.133   0.304
-T-RT4        1.004       1.058       0.118   0.363       0.118   0.433
+**4. The claimed threshold is not a distribution-free guarantee.**
 
-2  dose-response: kappa against x = eps / eps_task(M_train) (ladder: no cap)
-                      runs      x  kappa  fails  clean_r2
-experiment                                               
-MADRY_SPDIFF_XBEH30     16  0.300  0.123      0     0.544
-MADRY_SPDIFF_AUTOBEH    48  0.363  0.140      0     0.538
-MADRY_SPDIFF_HALFBEH    48  0.389  0.136      1     0.539
-MADRY_SPDIFF_XBEH42     16  0.420  0.135      1     0.529
-MADRY_SPDIFF_XBEH54     16  0.540  0.097      7     0.516
-MADRY_SPDIFF_XBEH66     16  0.660  0.020     12     0.511
-   failures below x = 0.5: 2; failing x: [0.384, 0.42, 0.54, 0.54, 0.54, 0.54, 0.54, 0.54, 0.54, 0.66, 0.66, 0.66, 0.66, 0.66, 0.66, 0.66, 0.66, 0.66, 0.66, 0.66, 0.66]
-   best ladder x per session: {'C-CO1': 0.3, 'C-CO23': 0.42, 'C-RT3': 0.42, 'C-RT6': 0.42, 'C-RT9': 0.42, 'J-CO1': 0.54, 'T-RT0': 0.42, 'T-RT1': 0.54}
-   kappa x0.54 / x0.42: x0.445 [x0.208, x0.835], sessions up 2/8
-   kappa x0.66 / x0.42: x0.195 [x0.117, x0.361], sessions up 1/8
+The empirical absence of failures below \(x^*\) in Exp14–15 is encouraging, but it cannot establish that the failure probability is zero. The fitted logistic collapse-risk model is also empirical evidence, not a proof of the theoretical threshold.
 
-3  pre-registered hypotheses
-   inconclusive  R2 supervised HALF > AUTO (kappa ratio)  x0.957 [x0.857, x1.028], sessions up 13/24
-  CONTRADICTED (1 runs)  R1 supervised no HALF failure  
-      SUPPORTED  L1 supervised kappa at x 0.54 not above x 0.42  x0.445 [x0.208, x0.835], sessions up 2/8
-      SUPPORTED  L1 supervised kappa at x 0.66 not above x 0.42  x0.195 [x0.117, x0.361], sessions up 1/8
-  CONTRADICTED (2 runs)  L1 supervised failures only at x >= 0.5  
+The distinction between a deterministic geometric guarantee, a probabilistic risk bound, and an empirically observed low-risk region needs to be made explicit.
 
-==================== time_only: /data/hossein/mm_project/EXP15/PERICH_TIME
-0  screen: 111 sessions, 111 usable; AUTO binding {'signal': 63, 'blind_cap': 48}; rule changes the budget in 53
-   jackknife q median 0.976 [0.852, 0.988] -> HALF fraction median 0.488; HALF / AUTO budget median 1.138 [1.000, 1.363]
-   runs: {'MADRY_SPDIFF_AUTOSIG': 60, 'MADRY_SPDIFF_HALFSIG': 60, 'MADRY_SPDIFF_XSIG30': 16, 'MADRY_SPDIFF_XSIG42': 16, 'MADRY_SPDIFF_XSIG54': 16, 'MADRY_SPDIFF_XSIG66': 16}
+**5. The Time-Only coefficient is not fully derived without empirical calibration.**
 
-1  MADRY_SPDIFF_HALFSIG / MADRY_SPDIFF_AUTOSIG, refined reference eps1/2 (= kappa ratio; same session)
-   observed x1.006 [x0.993, x1.018], sessions up 20/30
-   predicted from Exp14 (budget ratio^0.11): mean x1.019; r(log obs, log pred) +0.37
-   clean R2 HALF - AUTO +0.0003
-   failures MADRY_SPDIFF_AUTOSIG: 0/60
-   failures MADRY_SPDIFF_HALFSIG: 0/60
-         obs_ratio  pred_ratio  kappa_auto  x_auto  kappa_half  x_half
-session                                                               
-C-CO10       0.991       1.019       0.151    0.24       0.150   0.286
-C-CO11       1.022       1.013       0.126    0.24       0.129   0.270
-C-CO14       0.994       1.018       0.126    0.24       0.125   0.283
-C-CO15       0.989       1.014       0.168    0.24       0.166   0.272
-C-CO17       1.019       1.017       0.110    0.24       0.112   0.281
-C-CO18       0.974       1.017       0.114    0.24       0.111   0.279
-C-CO19       1.044       1.016       0.123    0.24       0.129   0.278
-C-CO2        1.015       1.009       0.109    0.24       0.110   0.259
-C-CO20       0.884       1.015       0.119    0.24       0.106   0.274
-C-CO24       0.993       1.010       0.122    0.24       0.121   0.263
-C-CO25       0.980       1.014       0.145    0.24       0.142   0.272
-C-CO26       1.002       1.019       0.138    0.24       0.138   0.285
-C-CO27       1.028       1.026       0.127    0.24       0.131   0.303
-C-CO29       1.008       1.016       0.133    0.24       0.134   0.276
-C-CO3        1.011       1.026       0.134    0.24       0.136   0.303
-C-CO33       0.993       1.006       0.124    0.24       0.123   0.253
-C-CO5        1.009       1.022       0.139    0.24       0.140   0.293
-C-CO6        0.963       1.014       0.155    0.24       0.149   0.273
-C-CO8        1.000       1.035       0.133    0.24       0.133   0.327
-C-CO9        1.012       1.029       0.146    0.24       0.148   0.311
-C-RT13       1.013       1.011       0.093    0.24       0.094   0.266
-J-CO0        1.015       1.022       0.106    0.24       0.107   0.294
-T-CO0        1.010       1.014       0.170    0.24       0.172   0.273
-T-CO4        1.107       1.031       0.150    0.24       0.166   0.317
-T-CO5        1.035       1.023       0.177    0.24       0.183   0.295
-T-RT0        1.023       1.025       0.132    0.24       0.135   0.300
-T-RT1        0.978       1.014       0.151    0.24       0.148   0.273
-T-RT2        1.029       1.032       0.115    0.24       0.118   0.320
-T-RT3        1.047       1.015       0.187    0.24       0.196   0.275
-T-RT4        1.001       1.025       0.102    0.24       0.102   0.301
+The proposed conversion using
 
-2  dose-response: kappa against x = eps / eps_task(M_train) (ladder: no cap)
-                      runs     x  kappa  fails  clean_r2
-experiment                                              
-MADRY_SPDIFF_AUTOSIG    60  0.24  0.129      0     0.589
-MADRY_SPDIFF_HALFSIG    60  0.28  0.134      0     0.589
-MADRY_SPDIFF_XSIG30     16  0.30  0.128      0     0.602
-MADRY_SPDIFF_XSIG42     16  0.42  0.111      0     0.577
-MADRY_SPDIFF_XSIG54     16  0.54  0.092      2     0.556
-MADRY_SPDIFF_XSIG66     16  0.66  0.036     10     0.468
-   failures below x = 0.5: 0; failing x: [0.54, 0.54, 0.66, 0.66, 0.66, 0.66, 0.66, 0.66, 0.66, 0.66, 0.66, 0.66]
-   best ladder x per session: {'C-CO11': 0.3, 'C-CO20': 0.3, 'C-CO24': 0.3, 'C-CO27': 0.3, 'C-CO8': 0.42, 'J-CO0': 0.3, 'T-CO4': 0.42, 'T-RT1': 0.3}
-   kappa x0.54 / x0.42: x0.710 [x0.564, x0.867], sessions up 0/8
-   kappa x0.66 / x0.42: x0.275 [x0.214, x0.352], sessions up 0/8
+\[
+\rho=\frac{\epsilon_{\mathrm{beh}}}{\epsilon_{\mathrm{sig}}}
+\]
 
-3  pre-registered hypotheses
-   inconclusive  R3 time_only HALF > AUTO (kappa ratio)  x1.006 [x0.993, x1.018], sessions up 20/30
-      SUPPORTED  R3 time_only no HALF failure  
-      SUPPORTED  L2 time_only kappa at x 0.54 not above x 0.42  x0.710 [x0.564, x0.867], sessions up 0/8
-      SUPPORTED  L2 time_only kappa at x 0.66 not above x 0.42  x0.275 [x0.214, x0.352], sessions up 0/8
-      SUPPORTED  L2 time_only failures only at x >= 0.5  
-I have no name!@sam-0-0:/data/hossein/mm_project/EXP15$ 
+gives \(0.354\times0.83\approx0.293\) at the reported median ratio, rather than the existing coefficient 0.24.
+
+Recovering 0.24 requires choosing approximately \(\rho=0.68\), corresponding to an empirical lower percentile. Unless that percentile is independently justified by a specified risk criterion, the resulting coefficient remains data-calibrated rather than purely theoretical.
+
+**6. A safe budget is not necessarily the robustness-optimal budget.**
+
+Even if a non-overlap threshold could be rigorously established, it would only provide a geometric safety condition. It would not demonstrate that the corresponding perturbation budget maximizes adversarial robustness or downstream representation quality.
+
+The Exp15 results already illustrate this distinction: robustness can decline before any observed collapse, particularly in Time-Only training.
+
+**Suggested theoretical direction**
+
+A more defensible approach would be to formulate a probabilistic separation bound using the distribution of positive–negative distances in the noise-whitened space.
+
+For example, if \(D_-\) denotes the distance between a sampled negative pair, then choosing
+
+\[
+\epsilon\leq\frac12 Q_\alpha(D_-)
+\]
+
+would bound the probability of pairwise adversarial-region overlap by \(\alpha\), under the specified sampling distribution.
+
+This would yield a mathematically interpretable geometric risk bound, although connecting that bound to actual CEBRA collapse would still require separate theoretical assumptions or empirical validation.
+
+Overall, \(1/(2\sqrt2)\) is an interesting theoretically motivated candidate, and its proximity to 0.363 is worth investigating. However, the current derivation does not establish that it is a universally safe threshold or an optimal adversarial budget. The main missing step is a rigorous connection between RMS signal geometry, pairwise adversarial overlap, representation collapse, and robustness optimization.
