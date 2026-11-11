@@ -1,9 +1,135 @@
-**Exp17 (Z-score):**
-- Participation Ratio: 94.609 / 96 = 98.55%
-- Condition Number: 2.035
-- Ledoit–Wolf Shrinkage: 0.6337
+mirzaei@haas034:~/sam/result/Aggregate$ runai logs sam-cov111 -p upmwmathis-mirzaei -f
+========== DATASET INSPECTION ==========
+Dataset: /data/hossein/mm_project/perich_data_valid_final_raw
+NPZ files: 111
+Source identity: not independently verified
+No training or attacks
 
-**Exp18 (Raw):**
-- Participation Ratio: 17.965 / 96 = 18.71%
-- Condition Number: 2099.10
-- Ledoit–Wolf Shrinkage: 0.00696
+========== SESSION-BY-SESSION ==========
+  1/111 C-CO0                C= 71 PR/C raw=0.3787 z=0.9301 COND raw=334.4 z=7.3 SHR raw=0.018 z=0.267
+  2/111 C-CO1                C= 41 PR/C raw=0.4589 z=0.9188 COND raw=73.5 z=5.0 SHR raw=0.017 z=0.185
+  3/111 C-CO10               C= 88 PR/C raw=0.6370 z=0.9373 COND raw=62.3 z=4.4 SHR raw=0.010 z=0.078
+  4/111 C-CO11               C= 91 PR/C raw=0.7094 z=0.9064 COND raw=30.8 z=6.3 SHR raw=0.015 z=0.055
+  5/111 C-CO12               C= 86 PR/C raw=0.7258 z=0.9191 COND raw=19.2 z=5.3 SHR raw=0.013 z=0.054
+  6/111 C-CO13               C= 72 PR/C raw=0.7829 z=0.9393 COND raw=9.4 z=4.0 SHR raw=0.015 z=0.060
+  7/111 C-CO14               C= 49 PR/C raw=0.7531 z=0.9693 COND raw=18.8 z=2.2 SHR raw=0.043 z=0.266
+  8/111 C-CO15               C= 44 PR/C raw=0.6679 z=0.9606 COND raw=26.5 z=2.6 SHR raw=0.027 z=0.217
+  9/111 C-CO16               C= 49 PR/C raw=0.7365 z=0.9411 COND raw=36.1 z=8.3 SHR raw=0.037 z=0.161
+ 10/111 C-CO17               C= 52 PR/C raw=0.7395 z=0.9530 COND raw=35.7 z=3.8 SHR raw=0.042 z=0.207
+ 11/111 C-CO18               C= 46 PR/C raw=0.7003 z=0.9667 COND raw=18.7 z=2.1 SHR raw=0.032 z=0.244
+ 12/111 C-CO19               C= 42 PR/C raw=0.7734 z=0.9616 COND raw=11.0 z=2.3 SHR raw=0.042 z=0.209
+ 13/111 C-CO2                C= 61 PR/C raw=0.2699 z=0.8855 COND raw=1149.7 z=9.1 SHR raw=0.009 z=0.209
+ 14/111 C-CO20               C= 64 PR/C raw=0.7610 z=0.9392 COND raw=32.9 z=8.0 SHR raw=0.055 z=0.195
+ 15/111 C-CO21               C= 61 PR/C raw=0.7705 z=0.9706 COND raw=12.1 z=2.5 SHR raw=0.053 z=0.291
+ 16/111 C-CO22               C= 55 PR/C raw=0.7755 z=0.9687 COND raw=47.9 z=2.6 SHR raw=0.048 z=0.275
+ 17/111 C-CO23               C= 58 PR/C raw=0.7258 z=0.9531 COND raw=45.2 z=3.2 SHR raw=0.043 z=0.221
+ 18/111 C-CO24               C= 66 PR/C raw=0.6521 z=0.9576 COND raw=80.1 z=2.9 SHR raw=0.034 z=0.256
+ 19/111 C-CO25               C= 60 PR/C raw=0.7005 z=0.9522 COND raw=58.7 z=2.9 SHR raw=0.040 z=0.231
+ 20/111 C-CO26               C= 61 PR/C raw=0.6407 z=0.9588 COND raw=76.3 z=2.6 SHR raw=0.031 z=0.252
+ 21/111 C-CO27               C= 38 PR/C raw=0.7711 z=0.9527 COND raw=10.3 z=3.2 SHR raw=0.030 z=0.141
+ 22/111 C-CO28               C= 59 PR/C raw=0.6906 z=0.9107 COND raw=19.3 z=10.0 SHR raw=0.025 z=0.099
+ 23/111 C-CO29               C= 60 PR/C raw=0.6918 z=0.9089 COND raw=32.5 z=5.0 SHR raw=0.030 z=0.115
+ 24/111 C-CO3                C= 49 PR/C raw=0.3794 z=0.9412 COND raw=494.1 z=5.7 SHR raw=0.011 z=0.269
+ 25/111 C-CO30               C= 65 PR/C raw=0.7055 z=0.9063 COND raw=25.2 z=4.9 SHR raw=0.051 z=0.162
+ 26/111 C-CO31               C= 61 PR/C raw=0.7154 z=0.9084 COND raw=19.1 z=8.9 SHR raw=0.044 z=0.142
+ 27/111 C-CO32               C= 42 PR/C raw=0.5593 z=0.9209 COND raw=69.2 z=6.3 SHR raw=0.018 z=0.144
+ 28/111 C-CO33               C= 53 PR/C raw=0.7103 z=0.9244 COND raw=21.0 z=6.0 SHR raw=0.039 z=0.153
+ 29/111 C-CO34               C= 55 PR/C raw=0.7218 z=0.9381 COND raw=25.0 z=4.6 SHR raw=0.048 z=0.204
+ 30/111 C-CO35               C= 58 PR/C raw=0.7554 z=0.9344 COND raw=18.2 z=5.1 SHR raw=0.052 z=0.180
+ 31/111 C-CO36               C= 71 PR/C raw=0.5620 z=0.9124 COND raw=176.0 z=12.9 SHR raw=0.026 z=0.162
+ 32/111 C-CO37               C= 55 PR/C raw=0.7114 z=0.9267 COND raw=15.1 z=4.8 SHR raw=0.044 z=0.171
+ 33/111 C-CO38               C= 53 PR/C raw=0.6222 z=0.9299 COND raw=59.3 z=4.0 SHR raw=0.029 z=0.179
+ 34/111 C-CO39               C=246 PR/C raw=0.5009 z=0.9308 COND raw=87.3 z=4.9 SHR raw=0.072 z=0.415
+ 35/111 C-CO4                C= 41 PR/C raw=0.4882 z=0.9881 COND raw=309.1 z=1.6 SHR raw=0.013 z=0.596
+ 36/111 C-CO40               C=241 PR/C raw=0.6004 z=0.9466 COND raw=82.5 z=3.9 SHR raw=0.080 z=0.403
+ 37/111 C-CO41               C=353 PR/C raw=0.5565 z=0.9170 COND raw=69.9 z=6.3 SHR raw=0.097 z=0.391
+ 38/111 C-CO42               C=309 PR/C raw=0.5448 z=0.9087 COND raw=92.1 z=7.4 SHR raw=0.092 z=0.375
+ 39/111 C-CO43               C=295 PR/C raw=0.5497 z=0.9080 COND raw=84.1 z=6.7 SHR raw=0.087 z=0.356
+ 40/111 C-CO44               C=306 PR/C raw=0.5271 z=0.9332 COND raw=72.5 z=5.1 SHR raw=0.087 z=0.435
+ 41/111 C-CO45               C=299 PR/C raw=0.5332 z=0.9073 COND raw=96.9 z=7.3 SHR raw=0.078 z=0.342
+ 42/111 C-CO46               C=188 PR/C raw=0.5192 z=0.8609 COND raw=121.0 z=14.4 SHR raw=0.049 z=0.201
+ 43/111 C-CO47               C=249 PR/C raw=0.5857 z=0.8923 COND raw=63.0 z=8.8 SHR raw=0.083 z=0.295
+ 44/111 C-CO48               C=255 PR/C raw=0.5880 z=0.8770 COND raw=64.4 z=13.3 SHR raw=0.082 z=0.274
+ 45/111 C-CO49               C=207 PR/C raw=0.5913 z=0.9120 COND raw=62.5 z=7.6 SHR raw=0.080 z=0.324
+ 46/111 C-CO5                C= 48 PR/C raw=0.4216 z=0.9471 COND raw=336.2 z=5.9 SHR raw=0.012 z=0.242
+ 47/111 C-CO50               C=242 PR/C raw=0.5265 z=0.9159 COND raw=130.0 z=6.5 SHR raw=0.065 z=0.335
+ 48/111 C-CO51               C=225 PR/C raw=0.4940 z=0.9088 COND raw=218.8 z=7.6 SHR raw=0.046 z=0.288
+ 49/111 C-CO52               C=295 PR/C raw=0.5639 z=0.8934 COND raw=116.3 z=10.0 SHR raw=0.066 z=0.276
+ 50/111 C-CO6                C= 52 PR/C raw=0.4096 z=0.9816 COND raw=310.5 z=1.9 SHR raw=0.014 z=0.565
+ 51/111 C-CO7                C= 65 PR/C raw=0.4319 z=0.9219 COND raw=345.4 z=7.1 SHR raw=0.016 z=0.211
+ 52/111 C-CO8                C= 67 PR/C raw=0.4238 z=0.9215 COND raw=404.6 z=8.1 SHR raw=0.015 z=0.269
+ 53/111 C-CO9                C= 74 PR/C raw=0.5868 z=0.9209 COND raw=150.1 z=5.6 SHR raw=0.011 z=0.086
+ 54/111 C-RT0                C= 74 PR/C raw=0.4848 z=0.9392 COND raw=168.5 z=4.0 SHR raw=0.012 z=0.187
+ 55/111 C-RT1                C= 74 PR/C raw=0.2809 z=0.9495 COND raw=564.6 z=2.9 SHR raw=0.006 z=0.342
+ 56/111 C-RT10               C= 62 PR/C raw=0.4231 z=0.9618 COND raw=303.1 z=2.9 SHR raw=0.007 z=0.206
+ 57/111 C-RT11               C= 75 PR/C raw=0.7975 z=0.9420 COND raw=15.5 z=3.9 SHR raw=0.013 z=0.052
+ 58/111 C-RT12               C= 78 PR/C raw=0.7359 z=0.9172 COND raw=18.3 z=5.7 SHR raw=0.009 z=0.035
+ 59/111 C-RT13               C= 75 PR/C raw=0.7890 z=0.9427 COND raw=19.1 z=3.7 SHR raw=0.008 z=0.035
+ 60/111 C-RT14               C= 67 PR/C raw=0.7566 z=0.9392 COND raw=11.3 z=4.2 SHR raw=0.007 z=0.032
+ 61/111 C-RT2                C= 88 PR/C raw=0.3394 z=0.9158 COND raw=673.8 z=5.7 SHR raw=0.009 z=0.273
+ 62/111 C-RT3                C= 77 PR/C raw=0.3332 z=0.9408 COND raw=431.6 z=3.2 SHR raw=0.007 z=0.244
+ 63/111 C-RT4                C= 67 PR/C raw=0.3255 z=0.9356 COND raw=465.4 z=5.6 SHR raw=0.006 z=0.219
+ 64/111 C-RT5                C= 65 PR/C raw=0.3950 z=0.9510 COND raw=487.4 z=3.3 SHR raw=0.007 z=0.222
+ 65/111 C-RT6                C= 63 PR/C raw=0.3570 z=0.9538 COND raw=366.7 z=2.9 SHR raw=0.005 z=0.219
+ 66/111 C-RT7                C= 61 PR/C raw=0.3775 z=0.9578 COND raw=442.8 z=2.9 SHR raw=0.005 z=0.262
+ 67/111 C-RT8                C= 67 PR/C raw=0.3902 z=0.9378 COND raw=747.0 z=5.0 SHR raw=0.006 z=0.173
+ 68/111 C-RT9                C= 57 PR/C raw=0.4429 z=0.9575 COND raw=318.7 z=2.9 SHR raw=0.006 z=0.174
+ 69/111 J-CO0                C= 38 PR/C raw=0.1904 z=0.7244 COND raw=1781.2 z=42.9 SHR raw=0.003 z=0.061
+ 70/111 J-CO1                C= 18 PR/C raw=0.6020 z=0.7636 COND raw=34.7 z=26.0 SHR raw=0.010 z=0.022
+ 71/111 J-CO2                C= 19 PR/C raw=0.6509 z=0.7691 COND raw=42.4 z=16.7 SHR raw=0.011 z=0.025
+ 72/111 M-CO0                C=114 PR/C raw=0.3309 z=0.9045 COND raw=445.9 z=7.6 SHR raw=0.018 z=0.252
+ 73/111 M-CO1                C=148 PR/C raw=0.3658 z=0.9625 COND raw=336.4 z=3.9 SHR raw=0.023 z=0.418
+ 74/111 M-CO10               C= 58 PR/C raw=0.4965 z=0.9766 COND raw=217.2 z=2.0 SHR raw=0.018 z=0.397
+ 75/111 M-CO11               C= 68 PR/C raw=0.4759 z=0.9573 COND raw=92.0 z=3.3 SHR raw=0.007 z=0.139
+ 76/111 M-CO12               C= 90 PR/C raw=0.3853 z=0.7925 COND raw=706.3 z=42.8 SHR raw=0.008 z=0.049
+ 77/111 M-CO13               C= 49 PR/C raw=0.5313 z=0.9610 COND raw=42.0 z=2.8 SHR raw=0.019 z=0.253
+ 78/111 M-CO14               C= 55 PR/C raw=0.4848 z=0.9760 COND raw=280.8 z=2.2 SHR raw=0.016 z=0.398
+ 79/111 M-CO15               C= 37 PR/C raw=0.5386 z=0.9733 COND raw=103.6 z=2.2 SHR raw=0.016 z=0.303
+ 80/111 M-CO16               C= 41 PR/C raw=0.5710 z=0.9721 COND raw=79.3 z=2.3 SHR raw=0.020 z=0.308
+ 81/111 M-CO17               C= 54 PR/C raw=0.5340 z=0.9822 COND raw=203.6 z=1.9 SHR raw=0.021 z=0.491
+ 82/111 M-CO18               C= 57 PR/C raw=0.4394 z=0.9808 COND raw=292.0 z=2.0 SHR raw=0.016 z=0.445
+ 83/111 M-CO19               C= 52 PR/C raw=0.4664 z=0.9629 COND raw=71.4 z=2.6 SHR raw=0.015 z=0.268
+ 84/111 M-CO2                C=159 PR/C raw=0.3063 z=0.9705 COND raw=320.7 z=2.4 SHR raw=0.018 z=0.456
+ 85/111 M-CO20               C= 59 PR/C raw=0.5765 z=0.9055 COND raw=84.2 z=10.4 SHR raw=0.026 z=0.148
+ 86/111 M-CO21               C= 62 PR/C raw=0.4765 z=0.9754 COND raw=245.3 z=2.2 SHR raw=0.018 z=0.398
+ 87/111 M-CO3                C=118 PR/C raw=0.4288 z=0.8841 COND raw=268.9 z=10.3 SHR raw=0.023 z=0.190
+ 88/111 M-CO4                C=115 PR/C raw=0.4837 z=0.9701 COND raw=101.1 z=2.3 SHR raw=0.029 z=0.402
+ 89/111 M-CO5                C=129 PR/C raw=0.5246 z=0.9644 COND raw=177.7 z=3.9 SHR raw=0.032 z=0.360
+ 90/111 M-CO6                C= 92 PR/C raw=0.4758 z=0.9715 COND raw=137.8 z=2.5 SHR raw=0.021 z=0.361
+ 91/111 M-CO7                C= 26 PR/C raw=0.5898 z=0.9376 COND raw=31.6 z=3.2 SHR raw=0.003 z=0.033
+ 92/111 M-CO8                C= 25 PR/C raw=0.6000 z=0.9472 COND raw=14.3 z=2.8 SHR raw=0.004 z=0.041
+ 93/111 M-CO9                C=145 PR/C raw=0.3727 z=0.9674 COND raw=390.9 z=3.1 SHR raw=0.007 z=0.240
+ 94/111 M-RT0                C=165 PR/C raw=0.3618 z=0.9594 COND raw=430.2 z=4.2 SHR raw=0.010 z=0.259
+ 95/111 M-RT1                C=164 PR/C raw=0.3770 z=0.9407 COND raw=533.3 z=9.2 SHR raw=0.010 z=0.200
+ 96/111 M-RT2                C=161 PR/C raw=0.3865 z=0.9467 COND raw=835.6 z=7.1 SHR raw=0.014 z=0.243
+ 97/111 M-RT3                C=116 PR/C raw=0.4897 z=0.9637 COND raw=426.1 z=3.6 SHR raw=0.014 z=0.264
+ 98/111 M-RT4                C=127 PR/C raw=0.4738 z=0.9370 COND raw=376.0 z=8.4 SHR raw=0.016 z=0.199
+ 99/111 M-RT5                C=121 PR/C raw=0.4737 z=0.9658 COND raw=265.6 z=3.4 SHR raw=0.017 z=0.300
+100/111 T-CO0                C= 55 PR/C raw=0.5768 z=0.9633 COND raw=77.8 z=2.8 SHR raw=0.028 z=0.305
+101/111 T-CO1                C= 59 PR/C raw=0.4790 z=0.9672 COND raw=279.0 z=2.5 SHR raw=0.017 z=0.313
+102/111 T-CO2                C= 45 PR/C raw=0.6032 z=0.9208 COND raw=73.7 z=8.0 SHR raw=0.017 z=0.114
+103/111 T-CO3                C= 53 PR/C raw=0.3752 z=0.9540 COND raw=354.1 z=3.8 SHR raw=0.010 z=0.244
+104/111 T-CO4                C= 65 PR/C raw=0.5681 z=0.8696 COND raw=92.4 z=12.8 SHR raw=0.025 z=0.116
+105/111 T-CO5                C= 59 PR/C raw=0.5272 z=0.9673 COND raw=72.8 z=2.8 SHR raw=0.016 z=0.254
+106/111 T-RT0                C= 54 PR/C raw=0.4485 z=0.9948 COND raw=688.9 z=1.4 SHR raw=0.006 z=0.678
+107/111 T-RT1                C= 64 PR/C raw=0.4294 z=0.9397 COND raw=262.0 z=7.0 SHR raw=0.005 z=0.091
+108/111 T-RT2                C= 36 PR/C raw=0.5129 z=0.9449 COND raw=107.4 z=7.6 SHR raw=0.006 z=0.092
+109/111 T-RT3                C= 73 PR/C raw=0.5223 z=0.8064 COND raw=118.1 z=28.9 SHR raw=0.014 z=0.053
+110/111 T-RT4                C= 53 PR/C raw=0.4852 z=0.9742 COND raw=715.3 z=2.1 SHR raw=0.006 z=0.202
+111/111 T-RT5                C= 69 PR/C raw=0.4826 z=0.9171 COND raw=157.9 z=7.5 SHR raw=0.008 z=0.084
+
+========== FINAL SUMMARY ==========
+Successful: 111 / 111
+Failed: 0
+pr_norm              RAW median=0.52717 ZSCORE median=0.94072
+condition            RAW median=96.89724 ZSCORE median=4.40449
+shrinkage            RAW median=0.01742 ZSCORE median=0.22160
+offdiag_fraction     RAW median=0.23800 ZSCORE median=0.19424
+
+Z-score PR/C >= 0.95: 44
+Z-score PR/C < 0.80: 4
+Nonnegative integer-like raw arrays: 111
+CSV: /data/hossein/mm_project/COV_DIAGNOSTIC_111/covariance_111_sessions.csv
+
+SUCCESS: ALL 111 SESSIONS ANALYZED
+mirzaei@haas034:~/sam/result/Aggregate$ 
